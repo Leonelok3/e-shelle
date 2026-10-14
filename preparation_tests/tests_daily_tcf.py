@@ -91,6 +91,13 @@ class DailyViewTests(TestCase):
         self.assertNotIn("evidence", response.context["daily"]["questions"][0])
         self.assertContains(response, "daily-timer")
 
+    def test_oral_exam_prompt_is_prominently_labeled(self):
+        self.day = date(2026, 10, 4)
+        self.start()
+        response = self.client.get(self.url)
+        self.assertContains(response, "Sujet à traiter")
+        self.assertContains(response, "Les bibliothèques devraient-elles ouvrir tous les jours ?")
+
     def test_grading_is_revealed_only_after_a_started_attempt(self):
         self.assertEqual(self.client.post(self.url, {"day": self.day.isoformat(), "action": "submit"}).status_code, 400)
         self.start()

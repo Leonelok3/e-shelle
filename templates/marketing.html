@@ -381,60 +381,65 @@
 {% endblock %}
 
 {% block content %}
-{% if LANGUAGE_CODE == 'en' %}
-{% include "marketing_en.html" %}
-{% else %}
 <main class="mkt-page">
   <section class="mkt-hero">
     <div class="mkt-shell mkt-grid">
       <div>
-        <span class="mkt-pill">Suite marketing IA E-Shelle</span>
-        <h1 class="mkt-title">Tous vos outils <span>marketing</span> dans un seul espace</h1>
+        <span class="mkt-pill">{% if LANGUAGE_CODE == 'en' %}E-Shelle AI Marketing Suite{% else %}Suite marketing IA E-Shelle{% endif %}</span>
+        <h1 class="mkt-title">
+          {% if LANGUAGE_CODE == 'en' %}
+            All your <span>marketing</span> tools in a single workspace
+          {% else %}
+            Tous vos outils <span>marketing</span> dans un seul espace
+          {% endif %}
+        </h1>
         <p class="mkt-lead">
-          Créez vos publicités, générez des vidéos courtes, préparez les textes WhatsApp, capturez les contacts
-          depuis les groupes, automatisez Facebook, améliorez votre SEO local et organisez la prospection commerciale
-          depuis un portail clair.
+          {% if LANGUAGE_CODE == 'en' %}
+            Create ads, generate short video reels, prepare WhatsApp copy, capture contacts from groups, automate Facebook, improve local SEO, and organize commercial prospecting from one unified portal.
+          {% else %}
+            Créez vos publicités, générez des vidéos courtes, préparez les textes WhatsApp, capturez les contacts depuis les groupes, automatisez Facebook, améliorez votre SEO local et organisez la prospection commerciale depuis un portail clair.
+          {% endif %}
         </p>
         <div class="mkt-actions">
-          <a class="mkt-btn mkt-btn-primary" href="{% url 'adgen:dashboard' %}">Ouvrir AdGen →</a>
-          <a class="mkt-btn" href="{% url 'business:eshelle_communication' %}">Lancer la communication</a>
+          <a class="mkt-btn mkt-btn-primary" href="{% url 'adgen:dashboard' %}">{% if LANGUAGE_CODE == 'en' %}Open AdGen &rarr;{% else %}Ouvrir AdGen →{% endif %}</a>
+          <a class="mkt-btn" href="{% url 'business:eshelle_communication' %}">{% if LANGUAGE_CODE == 'en' %}Launch Communication{% else %}Lancer la communication{% endif %}</a>
           {% if user_has_business %}
-          <a class="mkt-btn mkt-btn-green" href="{% url 'business:dashboard' %}">Gérer mon business →</a>
+          <a class="mkt-btn mkt-btn-green" href="{% url 'business:dashboard' %}">{% if LANGUAGE_CODE == 'en' %}Manage my business &rarr;{% else %}Gérer mon business →{% endif %}</a>
           {% else %}
-          <a class="mkt-btn mkt-btn-green" href="{% url 'business:onboarding' %}">Inscrire mon business →</a>
+          <a class="mkt-btn mkt-btn-green" href="{% url 'business:onboarding' %}">{% if LANGUAGE_CODE == 'en' %}Register my business &rarr;{% else %}Inscrire mon business →{% endif %}</a>
           {% endif %}
         </div>
         <div class="mkt-stats">
-          <div class="mkt-stat"><strong>{{ active_businesses_count }}</strong><span>business actifs</span></div>
-          <div class="mkt-stat"><strong>{{ business_products_count }}</strong><span>produits et services</span></div>
-          <div class="mkt-stat"><strong>{{ published_campaigns_count }}</strong><span>campagnes AdGen</span></div>
+          <div class="mkt-stat"><strong>{{ active_businesses_count }}</strong><span>{% if LANGUAGE_CODE == 'en' %}active businesses{% else %}business actifs{% endif %}</span></div>
+          <div class="mkt-stat"><strong>{{ business_products_count }}</strong><span>{% if LANGUAGE_CODE == 'en' %}products &amp; services{% else %}produits et services{% endif %}</span></div>
+          <div class="mkt-stat"><strong>{{ published_campaigns_count }}</strong><span>{% if LANGUAGE_CODE == 'en' %}AdGen campaigns{% else %}campagnes AdGen{% endif %}</span></div>
         </div>
       </div>
       <aside class="mkt-panel" aria-label="Outils marketing principaux">
         <div class="mkt-feature-grid">
           <a class="mkt-mini-card" href="{% url 'adgen:dashboard' %}">
             <span>✨</span>
-            <span><strong>AdGen</strong><small>Pubs IA en 20 sec</small></span>
+            <span><strong>AdGen</strong><small>{% if LANGUAGE_CODE == 'en' %}AI Ads in 20 sec{% else %}Pubs IA en 20 sec{% endif %}</small></span>
           </a>
           <a class="mkt-mini-card" href="{% url 'business:eshelle_communication' %}">
             <span>📣</span>
-            <span><strong>Communication</strong><small>Lancer E-Shelle terrain</small></span>
+            <span><strong>Communication</strong><small>{% if LANGUAGE_CODE == 'en' %}Field campaign launch{% else %}Lancer E-Shelle terrain{% endif %}</small></span>
           </a>
           <a class="mkt-mini-card" href="{% url 'whatsapp_agent:wa_dashboard' %}">
             <span>💬</span>
-            <span><strong>WhatsApp</strong><small>Campagnes et relances</small></span>
+            <span><strong>WhatsApp</strong><small>{% if LANGUAGE_CODE == 'en' %}Campaigns &amp; follow-ups{% else %}Campagnes et relances{% endif %}</small></span>
           </a>
           <a class="mkt-mini-card" href="{% url 'phone_ocr_agent:dashboard' %}">
             <span>📲</span>
-            <span><strong>Capture WhatsApp</strong><small>Contacts depuis vidéos</small></span>
+            <span><strong>{% if LANGUAGE_CODE == 'en' %}WhatsApp Capture{% else %}Capture WhatsApp{% endif %}</strong><small>{% if LANGUAGE_CODE == 'en' %}Contacts from videos{% else %}Contacts depuis vidéos{% endif %}</small></span>
           </a>
           <a class="mkt-mini-card" href="{% url 'seo_agent:dashboard' %}">
             <span>🔎</span>
-            <span><strong>SEO local</strong><small>Visibilité Google</small></span>
+            <span><strong>{% if LANGUAGE_CODE == 'en' %}Local SEO{% else %}SEO local{% endif %}</strong><small>{% if LANGUAGE_CODE == 'en' %}Google visibility{% else %}Visibilité Google{% endif %}</small></span>
           </a>
           <a class="mkt-mini-card" href="{% url 'commercial_agent:sourcing_hub' %}">
             <span>🍽️</span>
-            <span><strong>Sourcing Prestataires</strong><small>Scraping restaurants & menus</small></span>
+            <span><strong>{% if LANGUAGE_CODE == 'en' %}Merchant Sourcing{% else %}Sourcing Prestataires{% endif %}</strong><small>{% if LANGUAGE_CODE == 'en' %}Restaurant &amp; menu scraping{% else %}Scraping restaurants &amp; menus{% endif %}</small></span>
           </a>
         </div>
       </aside>
@@ -443,69 +448,72 @@
 
   <section class="mkt-section light">
     <div class="mkt-shell">
-      <p class="mkt-kicker">Création publicitaire</p>
-      <h2 class="mkt-heading">Produire vite des contenus qui donnent envie d'acheter</h2>
+      <p class="mkt-kicker">{% if LANGUAGE_CODE == 'en' %}Ad Creation{% else %}Création publicitaire{% endif %}</p>
+      <h2 class="mkt-heading">{% if LANGUAGE_CODE == 'en' %}Fast-track high-converting marketing content{% else %}Produire vite des contenus qui donnent envie d'acheter{% endif %}</h2>
       <p class="mkt-subtitle">
-        Cette zone regroupe les outils pour transformer une fiche produit ou un service en textes, images,
-        vidéos, scripts, posts et messages prêts à publier.
+        {% if LANGUAGE_CODE == 'en' %}
+          This hub brings together the tools to turn any product or service listing into compelling copy, images, videos, scripts, posts, and ready-to-publish messages.
+        {% else %}
+          Cette zone regroupe les outils pour transformer une fiche produit ou un service en textes, images, vidéos, scripts, posts et messages prêts à publier.
+        {% endif %}
       </p>
       <div class="mkt-cards">
         <a class="mkt-card" href="{% url 'adgen:create' %}">
           <span class="mkt-icon">🎥</span>
-          <h3>Nouvelle publicité IA</h3>
-          <p>Créez une campagne, ajoutez les photos du produit et générez des textes et vidéos publicitaires.</p>
-          <small>Créer une campagne →</small>
+          <h3>{% if LANGUAGE_CODE == 'en' %}New AI Ad Campaign{% else %}Nouvelle publicité IA{% endif %}</h3>
+          <p>{% if LANGUAGE_CODE == 'en' %}Create a campaign, upload product images, and generate ads copy and videos.{% else %}Créez une campagne, ajoutez les photos du produit et générez des textes et vidéos publicitaires.{% endif %}</p>
+          <small>{% if LANGUAGE_CODE == 'en' %}Create campaign &rarr;{% else %}Créer une campagne →{% endif %}</small>
         </a>
         <a class="mkt-card" href="{% url 'adgen:dashboard' %}">
           <span class="mkt-icon">✨</span>
           <h3>AdGen</h3>
-          <p>Tableau de bord pour gérer les campagnes, exports JSON, vidéos rapides et option Sora Premium.</p>
-          <small>Ouvrir AdGen →</small>
+          <p>{% if LANGUAGE_CODE == 'en' %}Dashboard to manage campaigns, JSON exports, quick video clips, and premium Sora option.{% else %}Tableau de bord pour gérer les campagnes, exports JSON, vidéos rapides et option Sora Premium.{% endif %}</p>
+          <small>{% if LANGUAGE_CODE == 'en' %}Open AdGen &rarr;{% else %}Ouvrir AdGen →{% endif %}</small>
         </a>
         <a class="mkt-card" href="{% url 'audio_studio:dashboard' %}">
           <span class="mkt-icon">🎙️</span>
           <h3>Audio Studio</h3>
-          <p>Voix-off, musiques et pistes audio pour rendre les vidéos plus professionnelles.</p>
-          <small>Créer un audio →</small>
+          <p>{% if LANGUAGE_CODE == 'en' %}Voiceovers, background music, and audio tracks to elevate video ads.{% else %}Voix-off, musiques et pistes audio pour rendre les vidéos plus professionnelles.{% endif %}</p>
+          <small>{% if LANGUAGE_CODE == 'en' %}Create audio &rarr;{% else %}Créer un audio →{% endif %}</small>
         </a>
         <a class="mkt-card" href="{% url 'eshelle_ai:chat' %}?module=marketing">
           <span class="mkt-icon">🤖</span>
-          <h3>Assistant marketing IA</h3>
-          <p>Brainstorming d'offres, angles de vente, scripts, messages et idées de contenu.</p>
-          <small>Discuter avec l'IA →</small>
+          <h3>{% if LANGUAGE_CODE == 'en' %}AI Marketing Assistant{% else %}Assistant marketing IA{% endif %}</h3>
+          <p>{% if LANGUAGE_CODE == 'en' %}Offer brainstorming, sales hooks, scripts, social posts, and content ideas.{% else %}Brainstorming d'offres, angles de vente, scripts, messages et idées de contenu.{% endif %}</p>
+          <small>{% if LANGUAGE_CODE == 'en' %}Chat with AI &rarr;{% else %}Discuter avec l'IA →{% endif %}</small>
         </a>
         {% if user_has_business %}
         <a class="mkt-card" href="{% url 'business:dashboard' %}">
           <span class="mkt-icon">🏪</span>
-          <h3>Fiche business</h3>
-          <p>Gérez votre vitrine, votre catalogue et vos statistiques depuis votre dashboard.</p>
-          <small>Gérer mon business →</small>
+          <h3>{% if LANGUAGE_CODE == 'en' %}Business Listing{% else %}Fiche business{% endif %}</h3>
+          <p>{% if LANGUAGE_CODE == 'en' %}Manage your storefront, product catalogue, and analytics from your dashboard.{% else %}Gérez votre vitrine, votre catalogue et vos statistiques depuis votre dashboard.{% endif %}</p>
+          <small>{% if LANGUAGE_CODE == 'en' %}Manage my business &rarr;{% else %}Gérer mon business →{% endif %}</small>
         </a>
         {% else %}
         <a class="mkt-card" href="{% url 'business:onboarding' %}">
           <span class="mkt-icon">🏪</span>
-          <h3>Fiche business</h3>
-          <p>Créez une vitrine publique avec catalogue, WhatsApp direct, produits et référencement local.</p>
-          <small>Inscrire mon business →</small>
+          <h3>{% if LANGUAGE_CODE == 'en' %}Business Listing{% else %}Fiche business{% endif %}</h3>
+          <p>{% if LANGUAGE_CODE == 'en' %}Create a public storefront with catalogue, direct WhatsApp button, and local SEO.{% else %}Créez une vitrine publique avec catalogue, WhatsApp direct, produits et référencement local.{% endif %}</p>
+          <small>{% if LANGUAGE_CODE == 'en' %}Register my business &rarr;{% else %}Inscrire mon business →{% endif %}</small>
         </a>
         {% endif %}
         <a class="mkt-card" href="{% url 'products_services' %}">
           <span class="mkt-icon">🛍️</span>
-          <h3>Produits & services</h3>
-          <p>Point d'entrée vers les offres E-Shelle qui aident une entreprise à vendre plus.</p>
-          <small>Voir les solutions →</small>
+          <h3>{% if LANGUAGE_CODE == 'en' %}Products &amp; Services{% else %}Produits &amp; services{% endif %}</h3>
+          <p>{% if LANGUAGE_CODE == 'en' %}Gateway to E-Shelle marketing solutions designed to help businesses boost sales.{% else %}Point d'entrée vers les offres E-Shelle qui aident une entreprise à vendre plus.{% endif %}</p>
+          <small>{% if LANGUAGE_CODE == 'en' %}View solutions &rarr;{% else %}Voir les solutions →{% endif %}</small>
         </a>
         <a class="mkt-card" href="{% url 'business:ai_arsenal' %}">
           <span class="mkt-icon">🧰</span>
-          <h3>Arsenal IA</h3>
-          <p>Un espace d'actions rapides pour produire des contenus, réponses, angles et supports business.</p>
-          <small>Ouvrir l'arsenal →</small>
+          <h3>{% if LANGUAGE_CODE == 'en' %}AI Arsenal{% else %}Arsenal IA{% endif %}</h3>
+          <p>{% if LANGUAGE_CODE == 'en' %}Quick-action workspace to produce marketing assets, responses, sales hooks, and business materials.{% else %}Un espace d'actions rapides pour produire des contenus, réponses, angles et supports business.{% endif %}</p>
+          <small>{% if LANGUAGE_CODE == 'en' %}Open arsenal &rarr;{% else %}Ouvrir l'arsenal →{% endif %}</small>
         </a>
         <a class="mkt-card" href="{% url 'commercial_agent:sourcing_hub' %}">
           <span class="mkt-icon">🍽️</span>
-          <h3>Sourcing Prestataires Resto</h3>
-          <p>Scrapez et trouvez les restaurants, traiteurs et menus de Douala avec numéros WhatsApp pour les inviter sur E-Shelle.</p>
-          <small>Lancer le sourcing →</small>
+          <h3>{% if LANGUAGE_CODE == 'en' %}Restaurant Sourcing{% else %}Sourcing Prestataires Resto{% endif %}</h3>
+          <p>{% if LANGUAGE_CODE == 'en' %}Scrape and discover restaurants, caterers, and menus in Douala with WhatsApp contacts to invite them on E-Shelle.{% else %}Scrapez et trouvez les restaurants, traiteurs et menus de Douala avec numéros WhatsApp pour les inviter sur E-Shelle.{% endif %}</p>
+          <small>{% if LANGUAGE_CODE == 'en' %}Start sourcing &rarr;{% else %}Lancer le sourcing →{% endif %}</small>
         </a>
       </div>
     </div>
@@ -513,66 +521,69 @@
 
   <section class="mkt-section deep">
     <div class="mkt-shell">
-      <p class="mkt-kicker" style="color:#fbbf24;">Diffusion et acquisition</p>
-      <h2 class="mkt-heading">Publier, relancer, prospecter et mesurer</h2>
+      <p class="mkt-kicker" style="color:#fbbf24;">{% if LANGUAGE_CODE == 'en' %}Distribution &amp; Acquisition{% else %}Diffusion et acquisition{% endif %}</p>
+      <h2 class="mkt-heading">{% if LANGUAGE_CODE == 'en' %}Publish, follow up, prospect, and track results{% else %}Publier, relancer, prospecter et mesurer{% endif %}</h2>
       <p class="mkt-subtitle">
-        Une bonne publicité ne suffit pas. Il faut ensuite la diffuser au bon endroit, relancer les prospects
-        capturer les contacts visibles dans les groupes et garder une trace des opportunités.
+        {% if LANGUAGE_CODE == 'en' %}
+          Great ads require smart distribution: broadcast to targeted channels, follow up leads, capture group contacts, and track deals.
+        {% else %}
+          Une bonne publicité ne suffit pas. Il faut ensuite la diffuser au bon endroit, relancer les prospects, capturer les contacts visibles dans les groupes et garder une trace des opportunités.
+        {% endif %}
       </p>
       <div class="mkt-cards">
         <a class="mkt-card" href="{% url 'whatsapp_agent:wa_dashboard' %}">
           <span class="mkt-icon">💬</span>
           <h3>WhatsApp Agent</h3>
-          <p>Campagnes WhatsApp, import contacts, messages IA, tests, relances et exports CSV.</p>
-          <small>Lancer WhatsApp →</small>
+          <p>{% if LANGUAGE_CODE == 'en' %}WhatsApp campaigns, contact imports, AI messages, test dispatches, follow-ups, and CSV exports.{% else %}Campagnes WhatsApp, import contacts, messages IA, tests, relances et exports CSV.{% endif %}</p>
+          <small>{% if LANGUAGE_CODE == 'en' %}Launch WhatsApp &rarr;{% else %}Lancer WhatsApp →{% endif %}</small>
         </a>
         <a class="mkt-card" href="{% url 'phone_ocr_agent:dashboard' %}">
           <span class="mkt-icon">📲</span>
-          <h3>Capture groupes WhatsApp</h3>
-          <p>Importez captures ou enregistrements de groupes, extrayez les numéros visibles et préparez vos listes de prospection.</p>
-          <small>Capturer les contacts →</small>
+          <h3>{% if LANGUAGE_CODE == 'en' %}WhatsApp Group Capture{% else %}Capture groupes WhatsApp{% endif %}</h3>
+          <p>{% if LANGUAGE_CODE == 'en' %}Import screenshots or video screen records from groups, extract visible numbers, and prepare prospect lists.{% else %}Importez captures ou enregistrements de groupes, extrayez les numéros visibles et préparez vos listes de prospection.{% endif %}</p>
+          <small>{% if LANGUAGE_CODE == 'en' %}Capture contacts &rarr;{% else %}Capturer les contacts →{% endif %}</small>
         </a>
         <a class="mkt-card" href="{% url 'facebook_agent:dashboard' %}">
           <span class="mkt-icon">📘</span>
           <h3>Facebook Agent</h3>
-          <p>Préparation, aperçu, publication et suivi des posts Facebook/TikTok/Reels.</p>
-          <small>Ouvrir Facebook Agent →</small>
+          <p>{% if LANGUAGE_CODE == 'en' %}Draft, preview, publish, and analyze Facebook/TikTok/Reels content.{% else %}Préparation, aperçu, publication et suivi des posts Facebook/TikTok/Reels.{% endif %}</p>
+          <small>{% if LANGUAGE_CODE == 'en' %}Open Facebook Agent &rarr;{% else %}Ouvrir Facebook Agent →{% endif %}</small>
         </a>
         <a class="mkt-card" href="{% url 'commercial_agent:dashboard' %}">
           <span class="mkt-icon">📣</span>
-          <h3>Agent commercial</h3>
-          <p>Prospection, synchronisation des fiches business, génération de messages et relances.</p>
-          <small>Lancer la prospection →</small>
+          <h3>{% if LANGUAGE_CODE == 'en' %}Sales Agent{% else %}Agent commercial{% endif %}</h3>
+          <p>{% if LANGUAGE_CODE == 'en' %}Lead generation, business profile sync, tailored sales outreach, and scheduled follow-ups.{% else %}Prospection, synchronisation des fiches business, génération de messages et relances.{% endif %}</p>
+          <small>{% if LANGUAGE_CODE == 'en' %}Start prospecting &rarr;{% else %}Lancer la prospection →{% endif %}</small>
         </a>
         <a class="mkt-card" href="{% url 'seo_agent:dashboard' %}">
           <span class="mkt-icon">🔎</span>
           <h3>SEO Agent</h3>
-          <p>Audit, corrections et contenus pour améliorer la visibilité sur les moteurs de recherche.</p>
-          <small>Améliorer le SEO →</small>
+          <p>{% if LANGUAGE_CODE == 'en' %}Audits, automated fixes, and structured copy to boost search engine positioning.{% else %}Audit, corrections et contenus pour améliorer la visibilité sur les moteurs de recherche.{% endif %}</p>
+          <small>{% if LANGUAGE_CODE == 'en' %}Improve SEO &rarr;{% else %}Améliorer le SEO →{% endif %}</small>
         </a>
         <a class="mkt-card" href="{% url 'business:onboarding' %}">
           <span class="mkt-icon">📍</span>
-          <h3>Référencement local</h3>
-          <p>Inscription d'un commerce dans l'annuaire E-Shelle avec ville, quartier, services et contacts.</p>
-          <small>Créer une fiche →</small>
+          <h3>{% if LANGUAGE_CODE == 'en' %}Local Directory SEO{% else %}Référencement local{% endif %}</h3>
+          <p>{% if LANGUAGE_CODE == 'en' %}Business profile registration in the E-Shelle directory with city, neighborhood, services, and contacts.{% else %}Inscription d'un commerce dans l'annuaire E-Shelle avec ville, quartier, services et contacts.{% endif %}</p>
+          <small>{% if LANGUAGE_CODE == 'en' %}Create listing &rarr;{% else %}Créer une fiche →{% endif %}</small>
         </a>
         <a class="mkt-card" href="{% url 'business:eshelle_command_center' %}">
           <span class="mkt-icon">📊</span>
           <h3>Command Center</h3>
-          <p>Vue de pilotage pour suivre les actions business, les opportunités et les priorités terrain.</p>
-          <small>Ouvrir le centre →</small>
+          <p>{% if LANGUAGE_CODE == 'en' %}Executive control view to manage marketing workflows, leads, and operational priorities.{% else %}Vue de pilotage pour suivre les actions business, les opportunités et les priorités terrain.{% endif %}</p>
+          <small>{% if LANGUAGE_CODE == 'en' %}Open center &rarr;{% else %}Ouvrir le centre →{% endif %}</small>
         </a>
         <a class="mkt-card" href="/services/contact/">
           <span class="mkt-icon">🤝</span>
-          <h3>Accompagnement</h3>
-          <p>Pour les clients qui veulent une stratégie complète : offre, tunnel, visuels, publication et suivi.</p>
-          <small>Demander un devis →</small>
+          <h3>{% if LANGUAGE_CODE == 'en' %}Tailored Support{% else %}Accompagnement{% endif %}</h3>
+          <p>{% if LANGUAGE_CODE == 'en' %}For clients desiring full turnkey marketing: offer architecture, sales funnel, visuals, and management.{% else %}Pour les clients qui veulent une stratégie complète : offre, tunnel, visuels, publication et suivi.{% endif %}</p>
+          <small>{% if LANGUAGE_CODE == 'en' %}Request a quote &rarr;{% else %}Demander un devis →{% endif %}</small>
         </a>
         <a class="mkt-card" href="{% url 'commercial_agent:sourcing_hub' %}">
           <span class="mkt-icon">🎯</span>
-          <h3>Scraping & Sourcing Resto</h3>
-          <p>Détectez et extrayez les contacts WhatsApp de restaurants et traiteurs de Douala pour vos campagnes terrain.</p>
-          <small>Lancer le scraping →</small>
+          <h3>{% if LANGUAGE_CODE == 'en' %}Restaurant Scraping &amp; Leads{% else %}Scraping &amp; Sourcing Resto{% endif %}</h3>
+          <p>{% if LANGUAGE_CODE == 'en' %}Identify and extract WhatsApp contacts of restaurants and caterers in Douala for field marketing.{% else %}Détectez et extrayez les contacts WhatsApp de restaurants et traiteurs de Douala pour vos campagnes terrain.{% endif %}</p>
+          <small>{% if LANGUAGE_CODE == 'en' %}Start scraping &rarr;{% else %}Lancer le scraping →{% endif %}</small>
         </a>
       </div>
     </div>
@@ -580,31 +591,35 @@
 
   <section class="mkt-section light">
     <div class="mkt-shell">
-      <p class="mkt-kicker">Méthode E-Shelle</p>
-      <h2 class="mkt-heading">Un parcours simple pour transformer une activité en machine commerciale</h2>
+      <p class="mkt-kicker">{% if LANGUAGE_CODE == 'en' %}E-Shelle Methodology{% else %}Méthode E-Shelle{% endif %}</p>
+      <h2 class="mkt-heading">{% if LANGUAGE_CODE == 'en' %}A streamlined path to turn any business into a high-growth sales machine{% else %}Un parcours simple pour transformer une activité en machine commerciale{% endif %}</h2>
       <p class="mkt-subtitle">
-        Le portail Marketing doit guider un vendeur depuis son produit jusqu'à la diffusion terrain.
+        {% if LANGUAGE_CODE == 'en' %}
+          The marketing portal guides sellers seamlessly from raw products to broad field distribution.
+        {% else %}
+          Le portail Marketing doit guider un vendeur depuis son produit jusqu'à la diffusion terrain.
+        {% endif %}
       </p>
       <div class="mkt-flow">
         <div class="mkt-step">
           <b>1</b>
-          <h3>Créer la fiche</h3>
-          <p>Nom, ville, offre, prix, photos et WhatsApp pour rendre le business visible.</p>
+          <h3>{% if LANGUAGE_CODE == 'en' %}Create profile{% else %}Créer la fiche{% endif %}</h3>
+          <p>{% if LANGUAGE_CODE == 'en' %}Name, city, offer, price, photos, and WhatsApp to establish online visibility.{% else %}Nom, ville, offre, prix, photos et WhatsApp pour rendre le business visible.{% endif %}</p>
         </div>
         <div class="mkt-step">
           <b>2</b>
-          <h3>Générer la pub</h3>
-          <p>AdGen produit les titres, descriptions, messages et vidéos courtes.</p>
+          <h3>{% if LANGUAGE_CODE == 'en' %}Generate ad{% else %}Générer la pub{% endif %}</h3>
+          <p>{% if LANGUAGE_CODE == 'en' %}AdGen produces compelling titles, descriptions, copy, and video shorts.{% else %}AdGen produit les titres, descriptions, messages et vidéos courtes.{% endif %}</p>
         </div>
         <div class="mkt-step">
           <b>3</b>
-          <h3>Diffuser</h3>
-          <p>WhatsApp, Facebook, statut, Reels, catalogue, groupes et canaux locaux.</p>
+          <h3>{% if LANGUAGE_CODE == 'en' %}Broadcast{% else %}Diffuser{% endif %}</h3>
+          <p>{% if LANGUAGE_CODE == 'en' %}WhatsApp, Facebook, Status, Reels, online catalogue, groups, and local channels.{% else %}WhatsApp, Facebook, statut, Reels, catalogue, groupes et canaux locaux.{% endif %}</p>
         </div>
         <div class="mkt-step">
           <b>4</b>
-          <h3>Capturer et relancer</h3>
-          <p>Extraction de contacts depuis groupes WhatsApp, agent commercial, messages personnalisés et suivi prospects.</p>
+          <h3>{% if LANGUAGE_CODE == 'en' %}Capture &amp; Follow up{% else %}Capturer et relancer{% endif %}</h3>
+          <p>{% if LANGUAGE_CODE == 'en' %}Extract group contacts, deploy sales agents, send personalized messages, and track deals.{% else %}Extraction de contacts depuis groupes WhatsApp, agent commercial, messages personnalisés et suivi prospects.{% endif %}</p>
         </div>
       </div>
     </div>
@@ -613,20 +628,22 @@
   <section class="mkt-section deep">
     <div class="mkt-shell">
       <div class="mkt-final">
-        <h2>Une seule page pour vendre, publier et grandir</h2>
+        <h2>{% if LANGUAGE_CODE == 'en' %}One single platform to sell, publish, and grow{% else %}Une seule page pour vendre, publier et grandir{% endif %}</h2>
         <p>
-          Le bouton Marketing devient la porte d'entrée de tout ce qui aide une entreprise à attirer des clients :
-          publicité IA, communication, réseaux sociaux, WhatsApp, capture de groupes, SEO, audio, agents commerciaux et fiches business.
+          {% if LANGUAGE_CODE == 'en' %}
+            The Marketing hub is the central engine for customer acquisition: AI advertising, field campaigns, social media, WhatsApp outreach, group number extraction, SEO, audio studio, sales agents, and merchant storefronts.
+          {% else %}
+            Le bouton Marketing devient la porte d'entrée de tout ce qui aide une entreprise à attirer des clients : publicité IA, communication, réseaux sociaux, WhatsApp, capture de groupes, SEO, audio, agents commerciaux et fiches business.
+          {% endif %}
         </p>
         <div class="mkt-actions" style="justify-content:center;margin-top:0;">
-          <a class="mkt-btn mkt-btn-primary" href="{% url 'adgen:create' %}">Créer une publicité →</a>
-          <a class="mkt-btn" href="{% url 'whatsapp_agent:wa_creer' %}">Nouvelle campagne WhatsApp</a>
-          <a class="mkt-btn" href="{% url 'phone_ocr_agent:dashboard' %}">Capturer contacts WhatsApp</a>
-          <a class="mkt-btn mkt-btn-green" href="{% url 'business:eshelle_communication' %}">Lancer la communication →</a>
+          <a class="mkt-btn mkt-btn-primary" href="{% url 'adgen:create' %}">{% if LANGUAGE_CODE == 'en' %}Create an ad &rarr;{% else %}Créer une publicité →{% endif %}</a>
+          <a class="mkt-btn" href="{% url 'whatsapp_agent:wa_creer' %}">{% if LANGUAGE_CODE == 'en' %}New WhatsApp Campaign{% else %}Nouvelle campagne WhatsApp{% endif %}</a>
+          <a class="mkt-btn" href="{% url 'phone_ocr_agent:dashboard' %}">{% if LANGUAGE_CODE == 'en' %}Capture WhatsApp Contacts{% else %}Capturer contacts WhatsApp{% endif %}</a>
+          <a class="mkt-btn mkt-btn-green" href="{% url 'business:eshelle_communication' %}">{% if LANGUAGE_CODE == 'en' %}Launch Communication &rarr;{% else %}Lancer la communication →{% endif %}</a>
         </div>
       </div>
     </div>
   </section>
 </main>
-{% endif %}
 {% endblock %}

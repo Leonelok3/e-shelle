@@ -1,6 +1,6 @@
 {% load static resto_tags %}
 <!DOCTYPE html>
-<html lang="fr" class="scroll-smooth">
+<html lang="{{ LANGUAGE_CODE|default:'fr' }}" class="scroll-smooth">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -111,13 +111,13 @@
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
           </svg>
-          <span class="truncate max-w-[80px]">{% block current_city %}Toutes villes{% endblock %}</span>
+          <span class="truncate max-w-[80px]">{% block current_city %}{% if LANGUAGE_CODE == 'en' %}All cities{% else %}Toutes villes{% endif %}{% endblock %}</span>
           <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
         </button>
         <div x-show="open" @click.away="open = false"
              class="absolute top-full left-0 mt-1 bg-white rounded-xl shadow-lg border border-gray-100 py-1 min-w-[160px] z-50">
           <a href="{% url 'resto:restaurant_list' %}"
-             class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">Toutes les villes</a>
+             class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">{% if LANGUAGE_CODE == 'en' %}All cities{% else %}Toutes les villes{% endif %}</a>
           {% for city in resto_cities %}
           <a href="{% url 'resto:restaurant_list' %}?city={{ city.slug }}"
              class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">{{ city.name }}</a>
@@ -129,7 +129,7 @@
       <div class="flex-1 max-w-md hidden md:block" x-data="{ open: false }">
         <div class="relative">
           <input type="text"
-                 placeholder="Rechercher un restaurant ou un plat..."
+                 placeholder="{% if LANGUAGE_CODE == 'en' %}Search restaurants or dishes...{% else %}Rechercher un restaurant ou un plat...{% endif %}"
                  class="w-full pl-10 pr-4 py-2 text-sm bg-gray-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-resto-primary focus:bg-white transition"
                  @focus="open = true"
                  hx-get="{% url 'resto:search' %}"
@@ -150,13 +150,13 @@
         {% if user.is_authenticated %}
           <a href="{% url 'resto:dashboard_home' %}"
              class="text-sm font-medium text-gray-700 hover:text-resto-primary px-3 py-1.5 rounded-lg hover:bg-gray-50 transition">
-            Mon tableau de bord
+            {% if LANGUAGE_CODE == 'en' %}My dashboard{% else %}Mon tableau de bord{% endif %}
           </a>
         {% else %}
           <a href="{% url 'resto:register' %}"
              class="hidden sm:inline-flex items-center gap-1.5 text-sm font-semibold bg-resto-primary text-white px-3 py-1.5 rounded-lg hover:bg-orange-700 transition">
             <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/></svg>
-            Inscrire mon resto
+            {% if LANGUAGE_CODE == 'en' %}List my restaurant{% else %}Inscrire mon resto{% endif %}
           </a>
         {% endif %}
       </div>
@@ -176,15 +176,16 @@
   <footer class="hidden md:block bg-white border-t border-gray-100 mt-16 py-8">
     <div class="max-w-6xl mx-auto px-4 space-y-6">
       <div class="flex flex-col md:flex-row items-center justify-between gap-4 text-sm text-gray-500">
-        <p>© 2026 E-Shelle Resto — Plateforme de découverte des restaurants au Cameroun</p>
+        <p>© 2026 E-Shelle Resto — {% if LANGUAGE_CODE == 'en' %}Restaurant discovery in Cameroon{% else %}Plateforme de découverte des restaurants au Cameroun{% endif %}</p>
         <div class="flex items-center gap-6">
-          <a href="{% url 'resto:home' %}" class="hover:text-gray-900 transition">Accueil</a>
-          <a href="{% url 'resto:restaurant_list' %}" class="hover:text-gray-900 transition">Restaurants</a>
-          <a href="{% url 'resto:register' %}" class="hover:text-gray-900 transition">Inscrire mon restaurant</a>
+          <a href="{% url 'resto:home' %}" class="hover:text-gray-900 transition">{% if LANGUAGE_CODE == 'en' %}Home{% else %}Accueil{% endif %}</a>
+          <form action="{% url 'set_language' %}" method="post" class="inline-flex items-center gap-1">{% csrf_token %}<input type="hidden" name="next" value="{{ request.get_full_path }}"><button name="language" value="fr" class="px-2 py-1 rounded {% if LANGUAGE_CODE == 'fr' %}font-bold text-resto-primary{% endif %}">FR</button><button name="language" value="en" class="px-2 py-1 rounded {% if LANGUAGE_CODE == 'en' %}font-bold text-resto-primary{% endif %}">EN</button></form>
+      <a href="{% url 'resto:restaurant_list' %}" class="hover:text-gray-900 transition">Restaurants</a>
+          <a href="{% url 'resto:register' %}" class="hover:text-gray-900 transition">{% if LANGUAGE_CODE == 'en' %}List my restaurant{% else %}Inscrire mon restaurant{% endif %}</a>
         </div>
       </div>
       <div>
-        <p class="text-xs font-semibold uppercase tracking-wider text-gray-500 mb-2">Villes du Cameroun</p>
+        <p class="text-xs font-semibold uppercase tracking-wider text-gray-500 mb-2">{% if LANGUAGE_CODE == 'en' %}Cities in Cameroon{% else %}Villes du Cameroun{% endif %}</p>
         <div class="flex flex-wrap gap-2">
           {% for city in resto_cities %}
           <a href="{% url 'resto:restaurant_list' %}?city={{ city.slug }}"
@@ -200,13 +201,13 @@
   <!-- ── Mobile Bottom Navigation ─────────────────────────────────────────── -->
   <nav class="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-white border-t border-gray-200 safe-area-bottom">
     <div class="flex items-center justify-around h-16">
-      <!-- Accueil -->
+      <!-- {% if LANGUAGE_CODE == 'en' %}Home{% else %}Accueil{% endif %} -->
       <a href="{% url 'resto:home' %}"
          class="flex flex-col items-center gap-0.5 text-xs font-medium {% block nav_home %}text-gray-400{% endblock %} hover:text-resto-primary transition">
         <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
         </svg>
-        Accueil
+        {% if LANGUAGE_CODE == 'en' %}Home{% else %}Accueil{% endif %}
       </a>
       <!-- Restaurants -->
       <a href="{% url 'resto:restaurant_list' %}"

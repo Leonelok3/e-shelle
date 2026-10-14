@@ -1,7 +1,7 @@
 {% extends "base.html" %}{% load static %}
 {% block title %}TCF Canada · Leçon et exercice du jour{% endblock %}
 {% block body_class %}preparation-tests{% endblock %}
-{% block extra_css %}<link rel="stylesheet" href="{% static 'css/preparation_tests.css' %}"><link rel="stylesheet" href="{% static 'css/tcf-daily.css' %}?v=20261002-2">{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'css/preparation_tests.css' %}"><link rel="stylesheet" href="{% static 'css/tcf-daily.css' %}?v=20261012-1">{% endblock %}
 {% block content %}
 <main class="tcf-daily-shell" data-day="{{ daily.key }}">
   <a href="{% url 'preparation_tests:tcf_hub' %}" class="tcf-daily-back">← Préparation TCF</a>
@@ -45,7 +45,10 @@
             {% for letter, option in question.options.items %}<label class="tcf-daily-option"><input type="radio" name="answer_{{ forloop.parentloop.counter0 }}" value="{{ letter }}"><span>{{ letter }}. {{ option }}</span></label>{% endfor %}
           </fieldset>{% endfor %}
         {% else %}
-          <h3>{{ daily.question }}</h3>
+          <div class="tcf-daily-prompt" role="group" aria-labelledby="daily-prompt-label">
+            <p class="tcf-daily-kicker" id="daily-prompt-label">{% if daily.skill == 'eo' %}Sujet à traiter{% else %}Consigne de production{% endif %}</p>
+            <h3>{{ daily.question }}</h3>
+          </div>
           {% if daily.skill == 'eo' %}
             <p>Réponds à voix haute dès le démarrage, sans préparer un texte. L'enregistrement est facultatif ; il reste sur ton appareil.</p>
             <button type="button" class="pt-btn-secondary" id="daily-record">Enregistrer ma prise de parole</button>

@@ -103,6 +103,30 @@
       <p style="padding:1rem;border-radius:12px;background:rgba(255,255,255,.06);color:rgba(255,255,255,.72)">Le parcours Meta sera disponible après configuration et validation des accès du Tech Provider.</p>
     {% endif %}
     {% if entitlements.can_use_crm %}
+    <section style="margin:1rem 0;padding:1rem;border:1px solid rgba(34,197,94,.3);border-radius:14px;background:rgba(34,197,94,.05)">
+      <h2>Commandes WhatsApp</h2>
+      {% for draft in draft_orders %}
+        <article style="padding:.75rem 0;border-bottom:1px solid rgba(255,255,255,.1)">
+          <strong>{{ draft.catalog_item.title }} × {{ draft.quantity }}</strong>
+          <span> — {{ draft.total_price }} FCFA — {{ draft.contact.display_name|default:draft.contact.phone }}</span>
+          <span style="display:block;color:rgba(255,255,255,.65)">État : {{ draft.get_status_display }}{% if draft.boutique_order %} · Commande {{ draft.boutique_order.reference }}{% endif %}{% if draft.payment_transaction %} · Paiement à valider manuellement{% endif %}</span>
+          {% if draft.status == "awaiting_confirmation" %}
+            <div style="display:flex;gap:.5rem;margin-top:.5rem">
+              <form method="post" action="{% url 'whatsapp_commerce:draft_order_update' business.id draft.id %}">
+                {% csrf_token %}<input type="hidden" name="action" value="confirm">
+                <button type="submit" style="padding:.45rem .7rem;border:0;border-radius:6px;background:#16a34a;color:#fff">Confirmer après OUI client</button>
+              </form>
+              <form method="post" action="{% url 'whatsapp_commerce:draft_order_update' business.id draft.id %}">
+                {% csrf_token %}<input type="hidden" name="action" value="cancel">
+                <button type="submit" style="padding:.45rem .7rem;border:0;border-radius:6px;background:#7f1d1d;color:#fff">Annuler</button>
+              </form>
+            </div>
+          {% endif %}
+        </article>
+      {% empty %}
+        <p>Aucune demande de commande WhatsApp.</p>
+      {% endfor %}
+    </section>
     <div style="display:grid;grid-template-columns:minmax(220px,.75fr) minmax(0,1.5fr);gap:1rem;margin-top:1.2rem">
       <aside style="padding:1rem;border:1px solid rgba(255,255,255,.12);border-radius:14px">
         <h2 style="margin-top:0">Contacts et prospects</h2>

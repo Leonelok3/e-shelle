@@ -1,43 +1,44 @@
 """Shared navigation registry; route names keep links and active states in sync."""
 from django import template
 from django.urls import reverse
+from django.utils.translation import gettext_lazy as _
 
 register = template.Library()
 
 GROUPS = (
-    ('journey', 'Mon parcours', (
-        ('immigration97:dashboard', 'Mon tableau de bord'),
-        ('immigration97:assessment', 'Mon bilan de départ'),
-        ('immigration97:onboarding', 'Mon objectif et mon rythme'),
+    ('journey', _('Mon parcours'), (
+        ('immigration97:dashboard', _('Mon tableau de bord')),
+        ('immigration97:assessment', _('Mon bilan de départ')),
+        ('immigration97:onboarding', _('Mon objectif et mon rythme')),
     )),
-    ('learn', 'Apprendre avec l’IA', (
-        ('preparation_tests:learning_center', 'Mon entraînement IA'),
-        ('preparation_tests:tcf_hub', 'Préparation TCF'),
-        ('preparation_tests:tef_hub', 'Préparation TEF'),
-        ('preparation_tests:dashboard_global', 'Ma progression'),
-        ('preparation_tests:level_mock_hub', 'Examens par niveau'),
+    ('learn', _('Apprendre avec l’IA'), (
+        ('preparation_tests:learning_center', _('Mon entraînement IA')),
+        ('preparation_tests:tcf_hub', _('Préparation TCF')),
+        ('preparation_tests:tef_hub', _('Préparation TEF')),
+        ('preparation_tests:dashboard_global', _('Ma progression')),
+        ('preparation_tests:level_mock_hub', _('Examens par niveau')),
     )),
-    ('coach', 'Mon coach IA', (
-        ('preparation_tests:ai_coach', 'Coach IA de français'),
-        ('canada_resume:immigration_coach', 'Coach IA immigration'),
-        ('canada_resume:interview_simulation', 'Simulation d’entretien'),
+    ('coach', _('Mon coach IA'), (
+        ('preparation_tests:ai_coach', _('Coach IA de français')),
+        ('canada_resume:immigration_coach', _('Coach IA immigration')),
+        ('canada_resume:interview_simulation', _('Simulation d’entretien')),
     )),
-    ('project', 'Mon dossier Canada', (
-        ('immigration97:dossier', 'Mes étapes de préparation'),
-        ('canada_resume:dashboard', 'Mon CV et ma lettre'),
-        ('canada_resume:diagnostic', 'Ma feuille de route'),
-        ('canada_resume:manage_projects', 'Mon portfolio'),
-        ('canada_resume:canada_resources', 'Guides et ressources'),
+    ('project', _('Mon dossier Canada'), (
+        ('immigration97:dossier', _('Mes étapes de préparation')),
+        ('canada_resume:dashboard', _('Mon CV et ma lettre')),
+        ('canada_resume:diagnostic', _('Ma feuille de route')),
+        ('canada_resume:manage_projects', _('Mon portfolio')),
+        ('canada_resume:canada_resources', _('Guides et ressources')),
     )),
-    ('opportunities', 'Opportunités', (
-        ('jobs:canada_jobs', 'Offres d’emploi EIMT'),
-        ('jobs:canada_scholarships', 'Bourses d’études'),
-        ('canada_resume:program_study', 'Guide des études'),
-        ('canada_resume:program_visit', 'Préparer ma visite'),
-        ('jobs:canada_visitor_opps', 'Opportunités de visite'),
-        ('canada_resume:programs_hub', 'Programmes d’immigration'),
-        ('canada_resume:talents_directory', 'Annuaire des talents'),
-        ('jobs:canada_news', 'Actualités et tirages'),
+    ('opportunities', _('Opportunités'), (
+        ('jobs:canada_jobs', _('Offres d’emploi EIMT')),
+        ('jobs:canada_scholarships', _('Bourses d’études')),
+        ('canada_resume:program_study', _('Guide des études')),
+        ('canada_resume:program_visit', _('Préparer ma visite')),
+        ('jobs:canada_visitor_opps', _('Opportunités de visite')),
+        ('canada_resume:programs_hub', _('Programmes d’immigration')),
+        ('canada_resume:talents_directory', _('Annuaire des talents')),
+        ('jobs:canada_news', _('Actualités et tirages')),
     )),
 )
 
@@ -71,7 +72,7 @@ def canada_navigation(context):
         elif leaf == 'talent_detail':
             active = 'canada_resume:talents_directory'
     groups = []
-    current = 'Accueil Canada'
+    current = _('Accueil Canada')
     for key, label, links in GROUPS:
         items = [{'url': reverse(route), 'label': title, 'active': route == active,
                   'exact': route == name} for route, title in links]
@@ -79,6 +80,6 @@ def canada_navigation(context):
         if selected:
             current = next(item['label'] for item in items if item['active'])
         groups.append({'key': key, 'label': label, 'items': items,
-                       'active': selected, 'url': items[0]['url']})
+                        'active': selected, 'url': items[0]['url']})
     return {'enabled': True, 'groups': groups, 'current': current,
             'home': name == 'canada_landing'}

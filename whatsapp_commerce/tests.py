@@ -22,6 +22,7 @@ from .models import (
 	ProductView,
 	ProductWhatsAppSync,
 	ScheduledBusinessWhatsAppMessage,
+	WhatsAppDraftOrder,
 )
 from .onboarding import MetaOnboardingError, connect_business
 from .services import get_whatsapp_schema_extension, send_abandoned_cart_whatsapp, sync_product_to_whatsapp_catalog
@@ -32,6 +33,9 @@ from .automations import (
 	send_due_template_follow_ups,
 )
 from .brain import generate_sales_decision
+from .orchestrator import confirm_draft_order
+from boutique.models import Commande, LigneCommande
+from payments.models import Transaction
 from .orchestrator import can_create_order
 
 
@@ -284,8 +288,7 @@ class BusinessWhatsAppTests(TestCase):
 		contact = BusinessWhatsAppContact.objects.create(
 			business=self.business,
 			phone="+237699000012",
-			marketing_opt_in=True,
-			consented_at=timezone.now(),
+			consent_service=True,
 			last_inbound_at=timezone.now(),
 		)
 		call_llm_mock.return_value = json.dumps({
@@ -295,12 +298,11 @@ class BusinessWhatsAppTests(TestCase):
 		})
 
 		decision = generate_sales_decision(connection, contact, "Je commande le sac artisanal")
-		audit = BusinessWhatsAppAudit.objects.get(event_type="sales_action_pending")
+		audit = BusinessWhatsAppAudit.objects.get(event_type="draft_order_created")
 
-		self.assertEqual(decision["action_next"], "pending_approval")
-		self.assertEqual(audit.details["pending_action"]["status"], "pending_approval")
-		self.assertEqual(audit.details["pending_action"]["catalog_item_id"], item.pk)
-		self.assertTrue(audit.details["guard_passed"])
+		self.assertEqual(decision["action_next"], "await_customer_confirmation")
+		self.assertEqual(audit.details["catalog_item_id"], item.pk)
+		self.assertEqual(audit.details["quantity"], 1)
 		contact.last_inbound_at = timezone.now() - timezone.timedelta(hours=25)
 		contact.save(update_fields=["last_inbound_at"])
 		with patch("whatsapp_commerce.automations.get_approved_template_catalog", return_value=[]):
@@ -314,11 +316,163 @@ class BusinessWhatsAppTests(TestCase):
 		):
 			self.assertEqual(can_create_order(connection, contact, item), (True, ""))
 		contact.marketing_opt_in = False
-		contact.save(update_fields=["marketing_opt_in"])
+		contact.last_inbound_at = timezone.now()
+		contact.save(update_fields=["marketing_opt_in", "last_inbound_at"])
 		self.assertEqual(
 			can_create_order(connection, contact, item),
-			(False, "contact_consent_required"),
+			(True, ""),
 		)
+		contact.consent_service = False
+		contact.save(update_fields=["consent_service"])
+		self.assertEqual(
+			can_create_order(connection, contact, item),
+			(False, "service_consent_required"),
+		)
+
+	@patch("whatsapp_commerce.brain.call_llm")
+	def test_draft_creation(self, call_llm_mock):
+		connection = BusinessWhatsAppConnection.objects.create(
+			business=self.business,
+			waba_id="draft-create-waba",
+			phone_number_id="draft-create-phone",
+			status=BusinessWhatsAppConnection.Status.ACTIVE,
+			agent_enabled=True,
+		)
+		item = BusinessCatalogItem.objects.create(
+			business=self.business,
+			title="Sac artisanal",
+			price_label="5 000 FCFA",
+		)
+		connection.agent_catalog_items.add(item)
+		contact = BusinessWhatsAppContact.objects.create(
+			business=self.business,
+			phone="+237699000017",
+			display_name="Amina N.",
+			consent_service=True,
+			last_inbound_at=timezone.now(),
+		)
+		call_llm_mock.return_value = json.dumps({
+			"intention": "commande",
+			"reponse": "Je prépare le récapitulatif.",
+			"action_next": "proposer_commande",
+		})
+
+		decision = generate_sales_decision(connection, contact, "Je commande 2 x Sac artisanal")
+		draft = WhatsAppDraftOrder.objects.get(contact=contact)
+
+		self.assertEqual(draft.business, self.business)
+		self.assertEqual(draft.connection, connection)
+		self.assertEqual(draft.catalog_item, item)
+		self.assertEqual(draft.quantity, 2)
+		self.assertEqual(draft.unit_price, 5000)
+		self.assertEqual(draft.total_price, 10000)
+		self.assertEqual(draft.status, WhatsAppDraftOrder.Status.AWAITING_CONFIRMATION)
+		self.assertEqual(decision["action_next"], "await_customer_confirmation")
+		self.assertIn("Réponds OUI", decision["reponse"])
+
+	def _make_confirmable_draft(self):
+		self.business.whatsapp = "+237699000099"
+		self.business.save(update_fields=["whatsapp", "updated_at"])
+		connection = BusinessWhatsAppConnection.objects.create(
+			business=self.business,
+			waba_id="confirm-draft-waba",
+			phone_number_id="confirm-draft-phone",
+			status=BusinessWhatsAppConnection.Status.ACTIVE,
+		)
+		item = BusinessCatalogItem.objects.create(
+			business=self.business,
+			title="Savon local",
+			price_label="2 000 FCFA",
+		)
+		contact = BusinessWhatsAppContact.objects.create(
+			business=self.business,
+			phone="+237699000018",
+			consent_service=True,
+			last_inbound_at=timezone.now(),
+		)
+		return WhatsAppDraftOrder.objects.create(
+			business=self.business,
+			connection=connection,
+			contact=contact,
+			catalog_item=item,
+			quantity=3,
+			unit_price=2000,
+			total_price=6000,
+			status=WhatsAppDraftOrder.Status.AWAITING_CONFIRMATION,
+			audit={"status_history": ["draft", "awaiting_confirmation"]},
+		)
+
+	def test_confirmation_oui_creates_commande(self):
+		draft = self._make_confirmable_draft()
+
+		result = confirm_draft_order(draft.contact.phone, "OUI", business=self.business)
+
+		self.assertEqual(result["status"], "confirmed")
+		self.assertEqual(result["order"].source, "whatsapp_confirmed")
+		self.assertEqual(result["order"].business_profile, self.business)
+		self.assertEqual(result["order"].whatsapp_contact, draft.contact)
+		self.assertEqual(result["order"].whatsapp_draft_order, draft)
+		line = LigneCommande.objects.get(commande=result["order"])
+		self.assertEqual(line.business_catalog_item, draft.catalog_item)
+		self.assertEqual(line.quantite, 3)
+		self.assertEqual(line.prix_unit, 2000)
+		self.assertEqual(result["transaction"].statut, "pending_awaiting_manual_validation")
+		self.assertIn("https://wa.me/", result["transaction"].payment_link)
+
+	@override_settings(WHATSAPP_COMMERCE_AI_ENABLED=True)
+	@patch("whatsapp_commerce.inbox._request_meta")
+	def test_signed_webhook_oui_confirms_draft_and_sends_manual_handoff(self, meta_request):
+		draft = self._make_confirmable_draft()
+		draft.connection.agent_enabled = True
+		draft.connection.set_access_token("draft-confirm-token")
+		draft.connection.save(update_fields=["agent_enabled", "access_token_encrypted"])
+		draft.business.plan = BusinessProfile.Plan.BUSINESS
+		draft.business.subscription_expires_at = timezone.now() + timezone.timedelta(days=10)
+		draft.business.save(update_fields=["plan", "subscription_expires_at", "updated_at"])
+		meta_request.return_value = {"messages": [{"id": "wamid-confirmed-order-reply"}]}
+		payload = {
+			"entry": [{
+				"id": draft.connection.waba_id,
+				"changes": [{
+					"value": {
+						"metadata": {"phone_number_id": draft.connection.phone_number_id},
+						"messages": [{
+							"id": "wamid-order-yes",
+							"from": draft.contact.phone.lstrip("+"),
+							"type": "text",
+							"text": {"body": "OUI CONFIRME"},
+							"timestamp": str(int(timezone.now().timestamp())),
+						}],
+					},
+				}],
+			}],
+		}
+
+		process_business_whatsapp_webhook(payload)
+
+		draft.refresh_from_db()
+		order = Commande.objects.get(whatsapp_draft_order=draft)
+		transaction = Transaction.objects.get(whatsapp_draft_order=draft)
+		self.assertEqual(draft.status, WhatsAppDraftOrder.Status.CONFIRMED)
+		self.assertEqual(transaction.statut, "pending_awaiting_manual_validation")
+		self.assertIn(order.reference, meta_request.call_args.kwargs["payload"]["text"]["body"])
+		self.assertTrue(BusinessWhatsAppAudit.objects.filter(
+			event_type="sales_order_handoff_sent",
+			details__draft_id=draft.pk,
+		).exists())
+
+	def test_idempotence_confirmation(self):
+		draft = self._make_confirmable_draft()
+
+		first = confirm_draft_order(draft.contact.phone, "OUI CONFIRME", business=self.business)
+		second = confirm_draft_order(draft.contact.phone, "OUI", business=self.business)
+
+		self.assertEqual(first["status"], "confirmed")
+		self.assertEqual(second["status"], "already_confirmed")
+		self.assertEqual(second["order"].pk, first["order"].pk)
+		self.assertEqual(second["transaction"].pk, first["transaction"].pk)
+		self.assertEqual(Commande.objects.filter(whatsapp_draft_order=draft).count(), 1)
+		self.assertEqual(Transaction.objects.filter(whatsapp_draft_order=draft).count(), 1)
 
 	def test_auto_follow_ups_schedule_only_approved_templates_with_stop(self):
 		self.business.plan = BusinessProfile.Plan.BUSINESS

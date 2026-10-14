@@ -550,32 +550,29 @@
 {% endblock %}
 
 {% block content %}
-{% if LANGUAGE_CODE == 'en' %}
-{% include "produits_services_en.html" %}
-{% else %}
 <div class="esh-catalog-page">
   <div class="esh-shell">
     
     {# 1. Hero Block #}
     <div class="esh-catalog-hero">
       <div class="esh-catalog-copy">
-        <div class="esh-pill">Vitrine premium</div>
-        <h1 class="esh-animated-gradient-text">Découvrez nos prestataires</h1>
-        <p>Trouvez le produit ou service adapté à vos besoins parmi les meilleures vitrines d'Afrique Francophone.</p>
+        <div class="esh-pill">{% if LANGUAGE_CODE == 'en' %}Premium Showcase{% else %}Vitrine premium{% endif %}</div>
+        <h1 class="esh-animated-gradient-text">{% if LANGUAGE_CODE == 'en' %}Discover our providers{% else %}Découvrez nos prestataires{% endif %}</h1>
+        <p>{% if LANGUAGE_CODE == 'en' %}Find the product or service matching your needs among the best showcases in Cameroon and French-speaking Africa.{% else %}Trouvez le produit ou service adapté à vos besoins parmi les meilleures vitrines d'Afrique Francophone.{% endif %}</p>
       </div>
       <aside class="esh-hero-visual" aria-label="Visuel Produits et Services">
         {% if produits_services_hero_image %}
           <img src="{{ produits_services_hero_image.url }}" alt="Produits et services E-Shelle">
         {% else %}
           <div class="esh-hero-visual-fallback">
-            <div class="esh-hero-visual-chip">Image admin</div>
+            <div class="esh-hero-visual-chip">{% if LANGUAGE_CODE == 'en' %}Admin visual{% else %}Image admin{% endif %}</div>
             <div class="esh-hero-visual-grid">
-              <div class="esh-hero-visual-tile"><span>🛍️</span><strong>Produits</strong></div>
-              <div class="esh-hero-visual-tile"><span>💼</span><strong>Services</strong></div>
-              <div class="esh-hero-visual-tile"><span>🏢</span><strong>Immobilier</strong></div>
-              <div class="esh-hero-visual-tile"><span>🍳</span><strong>Restos</strong></div>
+              <div class="esh-hero-visual-tile"><span>🛍️</span><strong>{% if LANGUAGE_CODE == 'en' %}Products{% else %}Produits{% endif %}</strong></div>
+              <div class="esh-hero-visual-tile"><span>💼</span><strong>{% if LANGUAGE_CODE == 'en' %}Services{% else %}Services{% endif %}</strong></div>
+              <div class="esh-hero-visual-tile"><span>🏢</span><strong>{% if LANGUAGE_CODE == 'en' %}Real Estate{% else %}Immobilier{% endif %}</strong></div>
+              <div class="esh-hero-visual-tile"><span>🍳</span><strong>{% if LANGUAGE_CODE == 'en' %}Dining{% else %}Restos{% endif %}</strong></div>
             </div>
-            <p class="esh-hero-visual-caption">Ajoutez une image depuis l'admin pour personnaliser ce visuel.</p>
+            <p class="esh-hero-visual-caption">{% if LANGUAGE_CODE == 'en' %}Add an image from admin to customize this visual.{% else %}Ajoutez une image depuis l'admin pour personnaliser ce visuel.{% endif %}</p>
           </div>
         {% endif %}
       </aside>
@@ -584,21 +581,21 @@
     {# 2. Search and filter bar #}
     <div class="esh-filter-bar" style="margin-bottom: 2rem;">
       <form class="esh-search-form" method="get" action="{% url 'products_services' %}">
-        <input type="text" name="q" value="{{ search_query|default:'' }}" class="esh-search-input" placeholder="Que recherchez-vous ? (Ex: Appartement, Riz, Coiffure...)">
+        <input type="text" name="q" value="{{ search_query|default:'' }}" class="esh-search-input" placeholder="{% if LANGUAGE_CODE == 'en' %}What are you looking for? (e.g., Apartment, Rice, Hair salon...){% else %}Que recherchez-vous ? (Ex: Appartement, Riz, Coiffure...){% endif %}">
         {% if current_category %}
           <input type="hidden" name="categorie" value="{{ current_category }}">
         {% endif %}
         {% if selected_country %}
           <input type="hidden" name="pays" value="{{ selected_country }}">
         {% endif %}
-        <button type="submit" class="esh-search-btn">Rechercher</button>
+        <button type="submit" class="esh-search-btn">{% if LANGUAGE_CODE == 'en' %}Search{% else %}Rechercher{% endif %}</button>
       </form>
       
       {% if available_countries %}
       <!-- Sélecteur de pays panafricain -->
       <div class="esh-country-pills" style="display: flex; flex-wrap: wrap; gap: 0.5rem; justify-content: center; margin: 1.25rem 0; border-bottom: 1px solid rgba(255,255,255,0.06); padding-bottom: 1.25rem;">
-        <span style="color: rgba(255,255,255,0.5); font-size: 0.85rem; font-weight: 700; display: flex; align-items: center; margin-right: 0.5rem;">🌍 Filtrer par Pays :</span>
-        <a href="?{% if search_query %}q={{ search_query }}&{% endif %}{% if current_category %}categorie={{ current_category }}&{% endif %}" class="esh-cat-pill {% if not selected_country %}active{% endif %}" style="font-size: 0.8rem; padding: 4px 10px; border-radius: 20px; text-decoration: none;">Tout afficher</a>
+        <span style="color: rgba(255,255,255,0.5); font-size: 0.85rem; font-weight: 700; display: flex; align-items: center; margin-right: 0.5rem;">{% if LANGUAGE_CODE == 'en' %}🌍 Filter by Country:{% else %}🌍 Filtrer par Pays :{% endif %}</span>
+        <a href="?{% if search_query %}q={{ search_query }}&{% endif %}{% if current_category %}categorie={{ current_category }}&{% endif %}" class="esh-cat-pill {% if not selected_country %}active{% endif %}" style="font-size: 0.8rem; padding: 4px 10px; border-radius: 20px; text-decoration: none;">{% if LANGUAGE_CODE == 'en' %}Show all{% else %}Tout afficher{% endif %}</a>
         {% for country in available_countries %}
           <a href="?pays={{ country.name }}{% if search_query %}&q={{ search_query }}{% endif %}{% if current_category %}&categorie={{ current_category }}{% endif %}" class="esh-cat-pill {% if selected_country == country.name %}active{% endif %}" style="font-size: 0.8rem; padding: 4px 10px; border-radius: 20px; text-decoration: none;">
             {{ country.flag }} {{ country.name }}
@@ -608,11 +605,11 @@
       {% endif %}
 
       <div class="esh-category-pills">
-        <a href="?{% if search_query %}q={{ search_query }}&{% endif %}{% if selected_country %}pays={{ selected_country }}&{% endif %}" class="esh-cat-pill {% if not current_category %}active{% endif %}">Tout afficher</a>
-        <a href="?categorie=Produit{% if search_query %}&q={{ search_query }}{% endif %}{% if selected_country %}&pays={{ selected_country }}{% endif %}" class="esh-cat-pill {% if current_category == 'Produit' %}active{% endif %}">🛍️ Produits</a>
-        <a href="?categorie=Service{% if search_query %}&q={{ search_query }}{% endif %}{% if selected_country %}&pays={{ selected_country }}{% endif %}" class="esh-cat-pill {% if current_category == 'Service' %}active{% endif %}">💼 Services</a>
-        <a href="?categorie=Immobilier{% if search_query %}&q={{ search_query }}{% endif %}{% if selected_country %}&pays={{ selected_country }}{% endif %}" class="esh-cat-pill {% if current_category == 'Immobilier' %}active{% endif %}">🏢 Immobilier</a>
-        <a href="?categorie=Plat{% if search_query %}&q={{ search_query }}{% endif %}{% if selected_country %}&pays={{ selected_country }}{% endif %}" class="esh-cat-pill {% if current_category == 'Plat' %}active{% endif %}">🍳 Plats & Restos</a>
+        <a href="?{% if search_query %}q={{ search_query }}&{% endif %}{% if selected_country %}pays={{ selected_country }}&{% endif %}" class="esh-cat-pill {% if not current_category %}active{% endif %}">{% if LANGUAGE_CODE == 'en' %}Show all{% else %}Tout afficher{% endif %}</a>
+        <a href="?categorie=Produit{% if search_query %}&q={{ search_query }}{% endif %}{% if selected_country %}&pays={{ selected_country }}{% endif %}" class="esh-cat-pill {% if current_category == 'Produit' %}active{% endif %}">{% if LANGUAGE_CODE == 'en' %}🛍️ Products{% else %}🛍️ Produits{% endif %}</a>
+        <a href="?categorie=Service{% if search_query %}&q={{ search_query }}{% endif %}{% if selected_country %}&pays={{ selected_country }}{% endif %}" class="esh-cat-pill {% if current_category == 'Service' %}active{% endif %}">{% if LANGUAGE_CODE == 'en' %}💼 Services{% else %}💼 Services{% endif %}</a>
+        <a href="?categorie=Immobilier{% if search_query %}&q={{ search_query }}{% endif %}{% if selected_country %}&pays={{ selected_country }}{% endif %}" class="esh-cat-pill {% if current_category == 'Immobilier' %}active{% endif %}">{% if LANGUAGE_CODE == 'en' %}🏢 Real Estate{% else %}🏢 Immobilier{% endif %}</a>
+        <a href="?categorie=Plat{% if search_query %}&q={{ search_query }}{% endif %}{% if selected_country %}&pays={{ selected_country }}{% endif %}" class="esh-cat-pill {% if current_category == 'Plat' %}active{% endif %}">{% if LANGUAGE_CODE == 'en' %}🍳 Dining &amp; Food{% else %}🍳 Plats &amp; Restos{% endif %}</a>
       </div>
     </div>
 
@@ -620,11 +617,11 @@
     {% if business_slides %}
     <div class="esh-showcase-section">
       <div class="esh-showcase-title-row">
-        <h2>Les prestataires à la une</h2>
+        <h2>{% if LANGUAGE_CODE == 'en' %}Featured service providers{% else %}Les prestataires à la une{% endif %}</h2>
         {% if user_has_business %}
-        <a href="{% url 'business:dashboard' %}" class="esh-btn-grad-green-orange" style="font-size: 0.8rem; padding: 0.4rem 1rem;">Gérer mon business</a>
+        <a href="{% url 'business:dashboard' %}" class="esh-btn-grad-green-orange" style="font-size: 0.8rem; padding: 0.4rem 1rem;">{% if LANGUAGE_CODE == 'en' %}Manage my business{% else %}Gérer mon business{% endif %}</a>
         {% else %}
-        <a href="{% url 'business:onboarding' %}" class="esh-btn-grad-green-orange" style="font-size: 0.8rem; padding: 0.4rem 1rem;">Inscrire mon business</a>
+        <a href="{% url 'business:onboarding' %}" class="esh-btn-grad-green-orange" style="font-size: 0.8rem; padding: 0.4rem 1rem;">{% if LANGUAGE_CODE == 'en' %}Register my business{% else %}Inscrire mon business{% endif %}</a>
         {% endif %}
       </div>
 
@@ -645,7 +642,7 @@
                   <h2 class="esh-feature-title">{{ item.name }}</h2>
                   <div class="esh-meta-row">
                     <span class="esh-meta">📍 {{ item.city }}</span>
-                    <a class="esh-order" href="{{ item.url }}">Visiter →</a>
+                    <a class="esh-order" href="{{ item.url }}">{% if LANGUAGE_CODE == 'en' %}Visit &rarr;{% else %}Visiter &rarr;{% endif %}</a>
                   </div>
                 </div>
               </article>
@@ -660,11 +657,11 @@
     <div class="esh-products-section">
       <h2 class="esh-products-section-title">
         {% if search_query %}
-          Résultats pour "{{ search_query }}"
+          {% if LANGUAGE_CODE == 'en' %}Results for "{{ search_query }}"{% else %}Résultats pour "{{ search_query }}"{% endif %}
         {% elif current_category %}
-          Dernières annonces : {{ current_category }}s
+          {% if LANGUAGE_CODE == 'en' %}Latest listings: {{ current_category }}s{% else %}Dernières annonces : {{ current_category }}s{% endif %}
         {% else %}
-          Tous les produits & services de nos prestataires
+          {% if LANGUAGE_CODE == 'en' %}All products &amp; services from our providers{% else %}Tous les produits &amp; services de nos prestataires{% endif %}
         {% endif %}
       </h2>
 
@@ -688,14 +685,14 @@
                 {% if item.description %}
                   <p class="esh-card-description">{{ item.description|truncatechars:75 }}</p>
                 {% else %}
-                  <p class="esh-card-description" style="opacity: 0.35;">Aucune description disponible.</p>
+                  <p class="esh-card-description" style="opacity: 0.35;">{% if LANGUAGE_CODE == 'en' %}No description available.{% else %}Aucune description disponible.{% endif %}</p>
                 {% endif %}
                 {% if item.price %}
                   <div class="esh-card-price">{{ item.price }}</div>
                 {% endif %}
-                <div class="esh-card-action" style="color: #7dec6c; font-weight: 800; font-size: 0.85rem; margin-top: 0.5rem;">Voir les détails →</div>
+                <div class="esh-card-action" style="color: #7dec6c; font-weight: 800; font-size: 0.85rem; margin-top: 0.5rem;">{% if LANGUAGE_CODE == 'en' %}View details &rarr;{% else %}Voir les détails &rarr;{% endif %}</div>
                 <div class="esh-card-foot">
-                  <span>{{ item.views }} vues</span>
+                  <span>{{ item.views }} {% if LANGUAGE_CODE == 'en' %}views{% else %}vues{% endif %}</span>
                   <span>📍 {{ item.meta }}</span>
                 </div>
               </div>
@@ -727,12 +724,12 @@
       {% else %}
         <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 4rem 2rem; background: rgba(255,255,255,0.02); border: 1px dashed rgba(255,255,255,0.1); border-radius: 16px; margin: 2rem 0;">
           <span style="font-size: 3rem; margin-bottom: 1rem;">🛒</span>
-          <h3 style="font-family: 'Outfit', sans-serif; font-size: 1.3rem; color: #fff; margin: 0 0 0.5rem; font-weight: 700;">Aucun produit ou service trouvé</h3>
-          <p style="font-size: 0.95rem; color: rgba(255,255,255,0.6); margin: 0 0 1.5rem; max-width: 400px; line-height: 1.5;">Soyez le premier à ajouter vos produits ou services sur E-Shelle.</p>
+          <h3 style="font-family: 'Outfit', sans-serif; font-size: 1.3rem; color: #fff; margin: 0 0 0.5rem; font-weight: 700;">{% if LANGUAGE_CODE == 'en' %}No product or service found{% else %}Aucun produit ou service trouvé{% endif %}</h3>
+          <p style="font-size: 0.95rem; color: rgba(255,255,255,0.6); margin: 0 0 1.5rem; max-width: 400px; line-height: 1.5;">{% if LANGUAGE_CODE == 'en' %}Be the first to add your products or services on E-Shelle.{% else %}Soyez le premier à ajouter vos produits ou services sur E-Shelle.{% endif %}</p>
           {% if user_has_business %}
-          <a class="esh-btn-primary" href="{% url 'business:dashboard' %}" style="text-decoration: none; display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem; border-radius: 10px; padding: 0.75rem 1.6rem; font-family: 'Outfit', sans-serif;">Gérer mon business →</a>
+          <a class="esh-btn-primary" href="{% url 'business:dashboard' %}" style="text-decoration: none; display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem; border-radius: 10px; padding: 0.75rem 1.6rem; font-family: 'Outfit', sans-serif;">{% if LANGUAGE_CODE == 'en' %}Manage my business &rarr;{% else %}Gérer mon business →{% endif %}</a>
           {% else %}
-          <a class="esh-btn-primary" href="/business/onboarding/" style="text-decoration: none; display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem; border-radius: 10px; padding: 0.75rem 1.6rem; font-family: 'Outfit', sans-serif;">Inscrire mon business →</a>
+          <a class="esh-btn-primary" href="/business/onboarding/" style="text-decoration: none; display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem; border-radius: 10px; padding: 0.75rem 1.6rem; font-family: 'Outfit', sans-serif;">{% if LANGUAGE_CODE == 'en' %}Register my business &rarr;{% else %}Inscrire mon business →{% endif %}</a>
           {% endif %}
         </div>
       {% endif %}
@@ -740,5 +737,4 @@
 
   </div>
 </div>
-{% endif %}
 {% endblock %}

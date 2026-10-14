@@ -1,7 +1,7 @@
 {% extends "resto/base.html" %}
 {% load static resto_tags %}
 
-{% block title %}E-Shelle Resto — Trouvez le bon plat, au bon endroit, maintenant{% endblock %}
+{% block title %}E-Shelle Resto — {% if LANGUAGE_CODE == 'en' %}Find the right dish,{% else %}Trouvez le bon plat,{% endif %} {% if LANGUAGE_CODE == 'en' %}in the right place, {% else %}au bon endroit, {% endif %}maintenant{% endblock %}
 {% block nav_home %}text-resto-primary{% endblock %}
 
 {% block content %}
@@ -64,7 +64,7 @@
       </h2>
       {% else %}
       <h1 class="text-3xl md:text-5xl font-extrabold leading-tight mb-3 drop-shadow-lg">
-        Trouvez le bon plat,<br/>au bon endroit, <span class="text-resto-primary">maintenant.</span>
+        {% if LANGUAGE_CODE == 'en' %}Find the right dish,{% else %}Trouvez le bon plat,{% endif %}<br/>{% if LANGUAGE_CODE == 'en' %}in the right place, {% else %}au bon endroit, {% endif %}<span class="text-resto-primary">{% if LANGUAGE_CODE == 'en' %}right now.{% else %}maintenant.{% endif %}</span>
       </h1>
       {% endif %}
 
@@ -98,7 +98,7 @@
     <div class="max-w-xl mx-auto" x-data="{ open: false }">
       <div class="relative">
         <input type="text"
-               placeholder="Chercher ndolé, grillades, poisson braisé..."
+               placeholder="{% if LANGUAGE_CODE == 'en' %}Search ndolé, grilled food, braised fish...{% else %}Chercher ndolé, grillades, poisson braisé...{% endif %}"
                class="w-full pl-11 pr-4 py-3.5 text-gray-900 rounded-2xl text-sm focus:outline-none focus:ring-4 focus:ring-resto-primary/40 shadow-2xl"
                @focus="open = true"
                hx-get="{% url 'resto:search' %}"
@@ -118,7 +118,7 @@
   <!-- ── Flèche gauche ── -->
   <button @click="prev()"
           class="absolute left-3 top-1/2 -translate-y-1/2 z-30 w-11 h-11 flex items-center justify-center bg-black/30 hover:bg-black/60 backdrop-blur-sm text-white rounded-full transition border border-white/20"
-          aria-label="Slide précédent">
+          aria-label="{% if LANGUAGE_CODE == 'en' %}Previous slide{% else %}Slide précédent{% endif %}">
     <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7"/>
     </svg>
@@ -127,7 +127,7 @@
   <!-- ── Flèche droite ── -->
   <button @click="next()"
           class="absolute right-3 top-1/2 -translate-y-1/2 z-30 w-11 h-11 flex items-center justify-center bg-black/30 hover:bg-black/60 backdrop-blur-sm text-white rounded-full transition border border-white/20"
-          aria-label="Slide suivant">
+          aria-label="{% if LANGUAGE_CODE == 'en' %}Next slide{% else %}Slide suivant{% endif %}">
     <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"/>
     </svg>
@@ -171,14 +171,14 @@
   <div class="max-w-2xl mx-auto text-center relative z-10">
     <p class="text-resto-secondary text-sm font-semibold tracking-widest uppercase mb-3">🍽️ Cameroun • Yaoundé • Douala</p>
     <h1 class="text-3xl md:text-5xl font-extrabold leading-tight mb-4">
-      Trouvez le bon plat,<br/>au bon endroit, <span class="text-resto-primary">maintenant.</span>
+      {% if LANGUAGE_CODE == 'en' %}Find the right dish,{% else %}Trouvez le bon plat,{% endif %}<br/>{% if LANGUAGE_CODE == 'en' %}in the right place, {% else %}au bon endroit, {% endif %}<span class="text-resto-primary">{% if LANGUAGE_CODE == 'en' %}right now.{% else %}maintenant.{% endif %}</span>
     </h1>
     <p class="text-gray-300 text-base md:text-lg mb-8">
       Explorez les menus des meilleurs restaurants camerounais. Commandez directement via WhatsApp.
     </p>
     <div class="relative max-w-lg mx-auto" x-data="{ open: false }">
       <input type="text"
-             placeholder="Chercher ndolé, grillades, pizza..."
+             placeholder="{% if LANGUAGE_CODE == 'en' %}Search ndolé, grilled food, pizza...{% else %}Chercher ndolé, grillades, pizza...{% endif %}"
              class="w-full pl-12 pr-4 py-4 text-gray-900 rounded-2xl text-base focus:outline-none focus:ring-4 focus:ring-resto-primary/40 shadow-xl"
              @focus="open = true"
              hx-get="{% url 'resto:search' %}"
@@ -223,7 +223,7 @@
            @scroll="checkScroll('cats')">
         <a href="{% url 'resto:restaurant_list' %}"
            class="flex-shrink-0 flex items-center gap-2 px-4 py-2 rounded-full bg-gray-900 text-white text-sm font-medium whitespace-nowrap">
-          Tous
+          {% if LANGUAGE_CODE == 'en' %}All{% else %}Tous{% endif %}
         </a>
         {% for cat in food_categories %}
         <a href="{% url 'resto:restaurant_list' %}?category={{ cat.slug }}"
@@ -247,7 +247,7 @@
 </section>
 {% endif %}
 
-<!-- ── Ouverts maintenant ─────────────────────────────────────────────────────── -->
+<!-- ── {% if LANGUAGE_CODE == 'en' %}Open now{% else %}Ouverts maintenant{% endif %} ─────────────────────────────────────────────────────── -->
 {% if open_now %}
 <section class="py-8">
   <div class="max-w-6xl mx-auto px-4">
@@ -255,11 +255,11 @@
       <div>
         <h2 class="text-xl font-bold text-gray-900 flex items-center gap-2">
           <span class="inline-block w-2.5 h-2.5 bg-green-500 rounded-full animate-pulse"></span>
-          Ouverts maintenant
+          {% if LANGUAGE_CODE == 'en' %}Open now{% else %}Ouverts maintenant{% endif %}
         </h2>
-        <p class="text-sm text-gray-500 mt-0.5">Restaurants actuellement ouverts</p>
+        <p class="text-sm text-gray-500 mt-0.5">{% if LANGUAGE_CODE == 'en' %}Restaurants open now{% else %}Restaurants actuellement ouverts{% endif %}</p>
       </div>
-      <a href="{% url 'resto:restaurant_list' %}?status=open" class="text-sm font-semibold text-resto-primary hover:underline whitespace-nowrap">Voir tout →</a>
+      <a href="{% url 'resto:restaurant_list' %}?status=open" class="text-sm font-semibold text-resto-primary hover:underline whitespace-nowrap">{% if LANGUAGE_CODE == 'en' %}See all →{% else %}Voir tout →{% endif %}</a>
     </div>
   </div>
 
@@ -296,16 +296,16 @@
 </section>
 {% endif %}
 
-<!-- ── Restaurants en vedette ─────────────────────────────────────────────────── -->
+<!-- ── {% if LANGUAGE_CODE == 'en' %}Featured restaurants{% else %}Restaurants en vedette{% endif %} ─────────────────────────────────────────────────── -->
 {% if featured_restaurants %}
 <section class="py-8 bg-orange-50">
   <div class="max-w-6xl mx-auto px-4">
     <div class="flex items-center justify-between mb-4">
       <div>
-        <h2 class="text-xl font-bold text-gray-900">⭐ Restaurants en vedette</h2>
-        <p class="text-sm text-gray-500 mt-0.5">Nos établissements partenaires recommandés</p>
+        <h2 class="text-xl font-bold text-gray-900">⭐ {% if LANGUAGE_CODE == 'en' %}Featured restaurants{% else %}Restaurants en vedette{% endif %}</h2>
+        <p class="text-sm text-gray-500 mt-0.5">{% if LANGUAGE_CODE == 'en' %}Recommended partner restaurants{% else %}Nos établissements partenaires recommandés{% endif %}</p>
       </div>
-      <a href="{% url 'resto:restaurant_list' %}" class="text-sm font-semibold text-resto-primary hover:underline whitespace-nowrap">Voir tout →</a>
+      <a href="{% url 'resto:restaurant_list' %}" class="text-sm font-semibold text-resto-primary hover:underline whitespace-nowrap">{% if LANGUAGE_CODE == 'en' %}See all →{% else %}Voir tout →{% endif %}</a>
     </div>
   </div>
 
@@ -341,14 +341,14 @@
 </section>
 {% endif %}
 
-<!-- ── Plats populaires ───────────────────────────────────────────────────────── -->
+<!-- ── {% if LANGUAGE_CODE == 'en' %}Popular dishes{% else %}Plats populaires{% endif %} ───────────────────────────────────────────────────────── -->
 {% if popular_dishes %}
 <section class="py-8">
   <div class="max-w-6xl mx-auto px-4">
     <div class="flex items-center justify-between mb-4">
       <div>
-        <h2 class="text-xl font-bold text-gray-900">🔥 Plats populaires</h2>
-        <p class="text-sm text-gray-500 mt-0.5">Les incontournables de la cuisine camerounaise</p>
+        <h2 class="text-xl font-bold text-gray-900">🔥 {% if LANGUAGE_CODE == 'en' %}Popular dishes{% else %}Plats populaires{% endif %}</h2>
+        <p class="text-sm text-gray-500 mt-0.5">{% if LANGUAGE_CODE == 'en' %}Cameroonian cuisine favorites{% else %}Les incontournables de la cuisine camerounaise{% endif %}</p>
       </div>
     </div>
   </div>
@@ -391,8 +391,8 @@
   <div class="max-w-6xl mx-auto px-4">
     <div class="flex items-center justify-between mb-4">
       <div>
-        <h2 class="text-xl font-bold text-gray-900">💚 Moins de 1 500 FCFA</h2>
-        <p class="text-sm text-gray-500 mt-0.5">Des repas savoureux et accessibles</p>
+        <h2 class="text-xl font-bold text-gray-900">💚 {% if LANGUAGE_CODE == 'en' %}Under 1,500 FCFA{% else %}Moins de 1 500 FCFA{% endif %}</h2>
+        <p class="text-sm text-gray-500 mt-0.5">{% if LANGUAGE_CODE == 'en' %}Tasty meals at affordable prices{% else %}Des repas savoureux et accessibles{% endif %}</p>
       </div>
     </div>
   </div>
@@ -432,15 +432,15 @@
 <!-- ── CTA Inscription restaurant ─────────────────────────────────────────────── -->
 <section class="py-12 px-4 bg-gradient-to-r from-resto-primary to-orange-500 text-white">
   <div class="max-w-2xl mx-auto text-center">
-    <h2 class="text-2xl md:text-3xl font-bold mb-3">Vous êtes restaurateur ?</h2>
+    <h2 class="text-2xl md:text-3xl font-bold mb-3">{% if LANGUAGE_CODE == 'en' %}Are you a restaurant owner?{% else %}Vous êtes restaurateur ?{% endif %}</h2>
     <p class="text-white/90 mb-6">
-      Inscrivez votre restaurant gratuitement et commencez à recevoir des commandes WhatsApp dès aujourd'hui.
-      Essai gratuit 30 jours.
+      {% if LANGUAGE_CODE == 'en' %}List your restaurant for free and start receiving WhatsApp orders today.{% else %}Inscrivez votre restaurant gratuitement et commencez à recevoir des commandes WhatsApp dès {% if LANGUAGE_CODE == 'en' %}today{% else %}aujourd'hui{% endif %}.{% endif %}
+      {% if LANGUAGE_CODE == 'en' %}30-day free trial.{% else %}Essai gratuit 30{% if LANGUAGE_CODE == 'en' %} days{% else %} jours{% endif %}.{% endif %}
     </p>
     <a href="{% url 'resto:register' %}"
        class="inline-flex items-center gap-2 bg-white text-resto-primary font-bold px-8 py-3 rounded-xl hover:bg-orange-50 transition shadow-lg">
       <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/></svg>
-      Inscrire mon restaurant
+      {% if LANGUAGE_CODE == 'en' %}List my restaurant{% else %}Inscrire mon restaurant{% endif %}
     </a>
   </div>
 </section>

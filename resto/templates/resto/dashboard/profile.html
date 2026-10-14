@@ -1,15 +1,15 @@
 {% extends "resto/dashboard/base_dashboard.html" %}
 {% load static resto_tags %}
 
-{% block title %}Mon profil — {{ restaurant.name }}{% endblock %}
+{% block title %}{% if LANGUAGE_CODE == 'en' %}My profile{% else %}Mon profil{% endif %} — {{ restaurant.name }}{% endblock %}
 {% block dash_nav_profile %}bg-orange-50 text-resto-primary font-semibold{% endblock %}
 {% block mob_profile %}text-resto-primary{% endblock %}
 
 {% block dashboard_content %}
 <div class="space-y-6">
   <div>
-    <h1 class="text-xl font-bold text-gray-900">Mon profil</h1>
-    <p class="text-sm text-gray-500">Modifiez les informations de votre restaurant.</p>
+    <h1 class="text-xl font-bold text-gray-900">{% if LANGUAGE_CODE == 'en' %}My profile{% else %}Mon profil{% endif %}</h1>
+    <p class="text-sm text-gray-500">{% if LANGUAGE_CODE == 'en' %}Update your restaurant information.{% else %}Modifiez les informations de votre restaurant.{% endif %}</p>
   </div>
 
   <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
@@ -22,7 +22,7 @@
 
         <!-- Cover image -->
         <div>
-          <label class="block text-sm font-medium text-gray-700 mb-2">Photo de couverture</label>
+          <label class="block text-sm font-medium text-gray-700 mb-2">{% if LANGUAGE_CODE == 'en' %}Cover photo{% else %}Photo de couverture{% endif %}</label>
           <div class="relative">
             <div class="w-full h-36 rounded-xl overflow-hidden bg-gray-100 border border-gray-200 mb-2">
               <img :src="coverPreview || '{{ restaurant.cover_image|file_url }}'"
@@ -31,7 +31,7 @@
                    class="w-full h-full object-cover" />
               <div x-show="!coverPreview && !{{ restaurant.cover_image|yesno:'true,false' }}"
                    class="w-full h-full flex items-center justify-center text-gray-300 text-sm">
-                Aucune photo
+                {% if LANGUAGE_CODE == 'en' %}No photo{% else %}{% if LANGUAGE_CODE == 'en' %}None{% else %}Aucun{% endif %}e photo{% endif %}
               </div>
             </div>
             <input type="file" name="cover_image" accept="image/*"
@@ -64,7 +64,7 @@
       </div>
 
       <!-- ── General Info ── -->
-      <h2 class="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-4 pt-4 border-t border-gray-100">Informations générales</h2>
+      <h2 class="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-4 pt-4 border-t border-gray-100">{% if LANGUAGE_CODE == 'en' %}General information{% else %}Informations générales{% endif %}</h2>
       <div class="space-y-4 mb-6">
         <div>
           <label class="block text-sm font-medium text-gray-700 mb-1">{{ form.name.label }}</label>
@@ -85,7 +85,7 @@
       </div>
 
       <!-- ── Location ── -->
-      <h2 class="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-4 pt-4 border-t border-gray-100">Localisation</h2>
+      <h2 class="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-4 pt-4 border-t border-gray-100">{% if LANGUAGE_CODE == 'en' %}Location{% else %}Localisation{% endif %}</h2>
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
         <div>
           <label class="block text-sm font-medium text-gray-700 mb-1">{{ form.city.label }}</label>
@@ -118,8 +118,8 @@
         </div>
       </div>
 
-      <!-- ── Horaires + Statut ── -->
-      <h2 class="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-4 pt-4 border-t border-gray-100">Horaires et statut</h2>
+      <!-- ── Horaires + {% if LANGUAGE_CODE == 'en' %}Status{% else %}Statut{% endif %} ── -->
+      <h2 class="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-4 pt-4 border-t border-gray-100">{% if LANGUAGE_CODE == 'en' %}Hours and status{% else %}Horaires et statut{% endif %}</h2>
       <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
         <div>
           <label class="block text-sm font-medium text-gray-700 mb-1">{{ form.opening_time.label }}</label>
@@ -146,7 +146,7 @@
 
       <button type="submit"
               class="w-full md:w-auto px-8 py-3 bg-resto-primary hover:bg-orange-700 text-white font-bold rounded-xl transition">
-        Enregistrer les modifications
+        {% if LANGUAGE_CODE == 'en' %}Save changes{% else %}Enregistrer les modifications{% endif %}
       </button>
     </form>
   </div>

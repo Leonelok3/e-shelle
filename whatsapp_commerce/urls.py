@@ -12,6 +12,7 @@ urlpatterns = [
     path("business/<int:business_id>/retry/", views.retry_business_connection, name="business_connect_retry"),
     path("business/<int:business_id>/catalog/sync/", views.sync_business_catalog, name="business_catalog_sync"),
     path("business/<int:business_id>/agent/configure/", views.configure_sales_agent, name="business_agent_configure"),
+    path("business/<int:business_id>/draft-orders/<int:draft_id>/", views.update_whatsapp_draft_order, name="draft_order_update"),
     path("business/<int:business_id>/templates/", views.business_approved_templates, name="business_approved_templates"),
     path("business/<int:business_id>/contacts/<int:contact_id>/update/", views.update_business_contact, name="business_contact_update"),
     path("business/<int:business_id>/contacts/<int:contact_id>/consent/", views.update_business_contact_consent, name="business_contact_consent"),

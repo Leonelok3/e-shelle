@@ -72,7 +72,7 @@ class ProduitAdmin(admin.ModelAdmin):
 class LigneCommandeInline(admin.TabularInline):
     model = LigneCommande
     extra = 0
-    readonly_fields = ("produit", "quantite", "prix_unit", "sous_total")
+    readonly_fields = ("produit", "business_catalog_item", "quantite", "prix_unit", "sous_total")
 
 
 @admin.register(Commande)

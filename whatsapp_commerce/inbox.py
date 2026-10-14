@@ -58,13 +58,25 @@ def _save_inbound(connection, message, display_name, received_at):
 	contact.last_inbound_at = received_at or timezone.now()
 	body = _inbound_text(message)
 	did_opt_out = body.casefold() in {"stop", "arret", "arrêt", "desinscrire", "désinscrire", "unsubscribe"}
+	consent_marketing = body.casefold() in {"oui pub", "oui promotions", "oui marketing"}
+	contact.consent_service = True
+	if consent_marketing:
+		contact.consent_marketing = True
+		contact.marketing_opt_in = True
+		contact.consent_source = "WhatsApp: réponse OUI PUB"
+		contact.consented_at = received_at or timezone.now()
 	if did_opt_out:
 		contact.marketing_opt_in = False
+		contact.consent_marketing = False
 		contact.opted_out_at = received_at or timezone.now()
 	BusinessWhatsAppContact.objects.filter(pk=contact.pk).update(
 		display_name=contact.display_name,
 		last_inbound_at=contact.last_inbound_at,
 		marketing_opt_in=contact.marketing_opt_in,
+		consent_service=contact.consent_service,
+		consent_marketing=contact.consent_marketing,
+		consent_source=contact.consent_source,
+		consented_at=contact.consented_at,
 		opted_out_at=contact.opted_out_at,
 		last_activity_at=timezone.now(),
 	)
@@ -77,6 +89,14 @@ def _save_inbound(connection, message, display_name, received_at):
 			contact=contact,
 			event_type="contact_opted_out",
 			action="stop_keyword",
+			details={"message_id": message_id},
+		)
+	elif consent_marketing:
+		BusinessWhatsAppAudit.objects.create(
+			connection=connection,
+			contact=contact,
+			event_type="marketing_consent_granted",
+			action="whatsapp_oui_pub",
 			details={"message_id": message_id},
 		)
 	saved_message, created = BusinessWhatsAppMessage.objects.get_or_create(
@@ -117,6 +137,35 @@ def _run_sales_agent(connection, contact, inbound_message):
 	try:
 		if not require_whatsapp_entitlement(contact.business, "can_use_crm"):
 			return
+		from .orchestrator import confirm_draft_order, is_explicit_draft_confirmation
+
+		if is_explicit_draft_confirmation(contact, inbound_message.body):
+			confirmation = confirm_draft_order(contact.phone, inbound_message.body, business=contact.business)
+			if confirmation.get("status") == "already_confirmed":
+				return
+			if confirmation.get("status") == "confirmed":
+				draft = confirmation["draft"]
+				order = confirmation["order"]
+				reply = (
+					f"Commande #{order.reference} confirmée. "
+					f"{contact.business.name} va te contacter pour le paiement Mobile Money "
+					"et la livraison. Merci !"
+				)
+				message_id = send_business_reply(contact, reply)
+				BusinessWhatsAppAudit.objects.create(
+					connection=connection,
+					contact=contact,
+					event_type="sales_order_handoff_sent",
+					intent="commande",
+					action="manual_payment_handoff",
+					details={
+						"draft_id": draft.pk,
+						"order_id": order.pk,
+						"transaction_id": confirmation["transaction"].pk,
+						"wa_message_id": message_id,
+					},
+				)
+				return
 		decision = build_funnel_reply(connection, contact, inbound_message)
 		action = resolve_action(connection, contact, decision)
 		decision["action_next"] = action

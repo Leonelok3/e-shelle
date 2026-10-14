@@ -201,7 +201,29 @@ class Commande(models.Model):
 
     reference    = models.CharField(max_length=30, unique=True, blank=True)
     utilisateur  = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE,
-                                      related_name="commandes")
+                                      related_name="commandes", null=True, blank=True)
+    business_profile = models.ForeignKey(
+        "business.BusinessProfile",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="boutique_orders",
+    )
+    whatsapp_contact = models.ForeignKey(
+        "whatsapp_commerce.BusinessWhatsAppContact",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="boutique_orders",
+    )
+    whatsapp_draft_order = models.OneToOneField(
+        "whatsapp_commerce.WhatsAppDraftOrder",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="boutique_order",
+    )
+    source = models.CharField(max_length=32, default="web", db_index=True)
     statut       = models.CharField(max_length=20, choices=STATUTS, default="en_attente")
     montant_total = models.DecimalField(max_digits=12, decimal_places=2, default=0)
     email_acheteur = models.EmailField(blank=True)
@@ -220,17 +242,30 @@ class Commande(models.Model):
         super().save(*args, **kwargs)
 
     def __str__(self):
-        return f"{self.reference} — {self.utilisateur.username} — {self.statut}"
+        buyer = self.utilisateur.username if self.utilisateur_id else self.telephone or "client invité"
+        return f"{self.reference} — {buyer} — {self.statut}"
 
 
 class LigneCommande(models.Model):
     commande  = models.ForeignKey(Commande, on_delete=models.CASCADE, related_name="lignes")
-    produit   = models.ForeignKey(Produit, on_delete=models.PROTECT)
+    produit   = models.ForeignKey(Produit, on_delete=models.PROTECT, null=True, blank=True)
+    business_catalog_item = models.ForeignKey(
+        "business.BusinessCatalogItem",
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+        related_name="boutique_order_lines",
+    )
     quantite  = models.PositiveIntegerField(default=1)
     prix_unit = models.DecimalField(max_digits=10, decimal_places=2)
 
     def __str__(self):
-        return f"{self.commande.reference} — {self.produit.titre}"
+        item_name = (
+            self.produit.titre if self.produit_id
+            else self.business_catalog_item.title if self.business_catalog_item_id
+            else "Article"
+        )
+        return f"{self.commande.reference} — {item_name}"
 
     @property
     def sous_total(self):

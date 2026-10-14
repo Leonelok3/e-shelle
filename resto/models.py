@@ -8,6 +8,7 @@ from datetime import date, timedelta
 from django.conf import settings
 from django.db import models
 from django.utils import timezone
+from django.utils.translation import get_language
 from django.utils.text import slugify
 
 
@@ -17,6 +18,7 @@ from django.utils.text import slugify
 
 class City(models.Model):
     name = models.CharField(max_length=100, verbose_name="Ville")
+    name_en = models.CharField(max_length=100, blank=True, verbose_name="Name (English)")
     slug = models.SlugField(max_length=120, unique=True)
     is_active = models.BooleanField(default=True, verbose_name="Active")
 
@@ -60,6 +62,7 @@ class Neighborhood(models.Model):
 
 class FoodCategory(models.Model):
     name = models.CharField(max_length=100, verbose_name="Nom")
+    name_en = models.CharField(max_length=100, blank=True, verbose_name="Name (English)")
     slug = models.SlugField(max_length=120, unique=True)
     icon = models.CharField(max_length=10, default="🍽️", verbose_name="Icône (emoji)")
     order = models.PositiveIntegerField(default=0, verbose_name="Ordre")
@@ -68,6 +71,10 @@ class FoodCategory(models.Model):
         verbose_name = "Catégorie alimentaire"
         verbose_name_plural = "Catégories alimentaires"
         ordering = ["order", "name"]
+
+    @property
+    def localized_name(self):
+        return (self.name_en or self.name) if get_language() == "en" else self.name
 
     def __str__(self):
         return f"{self.icon} {self.name}"
@@ -112,6 +119,7 @@ class Restaurant(models.Model):
     name = models.CharField(max_length=200, verbose_name="Nom du restaurant")
     slug = models.SlugField(max_length=220, unique=True)
     description = models.TextField(blank=True, verbose_name="Description")
+    description_en = models.TextField(blank=True, verbose_name="Description (English)")
     cover_image = models.ImageField(
         upload_to="resto/restaurants/",
         verbose_name="Photo de couverture",
@@ -148,6 +156,10 @@ class Restaurant(models.Model):
         verbose_name = "Restaurant"
         verbose_name_plural = "Restaurants"
         ordering = ["-is_featured", "-views_count", "name"]
+
+    @property
+    def localized_description(self):
+        return (self.description_en or self.description) if get_language() == "en" else self.description
 
     def __str__(self):
         return self.name
@@ -245,12 +257,17 @@ class MenuCategory(models.Model):
         verbose_name="Restaurant",
     )
     name = models.CharField(max_length=100, verbose_name="Nom de la catégorie")
+    name_en = models.CharField(max_length=100, blank=True, verbose_name="Category name (English)")
     order = models.PositiveIntegerField(default=0, verbose_name="Ordre")
 
     class Meta:
         verbose_name = "Catégorie du menu"
         verbose_name_plural = "Catégories du menu"
         ordering = ["order", "name"]
+
+    @property
+    def localized_name(self):
+        return (self.name_en or self.name) if get_language() == "en" else self.name
 
     def __str__(self):
         return f"{self.restaurant.name} — {self.name}"
@@ -277,6 +294,7 @@ class Dish(models.Model):
         verbose_name="Catégorie",
     )
     name = models.CharField(max_length=200, verbose_name="Nom du plat")
+    name_en = models.CharField(max_length=200, blank=True, verbose_name="Dish name (English)")
     description = models.TextField(blank=True, verbose_name="Description")
     price = models.DecimalField(max_digits=10, decimal_places=0, verbose_name="Prix (FCFA)")
     image = models.ImageField(
@@ -302,6 +320,14 @@ class Dish(models.Model):
         verbose_name = "Plat"
         verbose_name_plural = "Plats"
         ordering = ["category", "order", "name"]
+
+    @property
+    def localized_name(self):
+        return (self.name_en or self.name) if get_language() == "en" else self.name
+
+    @property
+    def localized_description(self):
+        return (self.description_en or self.description) if get_language() == "en" else self.description
 
     def __str__(self):
         return f"{self.name} — {self.formatted_price}"
@@ -456,6 +482,7 @@ class Notification(models.Model):
     )
     type = models.CharField(max_length=30, choices=TYPE_CHOICES, verbose_name="Type")
     message = models.TextField(verbose_name="Message")
+    message_en = models.TextField(blank=True, verbose_name="Message (English)")
     is_read = models.BooleanField(default=False, verbose_name="Lu")
     created_at = models.DateTimeField(auto_now_add=True)
 
@@ -463,6 +490,10 @@ class Notification(models.Model):
         verbose_name = "Notification"
         verbose_name_plural = "Notifications"
         ordering = ["-created_at"]
+
+    @property
+    def localized_message(self):
+        return (self.message_en or self.message) if get_language() == "en" else self.message
 
     def __str__(self):
         return f"{self.restaurant.name} — {self.get_type_display()}"
@@ -497,11 +528,13 @@ class HeroBanner(models.Model):
         verbose_name="Titre (optionnel)",
         help_text="Ex : Chez Mama Fouda · Yaoundé",
     )
+    title_en = models.CharField(max_length=100, blank=True, verbose_name="Title (English)")
     subtitle = models.CharField(
         max_length=200, blank=True,
         verbose_name="Sous-titre (optionnel)",
         help_text="Ex : Ndolé aux crevettes — 2 500 FCFA",
     )
+    subtitle_en = models.CharField(max_length=200, blank=True, verbose_name="Subtitle (English)")
     tag = models.CharField(
         max_length=20, choices=TAG_CHOICES, blank=True,
         verbose_name="Badge",
@@ -538,6 +571,7 @@ class HeroBanner(models.Model):
         verbose_name="Texte du bouton CTA",
         help_text="Ex : Voir le menu · Commander maintenant",
     )
+    cta_label_en = models.CharField(max_length=60, blank=True, verbose_name="CTA button text (English)")
     cta_url = models.CharField(
         max_length=300, blank=True,
         verbose_name="URL du bouton CTA",
@@ -594,4 +628,15 @@ class HeroBanner(models.Model):
 
     @property
     def tag_label(self):
-        return dict(self.TAG_CHOICES).get(self.tag, "")
+        return dict(self.TAG_CHOICES).get(self.tag, "")    @property
+    def localized_title(self):
+        return (self.title_en or self.title) if get_language() == "en" else self.title
+
+    @property
+    def localized_subtitle(self):
+        return (self.subtitle_en or self.subtitle) if get_language() == "en" else self.subtitle
+
+    @property
+    def localized_cta_label(self):
+        return (self.cta_label_en or self.cta_label) if get_language() == "en" else self.cta_label
+

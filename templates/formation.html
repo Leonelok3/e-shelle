@@ -417,47 +417,53 @@
 {% endblock %}
 
 {% block content %}
-{% if LANGUAGE_CODE == 'en' %}
-{% include "formation_en.html" %}
-{% else %}
 <main class="learn-page">
   <section class="learn-hero">
     <div class="learn-shell learn-grid">
       <div>
-        <span class="learn-pill">Campus numérique E-Shelle</span>
-        <h1 class="learn-title">Toutes vos <span>formations</span> et outils d'apprentissage au même endroit</h1>
+        <span class="learn-pill">{% if LANGUAGE_CODE == 'en' %}E-Shelle Digital Campus{% else %}Campus numérique E-Shelle{% endif %}</span>
+        <h1 class="learn-title">
+          {% if LANGUAGE_CODE == 'en' %}
+            All your <span>courses</span> and learning tools in one place
+          {% else %}
+            Toutes vos <span>formations</span> et outils d'apprentissage au même endroit
+          {% endif %}
+        </h1>
         <p class="learn-lead">
-          Mapex, EduCam, préparation aux examens, langues, maths, coach IA et formations publiées depuis l'admin :
-          cette page devient la vitrine centrale de tout l'écosystème formation E-Shelle.
+          {% if LANGUAGE_CODE == 'en' %}
+            Mapex, EduCam, exam prep, languages, mathematics, AI coach, and courses published directly from the admin: this page is the central hub for the entire E-Shelle training ecosystem.
+          {% else %}
+            Mapex, EduCam, préparation aux examens, langues, maths, coach IA et formations publiées depuis l'admin : cette page devient la vitrine centrale de tout l'écosystème formation E-Shelle.
+          {% endif %}
         </p>
         <div class="learn-actions">
-          <a class="learn-btn learn-btn-primary" href="{{ MAPEX_PUBLIC_URL|default:'/edu/' }}">Ouvrir Mapex →</a>
-          <a class="learn-btn" href="{% url 'formations:catalogue' %}">Voir les formations</a>
-          <a class="learn-btn learn-btn-blue" href="{% url 'preparation_tests:home' %}">Préparer un examen →</a>
+          <a class="learn-btn learn-btn-primary" href="{{ MAPEX_PUBLIC_URL|default:'/edu/' }}">{% if LANGUAGE_CODE == 'en' %}Open Mapex &rarr;{% else %}Ouvrir Mapex →{% endif %}</a>
+          <a class="learn-btn" href="{% url 'formations:catalogue' %}">{% if LANGUAGE_CODE == 'en' %}Browse courses{% else %}Voir les formations{% endif %}</a>
+          <a class="learn-btn learn-btn-blue" href="{% url 'preparation_tests:home' %}">{% if LANGUAGE_CODE == 'en' %}Prepare an exam &rarr;{% else %}Préparer un examen →{% endif %}</a>
         </div>
         <div class="learn-stats">
-          <div class="learn-stat"><strong>{{ formations_count }}</strong><span>formations publiées</span></div>
-          <div class="learn-stat"><strong>{{ categories_count }}</strong><span>catégories actives</span></div>
-          <div class="learn-stat"><strong>{{ lessons_count }}</strong><span>leçons disponibles</span></div>
+          <div class="learn-stat"><strong>{{ formations_count }}</strong><span>{% if LANGUAGE_CODE == 'en' %}published courses{% else %}formations publiées{% endif %}</span></div>
+          <div class="learn-stat"><strong>{{ categories_count }}</strong><span>{% if LANGUAGE_CODE == 'en' %}active categories{% else %}catégories actives{% endif %}</span></div>
+          <div class="learn-stat"><strong>{{ lessons_count }}</strong><span>{% if LANGUAGE_CODE == 'en' %}available lessons{% else %}leçons disponibles{% endif %}</span></div>
         </div>
       </div>
       <aside class="learn-panel" aria-label="Applications formation principales">
         <div class="learn-mini-grid">
           <a class="learn-mini-card" href="{{ MAPEX_PUBLIC_URL|default:'/edu/' }}">
             <span>🎓</span>
-            <span><strong>Mapex</strong><small>Examens camerounais</small></span>
+            <span><strong>Mapex</strong><small>{% if LANGUAGE_CODE == 'en' %}Cameroonian exams{% else %}Examens camerounais{% endif %}</small></span>
           </a>
           <a class="learn-mini-card" href="{% url 'formations:catalogue' %}">
             <span>📚</span>
-            <span><strong>Formations</strong><small>Cours depuis l'admin</small></span>
+            <span><strong>{% if LANGUAGE_CODE == 'en' %}Courses{% else %}Formations{% endif %}</strong><small>{% if LANGUAGE_CODE == 'en' %}Admin courses{% else %}Cours depuis l'admin{% endif %}</small></span>
           </a>
           <a class="learn-mini-card" href="{% url 'langues_hub' %}">
             <span>🌍</span>
-            <span><strong>Langues</strong><small>FR, DE, GB, IT</small></span>
+            <span><strong>{% if LANGUAGE_CODE == 'en' %}Languages{% else %}Langues{% endif %}</strong><small>FR, DE, GB, IT</small></span>
           </a>
           <a class="learn-mini-card" href="{% url 'preparation_tests:home' %}">
             <span>📝</span>
-            <span><strong>Tests officiels</strong><small>TCF, TEF, DELF</small></span>
+            <span><strong>{% if LANGUAGE_CODE == 'en' %}Official Tests{% else %}Tests officiels{% endif %}</strong><small>TCF, TEF, DELF</small></span>
           </a>
         </div>
       </aside>
@@ -466,48 +472,51 @@
 
   <section class="learn-section light">
     <div class="learn-shell">
-      <p class="learn-kicker">Applications incluses</p>
-      <h2 class="learn-heading">Les outils de formation prêts à être utilisés</h2>
+      <p class="learn-kicker">{% if LANGUAGE_CODE == 'en' %}Included Applications{% else %}Applications incluses{% endif %}</p>
+      <h2 class="learn-heading">{% if LANGUAGE_CODE == 'en' %}Ready-to-use learning tools{% else %}Les outils de formation prêts à être utilisés{% endif %}</h2>
       <p class="learn-subtitle">
-        Chaque carte ouvre une application E-Shelle existante. La page est prête à recevoir de nouveaux modules
-        sans casser l'expérience utilisateur.
+        {% if LANGUAGE_CODE == 'en' %}
+          Each card opens an active E-Shelle application. The hub seamlessly supports new educational modules without breaking user experience.
+        {% else %}
+          Chaque carte ouvre une application E-Shelle existante. La page est prête à recevoir de nouveaux modules sans casser l'expérience utilisateur.
+        {% endif %}
       </p>
       <div class="learn-cards">
         <a class="learn-card" href="{{ MAPEX_PUBLIC_URL|default:'/edu/' }}">
           <span class="learn-icon">🎓</span>
           <h3>Mapex / EduCam Pro</h3>
-          <p>Cours, documents, vidéos, abonnements, codes d'accès et préparation aux examens camerounais.</p>
-          <small>Ouvrir Mapex →</small>
+          <p>{% if LANGUAGE_CODE == 'en' %}Courses, documents, videos, subscriptions, access codes, and preparation for national Cameroonian exams.{% else %}Cours, documents, vidéos, abonnements, codes d'accès et préparation aux examens camerounais.{% endif %}</p>
+          <small>{% if LANGUAGE_CODE == 'en' %}Open Mapex &rarr;{% else %}Ouvrir Mapex →{% endif %}</small>
         </a>
         <a class="learn-card" href="{% url 'formations:catalogue' %}">
           <span class="learn-icon">📚</span>
-          <h3>Catalogue formations</h3>
-          <p>Formations publiées depuis l'administration, chapitres, leçons, quiz, progression et certificats.</p>
-          <small>Voir le catalogue →</small>
+          <h3>{% if LANGUAGE_CODE == 'en' %}Course Catalogue{% else %}Catalogue formations{% endif %}</h3>
+          <p>{% if LANGUAGE_CODE == 'en' %}Courses published from the admin panel: chapters, lessons, quizzes, progress tracking, and certificates.{% else %}Formations publiées depuis l'administration, chapitres, leçons, quiz, progression et certificats.{% endif %}</p>
+          <small>{% if LANGUAGE_CODE == 'en' %}View catalogue &rarr;{% else %}Voir le catalogue →{% endif %}</small>
         </a>
         <a class="learn-card" href="{% url 'formations:mon_dashboard' %}">
           <span class="learn-icon">🧭</span>
-          <h3>Espace apprenant</h3>
-          <p>Tableau de bord pour suivre les inscriptions, reprendre les cours et mesurer la progression.</p>
-          <small>Mon espace →</small>
+          <h3>{% if LANGUAGE_CODE == 'en' %}Learner Dashboard{% else %}Espace apprenant{% endif %}</h3>
+          <p>{% if LANGUAGE_CODE == 'en' %}Personal dashboard to track enrollments, resume lessons, and evaluate study progress.{% else %}Tableau de bord pour suivre les inscriptions, reprendre les cours et mesurer la progression.{% endif %}</p>
+          <small>{% if LANGUAGE_CODE == 'en' %}My dashboard &rarr;{% else %}Mon espace →{% endif %}</small>
         </a>
         <a class="learn-card" href="{% url 'preparation_tests:home' %}">
           <span class="learn-icon">📝</span>
-          <h3>Préparation examens</h3>
-          <p>Tests officiels, entraînements, compétences, corrections et coach pour examens de langues.</p>
-          <small>Préparer un examen →</small>
+          <h3>{% if LANGUAGE_CODE == 'en' %}Exam Preparation{% else %}Préparation examens{% endif %}</h3>
+          <p>{% if LANGUAGE_CODE == 'en' %}Official tests, practice sessions, skill drills, detailed corrections, and an AI language tutor.{% else %}Tests officiels, entraînements, compétences, corrections et coach pour examens de langues.{% endif %}</p>
+          <small>{% if LANGUAGE_CODE == 'en' %}Prepare an exam &rarr;{% else %}Préparer un examen →{% endif %}</small>
         </a>
         <a class="learn-card" href="{% url 'preparation_tests:tcf_hub' %}">
           <span class="learn-icon">🇨🇦</span>
           <h3>TCF Canada</h3>
-          <p>Compréhension orale, écrite, expression orale, expression écrite et simulations officielles.</p>
-          <small>Ouvrir TCF →</small>
+          <p>{% if LANGUAGE_CODE == 'en' %}Listening, reading, speaking, writing comprehension and official test simulation practice.{% else %}Compréhension orale, écrite, expression orale, expression écrite et simulations officielles.{% endif %}</p>
+          <small>{% if LANGUAGE_CODE == 'en' %}Open TCF &rarr;{% else %}Ouvrir TCF →{% endif %}</small>
         </a>
         <a class="learn-card" href="{% url 'math_cm:accueil' %}">
           <span class="learn-icon">🧮</span>
-          <h3>Maths Cameroun</h3>
-          <p>Chapitres, leçons, exercices, corrections et examens pour progresser étape par étape.</p>
-          <small>Apprendre les maths →</small>
+          <h3>{% if LANGUAGE_CODE == 'en' %}Maths Cameroon{% else %}Maths Cameroun{% endif %}</h3>
+          <p>{% if LANGUAGE_CODE == 'en' %}Curriculum chapters, lessons, exercises, step-by-step corrections, and exams.{% else %}Chapitres, leçons, exercices, corrections et examens pour progresser étape par étape.{% endif %}</p>
+          <small>{% if LANGUAGE_CODE == 'en' %}Learn math &rarr;{% else %}Apprendre les maths →{% endif %}</small>
         </a>
       </div>
     </div>
@@ -515,47 +524,51 @@
 
   <section class="learn-section deep">
     <div class="learn-shell">
-      <p class="learn-kicker">Langues et mobilité</p>
-      <h2 class="learn-heading">Préparer les langues pour les études, l'emploi et l'immigration</h2>
+      <p class="learn-kicker">{% if LANGUAGE_CODE == 'en' %}Languages &amp; Global Mobility{% else %}Langues et mobilité{% endif %}</p>
+      <h2 class="learn-heading">{% if LANGUAGE_CODE == 'en' %}Master languages for studies, employment, and immigration{% else %}Préparer les langues pour les études, l'emploi et l'immigration{% endif %}</h2>
       <p class="learn-subtitle">
-        Les outils langues peuvent rester visibles ici tout en gardant leurs pages spécialisées.
+        {% if LANGUAGE_CODE == 'en' %}
+          Language prep tools are readily accessible here alongside their dedicated learning platforms.
+        {% else %}
+          Les outils langues peuvent rester visibles ici tout en gardant leurs pages spécialisées.
+        {% endif %}
       </p>
       <div class="learn-cards">
         <a class="learn-card" href="{% url 'preparation_tests:french_exams' %}">
           <span class="learn-icon">FR</span>
-          <h3>Français</h3>
-          <p>TEF, TCF, DELF, DALF, exercices CO/CE/EO/EE, chronomètre officiel et coach IA.</p>
-          <small>Commencer →</small>
+          <h3>{% if LANGUAGE_CODE == 'en' %}French{% else %}Français{% endif %}</h3>
+          <p>{% if LANGUAGE_CODE == 'en' %}TEF, TCF, DELF, DALF, listening/reading/writing/speaking exercises, official timer, and AI coach.{% else %}TEF, TCF, DELF, DALF, exercices CO/CE/EO/EE, chronomètre officiel et coach IA.{% endif %}</p>
+          <small>{% if LANGUAGE_CODE == 'en' %}Get started &rarr;{% else %}Commencer →{% endif %}</small>
         </a>
         <a class="learn-card" href="{% url 'germanprep:home' %}">
           <span class="learn-icon">DE</span>
-          <h3>Allemand</h3>
-          <p>Niveaux A1 à C1, Goethe, test de niveau, coach IA, progression et préparation Allemagne.</p>
-          <small>Commencer →</small>
+          <h3>{% if LANGUAGE_CODE == 'en' %}German{% else %}Allemand{% endif %}</h3>
+          <p>{% if LANGUAGE_CODE == 'en' %}Levels A1 to C1, Goethe-Zertifikat prep, placement tests, AI coach, progress tracking, and Germany prep.{% else %}Niveaux A1 à C1, Goethe, test de niveau, coach IA, progression et préparation Allemagne.{% endif %}</p>
+          <small>{% if LANGUAGE_CODE == 'en' %}Get started &rarr;{% else %}Commencer →{% endif %}</small>
         </a>
         <a class="learn-card" href="{% url 'englishprep:dashboard' %}">
           <span class="learn-icon">GB</span>
-          <h3>Anglais</h3>
-          <p>IELTS, TOEFL, TOEIC, entraînements, expression écrite/orale et suivi de progression.</p>
-          <small>Commencer →</small>
+          <h3>{% if LANGUAGE_CODE == 'en' %}English{% else %}Anglais{% endif %}</h3>
+          <p>{% if LANGUAGE_CODE == 'en' %}IELTS, TOEFL, TOEIC drills, written/oral expression, and progress dashboards.{% else %}IELTS, TOEFL, TOEIC, entraînements, expression écrite/orale et suivi de progression.{% endif %}</p>
+          <small>{% if LANGUAGE_CODE == 'en' %}Get started &rarr;{% else %}Commencer →{% endif %}</small>
         </a>
         <a class="learn-card" href="{% url 'italian_courses:category_list' %}">
           <span class="learn-icon">IT</span>
-          <h3>Italien</h3>
-          <p>Cours par niveau, leçons structurées, quiz et progression pour apprendre efficacement.</p>
-          <small>Commencer →</small>
+          <h3>{% if LANGUAGE_CODE == 'en' %}Italian{% else %}Italien{% endif %}</h3>
+          <p>{% if LANGUAGE_CODE == 'en' %}Structured level-by-level courses, interactive lessons, quizzes, and progression to master Italian.{% else %}Cours par niveau, leçons structurées, quiz et progression pour apprendre efficacement.{% endif %}</p>
+          <small>{% if LANGUAGE_CODE == 'en' %}Get started &rarr;{% else %}Commencer →{% endif %}</small>
         </a>
         <a class="learn-card" href="{% url 'langues_hub' %}">
           <span class="learn-icon">🌍</span>
-          <h3>Hub langues</h3>
-          <p>Une porte d'entrée simple vers toutes les applications de langues E-Shelle.</p>
-          <small>Voir le hub →</small>
+          <h3>{% if LANGUAGE_CODE == 'en' %}Languages Hub{% else %}Hub langues{% endif %}</h3>
+          <p>{% if LANGUAGE_CODE == 'en' %}A central gateway leading into all E-Shelle language apps and test suites.{% else %}Une porte d'entrée simple vers toutes les applications de langues E-Shelle.{% endif %}</p>
+          <small>{% if LANGUAGE_CODE == 'en' %}View hub &rarr;{% else %}Voir le hub →{% endif %}</small>
         </a>
         <a class="learn-card" href="{% url 'preparation_tests:ai_coach' %}">
           <span class="learn-icon">🤖</span>
-          <h3>Coach IA</h3>
-          <p>Analyse des erreurs, conseils personnalisés et plan de travail pour progresser plus vite.</p>
-          <small>Ouvrir le coach →</small>
+          <h3>{% if LANGUAGE_CODE == 'en' %}AI Coach{% else %}Coach IA{% endif %}</h3>
+          <p>{% if LANGUAGE_CODE == 'en' %}Error analysis, tailored recommendations, and customized study plans to accelerate progress.{% else %}Analyse des erreurs, conseils personnalisés et plan de travail pour progresser plus vite.{% endif %}</p>
+          <small>{% if LANGUAGE_CODE == 'en' %}Open AI coach &rarr;{% else %}Ouvrir le coach →{% endif %}</small>
         </a>
       </div>
     </div>
@@ -563,11 +576,14 @@
 
   <section class="learn-section light">
     <div class="learn-shell">
-      <p class="learn-kicker">Depuis l'administration</p>
-      <h2 class="learn-heading">Formations publiées sur E-Shelle</h2>
+      <p class="learn-kicker">{% if LANGUAGE_CODE == 'en' %}From the Administration{% else %}Depuis l'administration{% endif %}</p>
+      <h2 class="learn-heading">{% if LANGUAGE_CODE == 'en' %}Courses published on E-Shelle{% else %}Formations publiées sur E-Shelle{% endif %}</h2>
       <p class="learn-subtitle">
-        Dès qu'une formation est créée et marquée comme publiée dans l'admin, elle peut apparaître ici avec sa
-        miniature, son niveau, son prix et son lien de détail.
+        {% if LANGUAGE_CODE == 'en' %}
+          Courses created and marked as published in the admin panel appear here with thumbnail, level, price, and syllabus.
+        {% else %}
+          Dès qu'une formation est créée et marquée comme publiée dans l'admin, elle peut apparaître ici avec sa miniature, son niveau, son prix et son lien de détail.
+        {% endif %}
       </p>
       {% if published_formations %}
       <div class="learn-course-grid">
@@ -586,17 +602,17 @@
             <div class="learn-tags">
               <span class="learn-tag">{{ formation.categorie.nom }}</span>
               <span class="learn-tag">{{ formation.get_niveau_display }}</span>
-              <span class="learn-tag">{% if formation.est_gratuite %}Gratuit{% else %}{{ formation.prix|floatformat:0 }} FCFA{% endif %}</span>
+              <span class="learn-tag">{% if formation.est_gratuite %}{% if LANGUAGE_CODE == 'en' %}Free{% else %}Gratuit{% endif %}{% else %}{{ formation.prix|floatformat:0 }} FCFA{% endif %}</span>
             </div>
-            <small>Voir la formation →</small>
+            <small>{% if LANGUAGE_CODE == 'en' %}View course &rarr;{% else %}Voir la formation →{% endif %}</small>
           </div>
         </a>
         {% endfor %}
       </div>
       {% else %}
       <div class="learn-empty">
-        <h3 style="font-family:'Outfit',sans-serif;font-size:1.45rem;margin:0 0 .6rem;">Aucune formation publiée pour le moment</h3>
-        <p style="margin:0;color:#64748b;">Ajoutez une formation depuis l'administration, activez “publiée”, puis elle apparaîtra dans cette vitrine.</p>
+        <h3 style="font-family:'Outfit',sans-serif;font-size:1.45rem;margin:0 0 .6rem;">{% if LANGUAGE_CODE == 'en' %}No courses published at the moment{% else %}Aucune formation publiée pour le moment{% endif %}</h3>
+        <p style="margin:0;color:#64748b;">{% if LANGUAGE_CODE == 'en' %}Add a course from the administration panel, mark it as "published", and it will display in this showcase.{% else %}Ajoutez une formation depuis l'administration, activez “publiée”, puis elle apparaîtra dans cette vitrine.{% endif %}</p>
       </div>
       {% endif %}
     </div>
@@ -605,19 +621,21 @@
   <section class="learn-section deep">
     <div class="learn-shell">
       <div class="learn-final">
-        <h2>Une vitrine claire pour toutes les formations E-Shelle</h2>
+        <h2>{% if LANGUAGE_CODE == 'en' %}A streamlined hub for all E-Shelle courses{% else %}Une vitrine claire pour toutes les formations E-Shelle{% endif %}</h2>
         <p>
-          Formation devient la porte d'entrée des cours, examens, langues, Mapex, coachs IA et nouvelles offres
-          pédagogiques que vous ajouterez progressivement depuis l'admin.
+          {% if LANGUAGE_CODE == 'en' %}
+            Formation serves as the premier gateway for courses, exams, languages, Mapex, AI tutors, and new educational offerings added via admin.
+          {% else %}
+            Formation devient la porte d'entrée des cours, examens, langues, Mapex, coachs IA et nouvelles offres pédagogiques que vous ajouterez progressivement depuis l'admin.
+          {% endif %}
         </p>
         <div class="learn-actions" style="justify-content:center;margin-top:0;">
-          <a class="learn-btn learn-btn-primary" href="{{ MAPEX_PUBLIC_URL|default:'/edu/' }}">Ouvrir Mapex →</a>
-          <a class="learn-btn" href="{% url 'formations:catalogue' %}">Catalogue formations</a>
-          <a class="learn-btn learn-btn-blue" href="/admin/formations/formation/add/">Ajouter une formation</a>
+          <a class="learn-btn learn-btn-primary" href="{{ MAPEX_PUBLIC_URL|default:'/edu/' }}">{% if LANGUAGE_CODE == 'en' %}Open Mapex &rarr;{% else %}Ouvrir Mapex →{% endif %}</a>
+          <a class="learn-btn" href="{% url 'formations:catalogue' %}">{% if LANGUAGE_CODE == 'en' %}Course catalogue{% else %}Catalogue formations{% endif %}</a>
+          <a class="learn-btn learn-btn-blue" href="/admin/formations/formation/add/">{% if LANGUAGE_CODE == 'en' %}Add a course{% else %}Ajouter une formation{% endif %}</a>
         </div>
       </div>
     </div>
   </section>
 </main>
-{% endif %}
 {% endblock %}

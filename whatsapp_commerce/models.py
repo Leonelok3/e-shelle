@@ -1,5 +1,6 @@
 from django.conf import settings
 from django.db import models
+import uuid
 
 
 class BusinessWhatsAppConnection(models.Model):
@@ -80,6 +81,8 @@ class BusinessWhatsAppContact(models.Model):
 	phone = models.CharField(max_length=20)
 	display_name = models.CharField(max_length=180, blank=True)
 	marketing_opt_in = models.BooleanField(default=False)
+	consent_service = models.BooleanField(default=False)
+	consent_marketing = models.BooleanField(default=False)
 	consent_source = models.CharField(max_length=120, blank=True)
 	consented_at = models.DateTimeField(null=True, blank=True)
 	consent_recorded_by = models.ForeignKey(
@@ -176,6 +179,58 @@ class BusinessWhatsAppAudit(models.Model):
 	class Meta:
 		ordering = ["-created_at", "-pk"]
 		indexes = [models.Index(fields=["connection", "event_type", "created_at"])]
+
+
+class WhatsAppDraftOrder(models.Model):
+	class Status(models.TextChoices):
+		DRAFT = "draft", "Brouillon"
+		AWAITING_CONFIRMATION = "awaiting_confirmation", "En attente de confirmation"
+		CONFIRMED = "confirmed", "Confirmée"
+		CANCELLED = "cancelled", "Annulée"
+
+	business = models.ForeignKey(
+		"business.BusinessProfile",
+		on_delete=models.CASCADE,
+		related_name="whatsapp_draft_orders",
+	)
+	connection = models.ForeignKey(
+		BusinessWhatsAppConnection,
+		on_delete=models.CASCADE,
+		related_name="draft_orders",
+	)
+	contact = models.ForeignKey(
+		BusinessWhatsAppContact,
+		on_delete=models.CASCADE,
+		related_name="draft_orders",
+	)
+	catalog_item = models.ForeignKey(
+		"business.BusinessCatalogItem",
+		on_delete=models.PROTECT,
+		related_name="whatsapp_draft_orders",
+	)
+	quantity = models.PositiveIntegerField(default=1)
+	unit_price = models.DecimalField(max_digits=12, decimal_places=2)
+	total_price = models.DecimalField(max_digits=12, decimal_places=2)
+	status = models.CharField(
+		max_length=32,
+		choices=Status.choices,
+		default=Status.DRAFT,
+		db_index=True,
+	)
+	confirmation_token = models.UUIDField(default=uuid.uuid4, unique=True, editable=False)
+	audit = models.JSONField(default=dict, blank=True)
+	created_at = models.DateTimeField(auto_now_add=True)
+	confirmed_at = models.DateTimeField(null=True, blank=True)
+
+	class Meta:
+		ordering = ["-created_at", "-pk"]
+		constraints = [
+			models.UniqueConstraint(
+				fields=["contact"],
+				condition=models.Q(status="awaiting_confirmation"),
+				name="wa_draft_one_pending_per_contact",
+			),
+		]
 
 
 class ScheduledBusinessWhatsAppMessage(models.Model):

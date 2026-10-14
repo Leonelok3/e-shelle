@@ -1,12 +1,13 @@
-<nav class="canada-navigation" aria-label="Modules Canada">
+{% load i18n %}
+<nav class="canada-navigation" aria-label="{% trans 'Modules Canada' %}">
   <div class="canada-primary">
-    <a href="{% url 'canada_landing' %}" {% if canada_menu.home %}aria-current="page"{% endif %}>Accueil Canada</a>
+    <a href="{% url 'canada_landing' %}" {% if canada_menu.home %}aria-current="page"{% endif %}>{% trans "Accueil Canada" %}</a>
     {% for group in canada_menu.groups %}
     <a href="{{ group.url }}" {% if group.active %}aria-current="true"{% endif %}>{{ group.label }}</a>
     {% endfor %}
   </div>
   {% if not canada_menu.home %}
-  <p class="canada-location"><a href="{% url 'canada_landing' %}">Accueil Canada</a> <span aria-hidden="true">/</span> <strong>{{ canada_menu.current }}</strong></p>
+  <p class="canada-location"><a href="{% url 'canada_landing' %}">{% trans "Accueil Canada" %}</a> <span aria-hidden="true">/</span> <strong>{{ canada_menu.current }}</strong></p>
   {% for group in canada_menu.groups %}{% if group.active %}
   <div class="canada-module-links" aria-label="{{ group.label }}">
     {% for item in group.items %}<a href="{{ item.url }}" {% if item.active %}aria-current="{% if item.exact %}page{% else %}true{% endif %}"{% endif %}>{{ item.label }}</a>{% endfor %}
@@ -14,7 +15,7 @@
   {% endif %}{% endfor %}
   {% endif %}
   <details class="canada-all">
-    <summary>Tous les modules et assistants IA</summary>
+    <summary>{% trans "Tous les modules et assistants IA" %}</summary>
     <div class="canada-menu-grid">
       {% for group in canada_menu.groups %}
       <div><strong>{{ group.label }}</strong>{% for item in group.items %}<a href="{{ item.url }}" {% if item.exact %}aria-current="page"{% endif %}>{{ item.label }}</a>{% endfor %}</div>

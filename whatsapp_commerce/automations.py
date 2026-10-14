@@ -24,6 +24,13 @@ logger = logging.getLogger(__name__)
 _BODY_VARIABLE = re.compile(r"\{\{\s*(\d+)\s*\}\}")
 
 
+def _has_marketing_consent(contact):
+	return bool(
+		contact.consent_marketing
+		or (contact.marketing_opt_in and contact.consented_at)
+	) and not contact.opted_out_at
+
+
 def _connection_for_business(business):
     connection = BusinessWhatsAppConnection.objects.filter(
         business=business,
@@ -134,7 +141,7 @@ def schedule_sales_follow_ups(contact):
     """Queue J+1/J+3/J+7 only for opted-in contacts and approved STOP templates."""
     if not getattr(settings, "WHATSAPP_BUSINESS_AUTOMATIONS_ENABLED", False):
         return 0
-    if not contact.marketing_opt_in or not contact.consented_at or contact.opted_out_at:
+    if not _has_marketing_consent(contact):
         return 0
     if not require_whatsapp_entitlement(contact.business, "can_automate"):
         return 0
@@ -169,9 +176,7 @@ def schedule_sales_follow_ups(contact):
         contact = BusinessWhatsAppContact.objects.select_for_update().get(pk=contact.pk)
         connection = BusinessWhatsAppConnection.objects.select_for_update().get(pk=connection.pk)
         if (
-            not contact.marketing_opt_in
-            or not contact.consented_at
-            or contact.opted_out_at
+            not _has_marketing_consent(contact)
             or not connection.automations_enabled
             or connection.status != BusinessWhatsAppConnection.Status.ACTIVE
         ):
@@ -251,7 +256,7 @@ def schedule_template_follow_up(
     business = contact.business
     if not require_whatsapp_entitlement(business, "can_automate"):
         raise MetaOnboardingError("Les relances automatiques nécessitent une formule Business active.")
-    if not contact.marketing_opt_in or not contact.consented_at or contact.opted_out_at:
+    if not _has_marketing_consent(contact):
         raise MetaOnboardingError("Un consentement marketing explicite et actif est obligatoire.")
     if not normalize_phone(contact.phone):
         raise MetaOnboardingError("Le numéro du contact n’est pas valide.")
@@ -358,7 +363,7 @@ def send_scheduled_template_message(message_id):
         business = contact.business
         if not require_whatsapp_entitlement(business, "can_automate"):
             raise MetaOnboardingError("La formule Business n’est plus active.")
-        if not contact.marketing_opt_in or not contact.consented_at or contact.opted_out_at:
+        if not _has_marketing_consent(contact):
             raise MetaOnboardingError("Le consentement marketing n’est plus actif.")
         connection = BusinessWhatsAppConnection.objects.filter(
             pk=scheduled.connection_id,
@@ -386,7 +391,7 @@ def send_scheduled_template_message(message_id):
         contact = BusinessWhatsAppContact.objects.get(pk=scheduled.contact_id)
         if not require_whatsapp_entitlement(business, "can_automate"):
             raise MetaOnboardingError("La formule Business n’est plus active.")
-        if not contact.marketing_opt_in or not contact.consented_at or contact.opted_out_at:
+        if not _has_marketing_consent(contact):
             raise MetaOnboardingError("Le consentement marketing n’est plus actif.")
         if contact.business_id != connection.business_id or scheduled.connection_id != connection.pk:
             raise MetaOnboardingError("Le contact et le WABA planifié ne correspondent plus.")

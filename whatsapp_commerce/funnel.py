@@ -49,6 +49,8 @@ def _update_qualification(contact, message, decision):
 def build_funnel_reply(connection, contact, inbound_message):
 	"""Create an initial catalog introduction, then qualify before proposing a close."""
 	decision = generate_sales_decision(connection, contact, inbound_message.body)
+	if decision.get("pending_action", {}).get("status") == "awaiting_confirmation":
+		return decision
 	qualification = _update_qualification(contact, inbound_message.body, decision)
 	inbound_count = contact.messages.filter(direction="inbound").count()
 	if inbound_count == 1:

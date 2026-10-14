@@ -487,9 +487,6 @@
 {% endblock %}
 
 {% block content %}
-{% if LANGUAGE_CODE == 'en' %}
-{% include "home_en.html" %}
-{% else %}
 <div class="esh-home">
   {# 1. Section de recherche IA et Showcase #}
   <section class="esh-hero">
@@ -509,17 +506,17 @@
           {% endif %}
         </p>
         <form class="esh-ai-search esh-business-signup" action="{% url 'business:onboarding' %}" method="get">
-          <input name="business_hint" type="search" placeholder="Ex : Pressing à Douala, restaurant à Abidjan, boutique cosmétique, électricien..." aria-label="Votre business">
+          <input name="business_hint" type="search" placeholder="{% if LANGUAGE_CODE == 'en' %}e.g. Dry cleaner in Douala, restaurant in Abidjan, boutique, electrician...{% else %}Ex : Pressing à Douala, restaurant à Abidjan, boutique cosmétique, électricien...{% endif %}" aria-label="{% if LANGUAGE_CODE == 'en' %}Your business{% else %}Votre business{% endif %}">
           <input type="hidden" name="source" value="home_hero_business">
-          <button type="submit">Inscrire mon business <span style="display:inline-block;margin-left:4px;transition:transform .2s ease;">→</span></button>
+          <button type="submit">{% if LANGUAGE_CODE == 'en' %}List your business{% else %}Inscrire mon business{% endif %} <span style="display:inline-block;margin-left:4px;transition:transform .2s ease;">→</span></button>
         </form>
-        <div class="esh-chip-row" aria-label="Arguments pour les prestataires">
-          <a class="esh-chip" href="{% url 'business:onboarding' %}" data-direct="true">Fiche business gratuite</a>
-          <a class="esh-chip" href="{% url 'business:onboarding' %}" data-direct="true">Visible sur Google</a>
-          <a class="esh-chip" href="{% url 'business:onboarding' %}" data-direct="true">Prêt pour les recherches IA</a>
-          <a class="esh-chip" href="{% url 'business:onboarding' %}" data-direct="true">WhatsApp direct</a>
-          <a class="esh-chip" href="{% url 'business:onboarding' %}" data-direct="true">Produits & services indexés</a>
-          <a class="esh-chip" href="{% url 'marketing' %}" data-direct="true">Marketing IA inclus</a>
+        <div class="esh-chip-row" aria-label="{% if LANGUAGE_CODE == 'en' %}Merchant advantages{% else %}Arguments pour les prestataires{% endif %}">
+          <a class="esh-chip" href="{% url 'business:onboarding' %}" data-direct="true">{% if LANGUAGE_CODE == 'en' %}Free business profile{% else %}Fiche business gratuite{% endif %}</a>
+          <a class="esh-chip" href="{% url 'business:onboarding' %}" data-direct="true">{% if LANGUAGE_CODE == 'en' %}Visible on Google{% else %}Visible sur Google{% endif %}</a>
+          <a class="esh-chip" href="{% url 'business:onboarding' %}" data-direct="true">{% if LANGUAGE_CODE == 'en' %}Ready for AI search{% else %}Prêt pour les recherches IA{% endif %}</a>
+          <a class="esh-chip" href="{% url 'business:onboarding' %}" data-direct="true">{% if LANGUAGE_CODE == 'en' %}Direct WhatsApp{% else %}WhatsApp direct{% endif %}</a>
+          <a class="esh-chip" href="{% url 'business:onboarding' %}" data-direct="true">{% if LANGUAGE_CODE == 'en' %}Indexed products &amp; services{% else %}Produits & services indexés{% endif %}</a>
+          <a class="esh-chip" href="{% url 'marketing' %}" data-direct="true">{% if LANGUAGE_CODE == 'en' %}AI marketing included{% else %}Marketing IA inclus{% endif %}</a>
         </div>
       </div>
     </div>
@@ -918,13 +915,17 @@
 
     <div class="esh-shell">
       <div style="text-align: center; max-width: 800px; margin: 0 auto 3.5rem;">
-        <div class="esh-pill" style="background: rgba(125, 236, 108, 0.1); border-color: rgba(125, 236, 108, 0.3); color: #7dec6c; font-weight: 700;">Solutions Numériques Haut de Gamme</div>
+        <div class="esh-pill" style="background: rgba(125, 236, 108, 0.1); border-color: rgba(125, 236, 108, 0.3); color: #7dec6c; font-weight: 700;">{% if LANGUAGE_CODE == 'en' %}Premium Digital Solutions{% else %}Solutions Numériques Haut de Gamme{% endif %}</div>
         <h2 class="esh-section-title" style="font-family: 'Outfit', sans-serif; font-size: clamp(2rem, 3.5vw, 2.8rem); font-weight: 900; color: #ffffff; margin-top: 1rem; line-height: 1.15;">
-          Propulsez votre activité avec nos <span style="color: #7dec6c;">Solutions IA</span> & <span style="color: #f59e0b;">Web</span>
+          {% if LANGUAGE_CODE == 'en' %}Scale your business with our <span style="color: #7dec6c;">AI Solutions</span> &amp; <span style="color: #f59e0b;">Web</span>{% else %}Propulsez votre activité avec nos <span style="color: #7dec6c;">Solutions IA</span> &amp; <span style="color: #f59e0b;">Web</span>{% endif %}
         </h2>
         <div style="background: linear-gradient(135deg, #091322 0%, #030712 100%); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 16px; padding: 1.2rem 2rem; max-width: 680px; margin: 1.5rem auto 0; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.45);">
           <p style="font-size: 1rem; line-height: 1.6; font-family: 'Plus Jakarta Sans', sans-serif; color: #f3f4f6; margin: 0;">
+            {% if LANGUAGE_CODE == 'en' %}
+            From custom <span style="color: #7dec6c; font-weight: 700;">website creation</span> to autonomous <span style="color: #7dec6c; font-weight: 700;">AI agents</span>, E-Shelle supports you in scaling your business across <span style="color: #f59e0b; font-weight: 700;">Cameroon</span> and <span style="color: #f59e0b; font-weight: 700;">Africa</span>.
+            {% else %}
             De la conception de votre <span style="color: #7dec6c; font-weight: 700;">site internet</span> à l'intégration d'orientations et <span style="color: #7dec6c; font-weight: 700;">agents IA autonomes</span>, E-Shelle vous accompagne pour propulser votre business au <span style="color: #f59e0b; font-weight: 700;">Cameroun</span> et en <span style="color: #f59e0b; font-weight: 700;">Afrique</span>.
+            {% endif %}
           </p>
         </div>
       </div>
@@ -940,41 +941,45 @@
 
           <div style="display: inline-flex; align-items: center; align-self: flex-start; padding: 6px 14px; border-radius: 30px; background: rgba(125, 236, 108, 0.08); border: 1px solid rgba(125, 236, 108, 0.2);">
             <span class="esh-live-dot" style="background-color: #7dec6c; color: #7dec6c;"></span>
-            <span style="font-family: 'Plus Jakarta Sans', sans-serif; font-size: 0.72rem; font-weight: 750; text-transform: uppercase; letter-spacing: 1.2px; color: #7dec6c;">Référencement Booster Google</span>
+            <span style="font-family: 'Plus Jakarta Sans', sans-serif; font-size: 0.72rem; font-weight: 750; text-transform: uppercase; letter-spacing: 1.2px; color: #7dec6c;">{% if LANGUAGE_CODE == 'en' %}Google Booster Ranking{% else %}Référencement Booster Google{% endif %}</span>
           </div>
 
           <h3 style="font-family: 'Outfit', sans-serif; font-size: 1.6rem; font-weight: 900; color: #ffffff; margin: 0; line-height: 1.25;">
-            🚀 Boostez votre <span style="background: linear-gradient(135deg, #7dec6c 0%, #10b981 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">visibilité sur Google</span> avec E-Shelle
+            🚀 {% if LANGUAGE_CODE == 'en' %}Boost your <span style="background: linear-gradient(135deg, #7dec6c 0%, #10b981 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Google visibility</span> with E-Shelle{% else %}Boostez votre <span style="background: linear-gradient(135deg, #7dec6c 0%, #10b981 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">visibilité sur Google</span> avec E-Shelle{% endif %}
           </h3>
 
           <p style="color: #cbd5e1; font-size: 0.95rem; line-height: 1.65; margin: 0;">
+            {% if LANGUAGE_CODE == 'en' %}
+            List your local store or service in under 2 minutes. Our crawler and AI engines push your offers to the top of <span style="color: #7dec6c; font-weight: 700;">Google</span> to connect you directly with local customers.
+            {% else %}
             Inscrivez votre commerce local ou service en moins de 2 minutes. Notre robot d'indexation et nos agents IA propulsent automatiquement vos offres au sommet de <span style="color: #7dec6c; font-weight: 700;">Google</span> pour vous connecter directement à des milliers de clients locaux.
+            {% endif %}
           </p>
 
-          <!-- Liste des avantages concrets (Copywriting solide + Remplissage de l'espace vide) -->
+          <!-- Liste des avantages concrets -->
           <ul style="list-style: none; padding: 0; margin: 0.5rem 0; display: flex; flex-direction: column; gap: 0.9rem; color: #cbd5e1; font-size: 0.92rem; font-family: 'Plus Jakarta Sans', sans-serif;">
             <li style="display: flex; align-items: flex-start; gap: 10px;">
               <span style="color: #7dec6c; font-weight: 900; font-size: 1.15rem; line-height: 1;">✓</span>
-              <span><strong>Indexation Express</strong> : Présence Google active sous 24h.</span>
+              <span>{% if LANGUAGE_CODE == 'en' %}<strong>Express Indexing</strong>: Active Google presence within 24h.{% else %}<strong>Indexation Express</strong> : Présence Google active sous 24h.{% endif %}</span>
             </li>
             <li style="display: flex; align-items: flex-start; gap: 10px;">
               <span style="color: #7dec6c; font-weight: 900; font-size: 1.15rem; line-height: 1;">✓</span>
-              <span><strong>Vitrine SEO</strong> : Fiche commerce optimisée mobile et vitesse.</span>
+              <span>{% if LANGUAGE_CODE == 'en' %}<strong>SEO Storefront</strong>: Fast, mobile-optimized business profile.{% else %}<strong>Vitrine SEO</strong> : Fiche commerce optimisée mobile et vitesse.{% endif %}</span>
             </li>
             <li style="display: flex; align-items: flex-start; gap: 10px;">
               <span style="color: #7dec6c; font-weight: 900; font-size: 1.15rem; line-height: 1;">✓</span>
-              <span><strong>Conversion Directe</strong> : Boutons WhatsApp, Appels & Devis.</span>
+              <span>{% if LANGUAGE_CODE == 'en' %}<strong>Direct Conversion</strong>: WhatsApp, Calls &amp; Instant Quotes.{% else %}<strong>Conversion Directe</strong> : Boutons WhatsApp, Appels &amp; Devis.{% endif %}</span>
             </li>
             <li style="display: flex; align-items: flex-start; gap: 10px;">
               <span style="color: #7dec6c; font-weight: 900; font-size: 1.15rem; line-height: 1;">✓</span>
-              <span><strong>Stats en Temps Réel</strong> : Suivi complet de vos visiteurs.</span>
+              <span>{% if LANGUAGE_CODE == 'en' %}<strong>Real-Time Analytics</strong>: Track visitors and customer calls.{% else %}<strong>Stats en Temps Réel</strong> : Suivi complet de vos visiteurs.{% endif %}</span>
             </li>
           </ul>
 
           <div style="margin-top: auto; padding-top: 1rem;">
             <a class="esh-btn-primary esh-btn-premium-glow" href="{% if user_has_business %}{% url 'business:dashboard' %}{% else %}/business/onboarding/{% endif %}"
                style="text-decoration: none; padding: 0.9rem 2rem; border-radius: 12px; display: inline-flex; align-items: center; justify-content: center; gap: 0.4rem; font-weight: 700; font-size: 0.95rem; background: linear-gradient(135deg, #7dec6c 0%, #f59e0b 100%); color: #07130c; border: none; width: 100%; box-shadow: 0 4px 15px rgba(125,236,108,0.2);">
-              {% if user_has_business %}Gérer mon business →{% else %}Inscrire mon business →{% endif %}
+              {% if user_has_business %}{% if LANGUAGE_CODE == 'en' %}Manage my business →{% else %}Gérer mon business →{% endif %}{% else %}{% if LANGUAGE_CODE == 'en' %}List my business →{% else %}Inscrire mon business →{% endif %}{% endif %}
             </a>
           </div>
         </div>
@@ -988,12 +993,12 @@
                onmouseout="this.style.transform='translateY(0)'; this.style.borderColor='#e2e8f0'; this.style.boxShadow='0 4px 15px rgba(0, 0, 0, 0.05)';"
                title="Création de sites web sur-mesure">
             <div style="width: 48px; height: 48px; background: rgba(59, 130, 246, 0.08); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem;">🌐</div>
-            <h4 style="font-family: 'Outfit', sans-serif; font-size: 1.25rem; font-weight: 800; color: #0f172a; margin: 0;">Création de Sites Web & E-Commerce</h4>
+            <h4 style="font-family: 'Outfit', sans-serif; font-size: 1.25rem; font-weight: 800; color: #0f172a; margin: 0;">{% if LANGUAGE_CODE == 'en' %}Custom Websites &amp; E-Commerce{% else %}Création de Sites Web &amp; E-Commerce{% endif %}</h4>
             <p style="color: #475569; font-size: 0.88rem; line-height: 1.55; margin: 0;">
-              Conception de sites vitrines, landing pages et e-shops ultra-rapides, adaptés mobiles et 100% optimisés pour le référencement Google.
+              {% if LANGUAGE_CODE == 'en' %}Ultra-fast showcase websites, landing pages and online shops, mobile-first and 100% SEO-optimized.{% else %}Conception de sites vitrines, landing pages et e-shops ultra-rapides, adaptés mobiles et 100% optimisés pour le référencement Google.{% endif %}
             </p>
             <div style="margin-top: auto; font-size: 0.78rem; font-weight: 700; color: #3b82f6;">
-              SaaS · Vitrines · E-Shops
+              SaaS · {% if LANGUAGE_CODE == 'en' %}Showcase{% else %}Vitrines{% endif %} · E-Shops
             </div>
           </div>
 
@@ -1003,9 +1008,9 @@
                onmouseout="this.style.transform='translateY(0)'; this.style.borderColor='#e2e8f0'; this.style.boxShadow='0 4px 15px rgba(0, 0, 0, 0.05)';"
                title="Intégration d'agents IA">
             <div style="width: 48px; height: 48px; background: rgba(16, 185, 129, 0.08); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem;">🤖</div>
-            <h4 style="font-family: 'Outfit', sans-serif; font-size: 1.25rem; font-weight: 800; color: #16a34a; margin: 0;">Intégration d'Agents IA sur-mesure</h4>
+            <h4 style="font-family: 'Outfit', sans-serif; font-size: 1.25rem; font-weight: 800; color: #16a34a; margin: 0;">{% if LANGUAGE_CODE == 'en' %}Custom AI Agents Integration{% else %}Intégration d'Agents IA sur-mesure{% endif %}</h4>
             <p style="color: #475569; font-size: 0.88rem; line-height: 1.55; margin: 0;">
-              Automatisez votre relation client 24h/24. Nos agents IA répondent à vos prospects et s'intègrent directement sur votre site et WhatsApp.
+              {% if LANGUAGE_CODE == 'en' %}Automate customer support 24/7. Our AI agents answer prospects and connect directly to your website and WhatsApp.{% else %}Automatisez votre relation client 24h/24. Nos agents IA répondent à vos prospects et s'intègrent directement sur votre site et WhatsApp.{% endif %}
             </p>
             <div style="margin-top: auto; font-size: 0.78rem; font-weight: 700; color: #10b981;">
               Chatbots · GPTs · WhatsApp IA
@@ -1018,9 +1023,9 @@
                onmouseout="this.style.transform='translateY(0)'; this.style.borderColor='#e2e8f0'; this.style.boxShadow='0 4px 15px rgba(0, 0, 0, 0.05)';"
                title="Automatisation de processus">
             <div style="width: 48px; height: 48px; background: rgba(245, 158, 11, 0.08); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem;">⚡</div>
-            <h4 style="font-family: 'Outfit', sans-serif; font-size: 1.25rem; font-weight: 800; color: #d97706; margin: 0;">Automatisation & Productivité</h4>
+            <h4 style="font-family: 'Outfit', sans-serif; font-size: 1.25rem; font-weight: 800; color: #d97706; margin: 0;">{% if LANGUAGE_CODE == 'en' %}Automation &amp; Productivity{% else %}Automatisation &amp; Productivité{% endif %}</h4>
             <p style="color: #475569; font-size: 0.88rem; line-height: 1.55; margin: 0;">
-              Éliminez les tâches répétitives. Synchronisation de stocks, facturation automatisée et envois de mails transactionnels.
+              {% if LANGUAGE_CODE == 'en' %}Eliminate repetitive tasks. Inventory sync, automated invoicing, and transaction emails.{% else %}Éliminez les tâches répétitives. Synchronisation de stocks, facturation automatisée et envois de mails transactionnels.{% endif %}
             </p>
             <div style="margin-top: auto; font-size: 0.78rem; font-weight: 700; color: #f59e0b;">
               Workflows · APIs · CRM
@@ -1033,12 +1038,12 @@
                onmouseout="this.style.transform='translateY(0)'; this.style.borderColor='#e2e8f0'; this.style.boxShadow='0 4px 15px rgba(0, 0, 0, 0.05)';"
                title="Formations IA et No-code">
             <div style="width: 48px; height: 48px; background: rgba(139, 92, 246, 0.08); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem;">🎓</div>
-            <h4 style="font-family: 'Outfit', sans-serif; font-size: 1.25rem; font-weight: 800; color: #0f172a; margin: 0;">Formations en Ligne & Académie</h4>
+            <h4 style="font-family: 'Outfit', sans-serif; font-size: 1.25rem; font-weight: 800; color: #0f172a; margin: 0;">{% if LANGUAGE_CODE == 'en' %}Online Training &amp; Academy{% else %}Formations en Ligne &amp; Académie{% endif %}</h4>
             <p style="color: #475569; font-size: 0.88rem; line-height: 1.55; margin: 0;">
-              Maîtrisez les outils d'IA (Prompt Engineering, automatisation) et le code pour propulser votre carrière avec nos cours certifiants.
+              {% if LANGUAGE_CODE == 'en' %}Master modern AI tools (Prompt Engineering, automation) and software development with certified courses.{% else %}Maîtrisez les outils d'IA (Prompt Engineering, automatisation) et le code pour propulser votre carrière avec nos cours certifiants.{% endif %}
             </p>
             <div style="margin-top: auto; font-size: 0.78rem; font-weight: 700; color: #8b5cf6;">
-              Intelligence Artificielle · No-code · Dev
+              {% if LANGUAGE_CODE == 'en' %}Artificial Intelligence · No-code · Dev{% else %}Intelligence Artificielle · No-code · Dev{% endif %}
             </div>
           </div>
 
@@ -1048,12 +1053,12 @@
                onmouseout="this.style.transform='translateY(0)'; this.style.borderColor='#e2e8f0'; this.style.boxShadow='0 4px 15px rgba(0, 0, 0, 0.05)';"
                title="Vente de Produits Digitaux">
             <div style="width: 48px; height: 48px; background: rgba(245, 158, 11, 0.08); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem;">🛍️</div>
-            <h4 style="font-family: 'Outfit', sans-serif; font-size: 1.25rem; font-weight: 800; color: #d97706; margin: 0;">Vente de Produits Digitaux</h4>
+            <h4 style="font-family: 'Outfit', sans-serif; font-size: 1.25rem; font-weight: 800; color: #d97706; margin: 0;">{% if LANGUAGE_CODE == 'en' %}Digital Products Store{% else %}Vente de Produits Digitaux{% endif %}</h4>
             <p style="color: #475569; font-size: 0.88rem; line-height: 1.55; margin: 0;">
-              Découvrez notre catalogue premium : e-books, templates de CV, kits d'automatisation et codes sources prêts à l'emploi.
+              {% if LANGUAGE_CODE == 'en' %}Explore our premium digital library: e-books, resume templates, automation kits and turnkey source code.{% else %}Découvrez notre catalogue premium : e-books, templates de CV, kits d'automatisation et codes sources prêts à l'emploi.{% endif %}
             </p>
             <div style="margin-top: auto; font-size: 0.78rem; font-weight: 700; color: #f59e0b;">
-              Templates · E-books · Outils
+              Templates · E-books · {% if LANGUAGE_CODE == 'en' %}Tools{% else %}Outils{% endif %}
             </div>
           </div>
 
@@ -1063,12 +1068,12 @@
                onmouseout="this.style.transform='translateY(0)'; this.style.borderColor='#e2e8f0'; this.style.boxShadow='0 4px 15px rgba(0, 0, 0, 0.05)';"
                title="Outils IA Immigration">
             <div style="width: 48px; height: 48px; background: rgba(16, 185, 129, 0.08); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem;">✈️</div>
-            <h4 style="font-family: 'Outfit', sans-serif; font-size: 1.25rem; font-weight: 800; color: #16a34a; margin: 0;">Outils IA d'Aide à l'Immigration</h4>
+            <h4 style="font-family: 'Outfit', sans-serif; font-size: 1.25rem; font-weight: 800; color: #16a34a; margin: 0;">{% if LANGUAGE_CODE == 'en' %}AI Immigration Tools{% else %}Outils IA d'Aide à l'Immigration{% endif %}</h4>
             <p style="color: #475569; font-size: 0.88rem; line-height: 1.55; margin: 0;">
-              Préparez votre projet (Canada, Europe) avec nos simulations d'entretiens IA, relecteurs de CV aux normes et traducteurs.
+              {% if LANGUAGE_CODE == 'en' %}Prepare your move (Canada, Germany, Europe) with AI interview simulations, standard resume review and language prep.{% else %}Préparez votre projet (Canada, Europe) avec nos simulations d'entretiens IA, relecteurs de CV aux normes et traducteurs.{% endif %}
             </p>
             <div style="margin-top: auto; font-size: 0.78rem; font-weight: 700; color: #10b981;">
-              Simulations · CV Canada · Langues
+              {% if LANGUAGE_CODE == 'en' %}Simulations · Canada CV · Languages{% else %}Simulations · CV Canada · Langues{% endif %}
             </div>
           </div>
 
@@ -1080,13 +1085,13 @@
         <a class="esh-btn-primary" href="https://wa.me/237680625082?text=Bonjour%20E-Shelle%2C%20je%20souhaite%20obtenir%20un%20devis%20ou%20des%20informations%20pour%20la%20cr%C3%A9ation%20de%20mon%20projet%20digital%20%28Site%20Web%2C%20Agent%20IA%20ou%20Automatisation%29." 
            target="_blank" rel="noopener noreferrer" 
            style="text-decoration: none; padding: 0.9rem 2rem; border-radius: 10px; font-weight: 700; display: inline-flex; align-items: center; gap: 8px;">
-          🚀 Obtenir un devis gratuit sur WhatsApp
+          🚀 {% if LANGUAGE_CODE == 'en' %}Get a free quote on WhatsApp{% else %}Obtenir un devis gratuit sur WhatsApp{% endif %}
         </a>
         <a href="/formations/" 
            style="color: #ffffff; text-decoration: none; border: 1px solid rgba(255,255,255,0.15); background: rgba(255,255,255,0.05); padding: 0.9rem 2rem; border-radius: 10px; font-weight: 700; transition: all 0.2s;"
            onmouseover="this.style.borderColor='#ffffff'; this.style.background='rgba(255,255,255,0.1)';" 
            onmouseout="this.style.borderColor='rgba(255,255,255,0.15)'; this.style.background='rgba(255,255,255,0.05)';">
-          📖 Découvrir les formations
+          📖 {% if LANGUAGE_CODE == 'en' %}Explore training academy{% else %}Découvrir les formations{% endif %}
         </a>
       </div>
     </div>
@@ -1102,14 +1107,18 @@
       <div style="display: flex; flex-direction: column; align-items: center; text-align: center; margin-bottom: 3.5rem;">
         <div style="display: inline-flex; align-items: center; justify-content: center; padding: 6px 14px; border-radius: 30px; background: rgba(245, 158, 11, 0.08); border: 1px solid rgba(245, 158, 11, 0.25); margin-bottom: 1.25rem;">
           <span class="esh-live-dot" style="background-color: #f59e0b; color: #f59e0b;"></span>
-          <span style="font-family: 'Plus Jakarta Sans', sans-serif; font-size: 0.72rem; font-weight: 750; text-transform: uppercase; letter-spacing: 1.2px; color: #d97706;">Index Géolocalisé Interactif</span>
+          <span style="font-family: 'Plus Jakarta Sans', sans-serif; font-size: 0.72rem; font-weight: 750; text-transform: uppercase; letter-spacing: 1.2px; color: #d97706;">{% if LANGUAGE_CODE == 'en' %}Interactive Geo Index{% else %}Index Géolocalisé Interactif{% endif %}</span>
         </div>
         <h2 style="font-family: 'Outfit', sans-serif; font-size: clamp(1.8rem, 3vw, 2.4rem); font-weight: 900; color: #0f172a; margin-top: 0.5rem; line-height: 1.15;">
-          📍 Annuaire & Référencement Local par Ville
+          📍 {% if LANGUAGE_CODE == 'en' %}Local Directory &amp; City Ranking{% else %}Annuaire &amp; Référencement Local par Ville{% endif %}
         </h2>
         <div style="background: linear-gradient(135deg, #091322 0%, #030712 100%); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 16px; padding: 1.2rem 2rem; max-width: 680px; margin: 1.5rem auto 0; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);">
           <p style="font-size: 1rem; line-height: 1.6; font-family: 'Plus Jakarta Sans', sans-serif; color: #f3f4f6; margin: 0;">
+            {% if LANGUAGE_CODE == 'en' %}
+            Find and contact top <span style="color: #7dec6c; font-weight: 700;">qualified providers</span> and <span style="color: #7dec6c; font-weight: 700;">local businesses</span> near you across <span style="color: #f59e0b; font-weight: 700;">Francophone Africa</span>.
+            {% else %}
             Retrouvez et contactez instantanément les meilleurs <span style="color: #7dec6c; font-weight: 700;">prestataires qualifiés</span> et <span style="color: #7dec6c; font-weight: 700;">commerces de proximité</span> près de chez vous en <span style="color: #f59e0b; font-weight: 700;">Afrique Francophone</span>.
+            {% endif %}
           </p>
         </div>
       </div>
@@ -1166,7 +1175,7 @@
       <!-- Bouton d'action additionnel pour inscrire son business gratuitement -->
       <div style="text-align: center; margin-top: 3.5rem;">
         <a href="/business/onboarding/" style="display: inline-flex; align-items: center; justify-content: center; height: 50px; padding: 0 2.5rem; border-radius: 30px; font-family: 'Outfit', sans-serif; font-size: 1.05rem; font-weight: 800; background: linear-gradient(135deg, #16a34a 0%, #f59e0b 100%); border: 0; color: #07130c; text-decoration: none; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); box-shadow: 0 10px 25px rgba(22, 163, 74, 0.15);" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 15px 30px rgba(22, 163, 74, 0.25)';" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 10px 25px rgba(22, 163, 74, 0.15)';">
-          🚀 Inscrire mon commerce gratuitement pour être visible sur Google →
+          🚀 {% if LANGUAGE_CODE == 'en' %}List your business for free to be visible on Google →{% else %}Inscrire mon commerce gratuitement pour être visible sur Google →{% endif %}
         </a>
       </div>
 
@@ -1180,55 +1189,59 @@
       <div style="text-align:center;max-width:760px;margin:0 auto 3rem">
         <div style="display: inline-flex; align-items: center; justify-content: center; padding: 6px 14px; border-radius: 30px; background: rgba(125, 236, 108, 0.08); border: 1px solid rgba(125, 236, 108, 0.2); margin-bottom: 1.25rem;">
           <span class="esh-live-dot" style="background-color: #7dec6c; color: #7dec6c;"></span>
-          <span style="font-family: 'Plus Jakarta Sans', sans-serif; font-size: 0.72rem; font-weight: 750; text-transform: uppercase; letter-spacing: 1.2px; color: #7dec6c;">30+ applications</span>
+          <span style="font-family: 'Plus Jakarta Sans', sans-serif; font-size: 0.72rem; font-weight: 750; text-transform: uppercase; letter-spacing: 1.2px; color: #7dec6c;">{% if LANGUAGE_CODE == 'en' %}30+ Applications{% else %}30+ applications{% endif %}</span>
         </div>
         <h2 class="esh-section-title" style="font-family: 'Outfit', sans-serif; font-size: clamp(2rem, 3.5vw, 2.8rem); font-weight: 900; color: #ffffff; margin-top: 0.5rem; line-height: 1.15;">
-          Tout l'écosystème <span style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">E-Shelle</span>
+          {% if LANGUAGE_CODE == 'en' %}The entire <span style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">E-Shelle</span> ecosystem{% else %}Tout l'écosystème <span style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">E-Shelle</span>{% endif %}
         </h2>
         <div style="background: linear-gradient(135deg, #091322 0%, #030712 100%); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 16px; padding: 1.2rem 2rem; max-width: 680px; margin: 1.5rem auto 0; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.45);">
           <p style="font-size: 1rem; line-height: 1.6; font-family: 'Plus Jakarta Sans', sans-serif; color: #f3f4f6; margin: 0;">
+            {% if LANGUAGE_CODE == 'en' %}
+            A single platform with <span style="color: #7dec6c; font-weight: 700;">essential apps</span> to transform daily life and business in <span style="color: #f59e0b; font-weight: 700;">Cameroon</span> and <span style="color: #f59e0b; font-weight: 700;">Africa</span>.
+            {% else %}
             Une seule plateforme, des <span style="color: #7dec6c; font-weight: 700;">applications utiles</span> pour transformer votre quotidien au <span style="color: #f59e0b; font-weight: 700;">Cameroun</span> et en <span style="color: #f59e0b; font-weight: 700;">Afrique</span>.
+            {% endif %}
           </p>
         </div>
       </div>
       <div class="esh-app-grid">
-        <a class="esh-app-tile" style="--app-color:#8b5cf6" href="/formations/"><span class="esh-app-icon">📚</span><strong>Formations</strong><span>IA, Marketing, Anglais</span></a>
-        <a class="esh-app-tile" style="--app-color:#f59e0b" href="/boutique/"><span class="esh-app-icon">🛒</span><strong>Boutique</strong><span>Templates, ebooks, outils</span></a>
-        <a class="esh-app-tile" style="--app-color:#3b82f6" href="/services/"><span class="esh-app-icon">🌐</span><strong>Services Web</strong><span>Sites, e-commerce, IA</span></a>
+        <a class="esh-app-tile" style="--app-color:#8b5cf6" href="/formations/"><span class="esh-app-icon">📚</span><strong>{% if LANGUAGE_CODE == 'en' %}Learning{% else %}Formations{% endif %}</strong><span>{% if LANGUAGE_CODE == 'en' %}AI, Marketing, English{% else %}IA, Marketing, Anglais{% endif %}</span></a>
+        <a class="esh-app-tile" style="--app-color:#f59e0b" href="/boutique/"><span class="esh-app-icon">🛒</span><strong>{% if LANGUAGE_CODE == 'en' %}Store{% else %}Boutique{% endif %}</strong><span>{% if LANGUAGE_CODE == 'en' %}Templates, ebooks, tools{% else %}Templates, ebooks, outils{% endif %}</span></a>
+        <a class="esh-app-tile" style="--app-color:#3b82f6" href="/services/"><span class="esh-app-icon">🌐</span><strong>{% if LANGUAGE_CODE == 'en' %}Web Services{% else %}Services Web{% endif %}</strong><span>{% if LANGUAGE_CODE == 'en' %}Websites, e-shops, AI{% else %}Sites, e-commerce, IA{% endif %}</span></a>
         <a class="esh-app-tile" style="--app-color:#00d4aa" href="/chat/"><span class="esh-app-icon">🤖</span><strong>E-Shelle AI</strong><span>GPT-4o · DALL-E 3</span></a>
-        <a class="esh-app-tile" style="--app-color:#ff6b00" href="{{ GAZ_PUBLIC_URL|default:'/gaz/' }}"><span class="esh-app-icon">🔥</span><strong>E-Shelle Gaz</strong><span>Livraison domicile</span></a>
-        <a class="esh-app-tile" style="--app-color:#10b981" href="{{ PHARMA_PUBLIC_URL|default:'/pharma/' }}"><span class="esh-app-icon">💊</span><strong>Pharma</strong><span>Medicaments, prix, dispo</span></a>
-        <a class="esh-app-tile" style="--app-color:#8b5cf6" href="{{ SANTE_PUBLIC_URL|default:'/sante/' }}"><span class="esh-app-icon">➕</span><strong>Sante</strong><span>Produits & soins</span></a>
-        <a class="esh-app-tile" style="--app-color:#6366f1" href="{{ PRESSING_PUBLIC_URL|default:'/pressing/' }}"><span class="esh-app-icon">👔</span><strong>Pressing</strong><span>Nettoyage, livraison</span></a>
-        <a class="esh-app-tile" style="--app-color:#e85d26" href="{{ RESTO_PUBLIC_URL|default:'/resto/' }}"><span class="esh-app-icon">🍽️</span><strong>Resto</strong><span>Restaurants Cameroun</span></a>
-        <a class="esh-app-tile" style="--app-color:#0ea5e9" href="/immobilier/"><span class="esh-app-icon">🏠</span><strong>Immobilier</strong><span>Vente, location, terrain</span></a>
-        <a class="esh-app-tile" style="--app-color:#ef4444" href="/auto/"><span class="esh-app-icon">🚗</span><strong>Auto</strong><span>Vehicules, pieces</span></a>
-        <a class="esh-app-tile" style="--app-color:#2563EB" href="/auto-ecole/"><span class="esh-app-icon">🎓</span><strong>Auto-école</strong><span>Cours théoriques & promoteurs</span></a>
-        <a class="esh-app-tile" style="--app-color:#f97316" href="{{ MARKET_PUBLIC_URL|default:'/annonces/' }}"><span class="esh-app-icon">📢</span><strong>Market</strong><span>Acheter & vendre</span></a>
-        <a class="esh-app-tile" style="--app-color:#f59e0b" href="/artisans/"><span class="esh-app-icon">🔧</span><strong>Artisans</strong><span>Services & travaux</span></a>
-        <a class="esh-app-tile" style="--app-color:#2d6a4f" href="/agro/"><span class="esh-app-icon">🌿</span><strong>Agro</strong><span>Marche B2B/B2C</span></a>
-        <a class="esh-app-tile" style="--app-color:#e8436a" href="/rencontres/"><span class="esh-app-icon">❤️</span><strong>E-Shelle Love</strong><span>Rencontres serieuses</span></a>
-        <a class="esh-app-tile" style="--app-color:#ec4899" href="{{ SALONHUB_PUBLIC_URL|default:'/salons/' }}"><span class="esh-app-icon">💇</span><strong>SalonHub</strong><span>Salons &amp; beauté</span></a>
-        <a class="esh-app-tile" style="--app-color:#6c3fe8" href="/pub/"><span class="esh-app-icon">✨</span><strong>AdGen</strong><span>Pubs IA en 20 sec</span></a>
+        <a class="esh-app-tile" style="--app-color:#ff6b00" href="{{ GAZ_PUBLIC_URL|default:'/gaz/' }}"><span class="esh-app-icon">🔥</span><strong>E-Shelle Gaz</strong><span>{% if LANGUAGE_CODE == 'en' %}Home delivery{% else %}Livraison domicile{% endif %}</span></a>
+        <a class="esh-app-tile" style="--app-color:#10b981" href="{{ PHARMA_PUBLIC_URL|default:'/pharma/' }}"><span class="esh-app-icon">💊</span><strong>Pharma</strong><span>{% if LANGUAGE_CODE == 'en' %}Medicine, prices, stock{% else %}Medicaments, prix, dispo{% endif %}</span></a>
+        <a class="esh-app-tile" style="--app-color:#8b5cf6" href="{{ SANTE_PUBLIC_URL|default:'/sante/' }}"><span class="esh-app-icon">➕</span><strong>{% if LANGUAGE_CODE == 'en' %}Health{% else %}Sante{% endif %}</strong><span>{% if LANGUAGE_CODE == 'en' %}Products &amp; care{% else %}Produits &amp; soins{% endif %}</span></a>
+        <a class="esh-app-tile" style="--app-color:#6366f1" href="{{ PRESSING_PUBLIC_URL|default:'/pressing/' }}"><span class="esh-app-icon">👔</span><strong>{% if LANGUAGE_CODE == 'en' %}Dry Cleaning{% else %}Pressing{% endif %}</strong><span>{% if LANGUAGE_CODE == 'en' %}Cleaning, delivery{% else %}Nettoyage, livraison{% endif %}</span></a>
+        <a class="esh-app-tile" style="--app-color:#e85d26" href="{{ RESTO_PUBLIC_URL|default:'/resto/' }}"><span class="esh-app-icon">🍽️</span><strong>{% if LANGUAGE_CODE == 'en' %}Restaurants{% else %}Resto{% endif %}</strong><span>{% if LANGUAGE_CODE == 'en' %}Cameroon dining{% else %}Restaurants Cameroun{% endif %}</span></a>
+        <a class="esh-app-tile" style="--app-color:#0ea5e9" href="/immobilier/"><span class="esh-app-icon">🏠</span><strong>{% if LANGUAGE_CODE == 'en' %}Real Estate{% else %}Immobilier{% endif %}</strong><span>{% if LANGUAGE_CODE == 'en' %}Sales, rentals, land{% else %}Vente, location, terrain{% endif %}</span></a>
+        <a class="esh-app-tile" style="--app-color:#ef4444" href="/auto/"><span class="esh-app-icon">🚗</span><strong>Auto</strong><span>{% if LANGUAGE_CODE == 'en' %}Vehicles, parts{% else %}Vehicules, pieces{% endif %}</span></a>
+        <a class="esh-app-tile" style="--app-color:#2563EB" href="/auto-ecole/"><span class="esh-app-icon">🎓</span><strong>{% if LANGUAGE_CODE == 'en' %}Driving School{% else %}Auto-école{% endif %}</strong><span>{% if LANGUAGE_CODE == 'en' %}Theory courses &amp; schools{% else %}Cours théoriques &amp; promoteurs{% endif %}</span></a>
+        <a class="esh-app-tile" style="--app-color:#f97316" href="{{ MARKET_PUBLIC_URL|default:'/annonces/' }}"><span class="esh-app-icon">📢</span><strong>Market</strong><span>{% if LANGUAGE_CODE == 'en' %}Buy &amp; sell{% else %}Acheter &amp; vendre{% endif %}</span></a>
+        <a class="esh-app-tile" style="--app-color:#f59e0b" href="/artisans/"><span class="esh-app-icon">🔧</span><strong>{% if LANGUAGE_CODE == 'en' %}Trades{% else %}Artisans{% endif %}</strong><span>{% if LANGUAGE_CODE == 'en' %}Services &amp; repairs{% else %}Services &amp; travaux{% endif %}</span></a>
+        <a class="esh-app-tile" style="--app-color:#2d6a4f" href="/agro/"><span class="esh-app-icon">🌿</span><strong>Agro</strong><span>{% if LANGUAGE_CODE == 'en' %}B2B/B2C Market{% else %}Marche B2B/B2C{% endif %}</span></a>
+        <a class="esh-app-tile" style="--app-color:#e8436a" href="/rencontres/"><span class="esh-app-icon">❤️</span><strong>E-Shelle Love</strong><span>{% if LANGUAGE_CODE == 'en' %}Serious dating{% else %}Rencontres serieuses{% endif %}</span></a>
+        <a class="esh-app-tile" style="--app-color:#ec4899" href="{{ SALONHUB_PUBLIC_URL|default:'/salons/' }}"><span class="esh-app-icon">💇</span><strong>SalonHub</strong><span>{% if LANGUAGE_CODE == 'en' %}Salons &amp; beauty{% else %}Salons &amp; beauté{% endif %}</span></a>
+        <a class="esh-app-tile" style="--app-color:#6c3fe8" href="/pub/"><span class="esh-app-icon">✨</span><strong>AdGen</strong><span>{% if LANGUAGE_CODE == 'en' %}AI Ads in 20s{% else %}Pubs IA en 20 sec{% endif %}</span></a>
 
-        <a class="esh-app-tile" style="--app-color:#3b82f6" href="{{ MAPEX_PUBLIC_URL|default:'/edu/' }}"><span class="esh-app-icon">🎓</span><strong>EduCam Pro</strong><span>Examens camerounais</span></a>
-        <a class="esh-app-tile" style="--app-color:#16a34a" href="{{ EXPROD_PUBLIC_URL|default:'/lebelage-importer/' }}"><span class="esh-app-icon">📦</span><strong>ExProd</strong><span>Importer & exporter des produits</span></a>
-        <a class="esh-app-tile" style="--app-color:#1b6ca8" href="{{ NJANGI_PUBLIC_URL|default:'/njangi/' }}"><span class="esh-app-icon">💰</span><strong>Njangi</strong><span>Tontine digitale</span></a>
-        <a class="esh-app-tile" style="--app-color:#0fa36b" href="{{ TCHASLUCPAY_PUBLIC_URL|default:'/tchaslucpay/' }}"><span class="esh-app-icon">💳</span><strong>Tchaslucpay</strong><span>Microfinance digitale</span></a>
-        <a class="esh-app-tile" style="--app-color:#f59e0b" href="{{ SIMPLO_PUBLIC_URL|default:'/simplo/' }}"><span class="esh-app-icon">🏍️</span><strong>Simplo</strong><span>Transport & courses</span></a>
-        <a class="esh-app-tile" style="--app-color:#0ea5e9" href="{{ TRANSPORT_PUBLIC_URL|default:'/transport/' }}"><span class="esh-app-icon">🚌</span><strong>Transport</strong><span>Covoiturage & bus</span></a>
-        <a class="esh-app-tile" style="--app-color:#2563eb" href="{{ JOBS_PUBLIC_URL|default:'/jobs/' }}"><span class="esh-app-icon">💼</span><strong>Jobs</strong><span>Emplois & missions</span></a>
-        <a class="esh-app-tile" style="--app-color:#ef4444" href="/canada/"><span class="esh-app-icon">🍁</span><strong>Canada Space</strong><span>Emplois, CV & immigration</span></a>
-        <a class="esh-app-tile" style="--app-color:#ffce00" href="{{ ALLEMAND_PUBLIC_URL|default:'/allemand/' }}"><span class="esh-app-icon">🇩🇪</span><strong>Deutsch Space</strong><span>Goethe, Ausbildung, Lebenslauf</span></a>
-        <a class="esh-app-tile" style="--app-color:#008C45" href="{{ ITALIEN_PUBLIC_URL|default:'/italien/' }}"><span class="esh-app-icon">🇮🇹</span><strong>Italia Space</strong><span>Italien & Nulla Osta</span></a>
-        <a class="esh-app-tile esh-app-tile-key" style="--app-color:#f3c332" href="/business/partner/"><span class="esh-app-icon">🔑</span><strong>Business Key</strong><span>Gagner avec E-Shelle</span></a>
-        <a class="esh-app-tile" style="--app-color:#7dec6c" href="/business/arsenal-ia/"><span class="esh-app-icon">🤖</span><strong>Arsenal IA</strong><span>Piloter les agents</span></a>
-        <a class="esh-app-tile" style="--app-color:#35b257" href="/business/communication/"><span class="esh-app-icon">📣</span><strong>Communication</strong><span>Lancer E-Shelle terrain</span></a>
-        <a class="esh-app-tile" style="--app-color:#1b6534" href="/dashboard/"><span class="esh-app-icon">📊</span><strong>Mon Espace</strong><span>Tableau de bord</span></a>
+        <a class="esh-app-tile" style="--app-color:#3b82f6" href="{{ MAPEX_PUBLIC_URL|default:'/edu/' }}"><span class="esh-app-icon">🎓</span><strong>EduCam Pro</strong><span>{% if LANGUAGE_CODE == 'en' %}National exams{% else %}Examens camerounais{% endif %}</span></a>
+        <a class="esh-app-tile" style="--app-color:#16a34a" href="{{ EXPROD_PUBLIC_URL|default:'/lebelage-importer/' }}"><span class="esh-app-icon">📦</span><strong>ExProd</strong><span>{% if LANGUAGE_CODE == 'en' %}Import &amp; export goods{% else %}Importer &amp; exporter des produits{% endif %}</span></a>
+        <a class="esh-app-tile" style="--app-color:#1b6ca8" href="{{ NJANGI_PUBLIC_URL|default:'/njangi/' }}"><span class="esh-app-icon">💰</span><strong>Njangi</strong><span>{% if LANGUAGE_CODE == 'en' %}Digital tontine{% else %}Tontine digitale{% endif %}</span></a>
+        <a class="esh-app-tile" style="--app-color:#0fa36b" href="{{ TCHASLUCPAY_PUBLIC_URL|default:'/tchaslucpay/' }}"><span class="esh-app-icon">💳</span><strong>Tchaslucpay</strong><span>{% if LANGUAGE_CODE == 'en' %}Digital microfinance{% else %}Microfinance digitale{% endif %}</span></a>
+        <a class="esh-app-tile" style="--app-color:#f59e0b" href="{{ SIMPLO_PUBLIC_URL|default:'/simplo/' }}"><span class="esh-app-icon">🏍️</span><strong>Simplo</strong><span>{% if LANGUAGE_CODE == 'en' %}Rides &amp; deliveries{% else %}Transport &amp; courses{% endif %}</span></a>
+        <a class="esh-app-tile" style="--app-color:#0ea5e9" href="{{ TRANSPORT_PUBLIC_URL|default:'/transport/' }}"><span class="esh-app-icon">🚌</span><strong>Transport</strong><span>{% if LANGUAGE_CODE == 'en' %}Carpool &amp; buses{% else %}Covoiturage &amp; bus{% endif %}</span></a>
+        <a class="esh-app-tile" style="--app-color:#2563eb" href="{{ JOBS_PUBLIC_URL|default:'/jobs/' }}"><span class="esh-app-icon">💼</span><strong>Jobs</strong><span>{% if LANGUAGE_CODE == 'en' %}Jobs &amp; gigs{% else %}Emplois &amp; missions{% endif %}</span></a>
+        <a class="esh-app-tile" style="--app-color:#ef4444" href="/canada/"><span class="esh-app-icon">🍁</span><strong>Canada Space</strong><span>{% if LANGUAGE_CODE == 'en' %}Jobs, CV &amp; immigration{% else %}Emplois, CV &amp; immigration{% endif %}</span></a>
+        <a class="esh-app-tile" style="--app-color:#ffce00" href="{{ ALLEMAND_PUBLIC_URL|default:'/allemand/' }}"><span class="esh-app-icon">🇩🇪</span><strong>Deutsch Space</strong><span>{% if LANGUAGE_CODE == 'en' %}Goethe, Ausbildung, Resume{% else %}Goethe, Ausbildung, Lebenslauf{% endif %}</span></a>
+        <a class="esh-app-tile" style="--app-color:#008C45" href="{{ ITALIEN_PUBLIC_URL|default:'/italien/' }}"><span class="esh-app-icon">🇮🇹</span><strong>Italia Space</strong><span>{% if LANGUAGE_CODE == 'en' %}Italian &amp; Nulla Osta{% else %}Italien &amp; Nulla Osta{% endif %}</span></a>
+        <a class="esh-app-tile esh-app-tile-key" style="--app-color:#f3c332" href="/business/partner/"><span class="esh-app-icon">🔑</span><strong>Business Key</strong><span>{% if LANGUAGE_CODE == 'en' %}Earn with E-Shelle{% else %}Gagner avec E-Shelle{% endif %}</span></a>
+        <a class="esh-app-tile" style="--app-color:#7dec6c" href="/business/arsenal-ia/"><span class="esh-app-icon">🤖</span><strong>Arsenal IA</strong><span>{% if LANGUAGE_CODE == 'en' %}Control AI agents{% else %}Piloter les agents{% endif %}</span></a>
+        <a class="esh-app-tile" style="--app-color:#35b257" href="/business/communication/"><span class="esh-app-icon">📣</span><strong>Communication</strong><span>{% if LANGUAGE_CODE == 'en' %}Local outreach{% else %}Lancer E-Shelle terrain{% endif %}</span></a>
+        <a class="esh-app-tile" style="--app-color:#1b6534" href="/dashboard/"><span class="esh-app-icon">📊</span><strong>{% if LANGUAGE_CODE == 'en' %}My Space{% else %}Mon Espace{% endif %}</strong><span>{% if LANGUAGE_CODE == 'en' %}Dashboard{% else %}Tableau de bord{% endif %}</span></a>
       </div>
       <div class="esh-cta-actions">
-        <a class="esh-btn-primary" href="/chat/">Commencer gratuitement</a>
-        <a class="esh-outline-btn" href="/dashboard/">Accéder à mon espace</a>
+        <a class="esh-btn-primary" href="/chat/">{% if LANGUAGE_CODE == 'en' %}Get started free{% else %}Commencer gratuitement{% endif %}</a>
+        <a class="esh-outline-btn" href="/dashboard/">{% if LANGUAGE_CODE == 'en' %}Go to my dashboard{% else %}Accéder à mon espace{% endif %}</a>
       </div>
     </div>
   </section>
@@ -1243,17 +1256,21 @@
       <div style="text-align: center; max-width: 800px; margin: 0 auto 3rem;">
         <div style="display: inline-flex; align-items: center; justify-content: center; padding: 6px 14px; border-radius: 30px; background: rgba(22, 163, 74, 0.08); border: 1px solid rgba(22, 163, 74, 0.2); margin-bottom: 1.25rem;">
           <span class="esh-live-dot" style="background-color: #16a34a; color: #16a34a;"></span>
-          <span style="font-family: 'Plus Jakarta Sans', sans-serif; font-size: 0.72rem; font-weight: 750; text-transform: uppercase; letter-spacing: 1.2px; color: #16a34a;">Technologie SEO & Acquisition Client</span>
+          <span style="font-family: 'Plus Jakarta Sans', sans-serif; font-size: 0.72rem; font-weight: 750; text-transform: uppercase; letter-spacing: 1.2px; color: #16a34a;">{% if LANGUAGE_CODE == 'en' %}SEO &amp; Customer Acquisition Technology{% else %}Technologie SEO &amp; Acquisition Client{% endif %}</span>
         </div>
         <h2 class="esh-section-title" style="font-family: 'Outfit', sans-serif; font-size: clamp(2rem, 3.5vw, 2.8rem); font-weight: 900; color: #ffffff; margin-top: 0.5rem; line-height: 1.15;">
-          Comment <span style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">E-Shelle</span> propulse vos offres en <span style="background: linear-gradient(135deg, #16a34a 0%, #10b981 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">première page Google</span>
+          {% if LANGUAGE_CODE == 'en' %}How <span style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">E-Shelle</span> propels your offers to <span style="background: linear-gradient(135deg, #16a34a 0%, #10b981 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">page one of Google</span>{% else %}Comment <span style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">E-Shelle</span> propulse vos offres en <span style="background: linear-gradient(135deg, #16a34a 0%, #10b981 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">première page Google</span>{% endif %}
         </h2>
       </div>
 
       <!-- Bannière sombre d'impact -->
       <div style="background: linear-gradient(135deg, #062f17 0%, #031c0e 100%); border: 1px solid rgba(22, 163, 74, 0.3); border-radius: 20px; padding: 1.8rem 2.2rem; text-align: center; max-width: 800px; margin: 0 auto 4rem; box-shadow: 0 12px 35px rgba(6, 47, 23, 0.25); position: relative;">
         <p style="font-size: 1.05rem; line-height: 1.6; color: #ffffff; margin: 0; font-weight: 500;">
+          {% if LANGUAGE_CODE == 'en' %}
+          Thanks to our <span style="color: #7dec6c; font-weight: 700;">cutting-edge SEO infrastructure</span> combined with <span style="color: #f59e0b; font-weight: 700;">artificial intelligence</span>, each product and service page becomes a <span style="color: #f59e0b; font-weight: 700;">magnet for qualified prospects</span>.
+          {% else %}
           Grâce à notre <span style="color: #7dec6c; font-weight: 700;">infrastructure de référencement de pointe</span> combinée à <span style="color: #f59e0b; font-weight: 700;">l'intelligence artificielle</span>, chaque fiche produit et service devient un <span style="color: #f59e0b; font-weight: 700;">aimant à prospects qualifiés</span>.
+          {% endif %}
         </p>
       </div>
 
@@ -1262,36 +1279,52 @@
         <!-- Carte 1 : Géo-Référencement -->
         <div class="esh-seo-card esh-seo-card-geo" style="background: linear-gradient(135deg, #051a0e 0%, #010a05 100%); border: 1px solid rgba(22, 163, 74, 0.25); border-top: 4px solid #16a34a; border-radius: 24px; padding: 2.5rem 2.2rem; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); display: flex; flex-direction: column; gap: 1.25rem; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2); position: relative; overflow: hidden;">
           <div style="width: 52px; height: 52px; background: linear-gradient(135deg, rgba(22, 163, 74, 0.15) 0%, rgba(22, 163, 74, 0.05) 100%); border-radius: 14px; display: flex; align-items: center; justify-content: center; font-size: 1.6rem; color: #16a34a;">📍</div>
-          <h3 style="font-family: 'Outfit', sans-serif; font-size: 1.3rem; font-weight: 800; color: #ffffff; margin: 0;">Géo-Référencement Local</h3>
+          <h3 style="font-family: 'Outfit', sans-serif; font-size: 1.3rem; font-weight: 800; color: #ffffff; margin: 0;">{% if LANGUAGE_CODE == 'en' %}Local Geo-Targeting{% else %}Géo-Référencement Local{% endif %}</h3>
           <p style="font-size: 0.92rem; line-height: 1.65; color: #cbd5e1; margin: 0;">
+            {% if LANGUAGE_CODE == 'en' %}
+            Target your customers directly in <strong style="color: #7dec6c;">Douala, Yaoundé, Bafoussam, Garoua</strong> and across Cameroon. Our pages automatically adapt to local searches to rank you at the top.
+            {% else %}
             Ciblez directement vos clients à <strong style="color: #7dec6c;">Douala, Yaoundé, Bafoussam, Garoua</strong> et partout au Cameroun. Nos pages s'adaptent automatiquement aux recherches géolocalisées pour vous positionner en tête auprès des clients de proximité.
+            {% endif %}
           </p>
         </div>
 
         <!-- Carte 2 : Copywriting IA -->
         <div class="esh-seo-card esh-seo-card-copy" style="background: linear-gradient(135deg, #241803 0%, #0d0901 100%); border: 1px solid rgba(245, 158, 11, 0.25); border-top: 4px solid #d97706; border-radius: 24px; padding: 2.5rem 2.2rem; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); display: flex; flex-direction: column; gap: 1.25rem; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2); position: relative; overflow: hidden;">
           <div style="width: 52px; height: 52px; background: linear-gradient(135deg, rgba(217, 119, 6, 0.15) 0%, rgba(217, 119, 6, 0.05) 100%); border-radius: 14px; display: flex; align-items: center; justify-content: center; font-size: 1.6rem; color: #d97706;">✍️</div>
-          <h3 style="font-family: 'Outfit', sans-serif; font-size: 1.3rem; font-weight: 800; color: #ffffff; margin: 0;">Copywriting Vendeur IA</h3>
+          <h3 style="font-family: 'Outfit', sans-serif; font-size: 1.3rem; font-weight: 800; color: #ffffff; margin: 0;">{% if LANGUAGE_CODE == 'en' %}AI Persuasive Copywriting{% else %}Copywriting Vendeur IA{% endif %}</h3>
           <p style="font-size: 0.92rem; line-height: 1.65; color: #cbd5e1; margin: 0;">
+            {% if LANGUAGE_CODE == 'en' %}
+            Our automated writing engines structure your listings with proven <strong style="color: #f59e0b;">persuasion techniques</strong>. Engaging, rich copy tailored for semantic search algorithms.
+            {% else %}
             Nos agents de rédaction automatisés structurent vos descriptions avec les meilleures techniques de <strong style="color: #f59e0b;">persuasion psychologique</strong>. Un contenu riche, captivant et optimisé pour le référencement sémantique naturel.
+            {% endif %}
           </p>
         </div>
 
         <!-- Carte 3 : Appels à l'Action (CTA) -->
         <div class="esh-seo-card esh-seo-card-cta" style="background: linear-gradient(135deg, #051a0e 0%, #010a05 100%); border: 1px solid rgba(22, 163, 74, 0.25); border-top: 4px solid #16a34a; border-radius: 24px; padding: 2.5rem 2.2rem; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); display: flex; flex-direction: column; gap: 1.25rem; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2); position: relative; overflow: hidden;">
           <div style="width: 52px; height: 52px; background: linear-gradient(135deg, rgba(22, 163, 74, 0.15) 0%, rgba(22, 163, 74, 0.05) 100%); border-radius: 14px; display: flex; align-items: center; justify-content: center; font-size: 1.6rem; color: #16a34a;">⚡</div>
-          <h3 style="font-family: 'Outfit', sans-serif; font-size: 1.3rem; font-weight: 800; color: #ffffff; margin: 0;">Appels à l'Action (CTA) Premium</h3>
+          <h3 style="font-family: 'Outfit', sans-serif; font-size: 1.3rem; font-weight: 800; color: #ffffff; margin: 0;">{% if LANGUAGE_CODE == 'en' %}Premium Calls-to-Action (CTA){% else %}Appels à l'Action (CTA) Premium{% endif %}</h3>
           <p style="font-size: 0.92rem; line-height: 1.65; color: #cbd5e1; margin: 0;">
+            {% if LANGUAGE_CODE == 'en' %}
+            Never lose a lead. High-converting buttons with <strong style="color: #7dec6c;">responsive micro-interactions</strong> designed to smoothly direct buyers to <strong style="color: #f59e0b;">direct contact</strong>.
+            {% else %}
             Ne perdez plus aucun clic. Nos boutons de conversion ultra-stylisés intègrent des <strong style="color: #7dec6c;">micro-animations réactives</strong> et des boutons ovales bicolores de type SaaS 2027 qui guident naturellement le client vers le <strong style="color: #f59e0b;">contact direct</strong>.
+            {% endif %}
           </p>
         </div>
 
         <!-- Carte 4 : Technique SEO Avancée -->
         <div class="esh-seo-card esh-seo-card-tech" style="background: linear-gradient(135deg, #051429 0%, #010712 100%); border: 1px solid rgba(59, 130, 246, 0.25); border-top: 4px solid #2563eb; border-radius: 24px; padding: 2.5rem 2.2rem; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); display: flex; flex-direction: column; gap: 1.25rem; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2); position: relative; overflow: hidden;">
           <div style="width: 52px; height: 52px; background: linear-gradient(135deg, rgba(59, 130, 246, 0.15) 0%, rgba(59, 130, 246, 0.05) 100%); border-radius: 14px; display: flex; align-items: center; justify-content: center; font-size: 1.6rem; color: #2563eb;">📈</div>
-          <h3 style="font-family: 'Outfit', sans-serif; font-size: 1.3rem; font-weight: 800; color: #ffffff; margin: 0;">Optimisations Techniques</h3>
+          <h3 style="font-family: 'Outfit', sans-serif; font-size: 1.3rem; font-weight: 800; color: #ffffff; margin: 0;">{% if LANGUAGE_CODE == 'en' %}Technical SEO Optimizations{% else %}Optimisations Techniques{% endif %}</h3>
           <p style="font-size: 0.92rem; line-height: 1.65; color: #cbd5e1; margin: 0;">
+            {% if LANGUAGE_CODE == 'en' %}
+            Automatic JSON-LD Schema (Rich Snippets), unique Titles and Meta descriptions, dynamic sitemaps and blazing fast loading. Everything engineered for <strong style="color: #93c5fd;">Google crawlers</strong>.
+            {% else %}
             Génération automatique de métadonnées JSON-LD (Rich Snippets), balises Title et Description uniques, sitemaps dynamiques et un temps de chargement ultra-court. Tout est conçu pour plaire aux <strong style="color: #93c5fd;">robots de Google</strong>.
+            {% endif %}
           </p>
         </div>
       </div>
@@ -1299,7 +1332,7 @@
       <!-- Bouton d'action additionnel pour inscrire son business gratuitement -->
       <div style="text-align: center; margin-top: 3.5rem; position: relative; z-index: 10;">
         <a href="/business/onboarding/" style="display: inline-flex; align-items: center; justify-content: center; height: 50px; padding: 0 2.5rem; border-radius: 30px; font-family: 'Outfit', sans-serif; font-size: 1.05rem; font-weight: 800; background: linear-gradient(135deg, #7dec6c 0%, #f59e0b 100%); border: 0; color: #07130c; text-decoration: none; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); box-shadow: 0 10px 25px rgba(125, 236, 108, 0.25);" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 15px 30px rgba(125, 236, 108, 0.35)';" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 10px 25px rgba(125, 236, 108, 0.25)';">
-          🚀 Inscrire mon commerce gratuitement pour être visible sur Google →
+          🚀 {% if LANGUAGE_CODE == 'en' %}List your business for free to be visible on Google →{% else %}Inscrire mon commerce gratuitement pour être visible sur Google →{% endif %}
         </a>
       </div>
       
@@ -1346,11 +1379,15 @@
           </div>
           
           <h2 style="font-family: 'Outfit', sans-serif; font-size: clamp(2rem, 3.5vw, 2.8rem); font-weight: 900; color: #ffffff; line-height: 1.15; margin: 0;">
-            Gagnez de l'argent avec <span style="background: linear-gradient(135deg, #7dec6c 0%, #f59e0b 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">notre Écosystème</span>
+            {% if LANGUAGE_CODE == 'en' %}Earn income with <span style="background: linear-gradient(135deg, #7dec6c 0%, #f59e0b 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">our Ecosystem</span>{% else %}Gagnez de l'argent avec <span style="background: linear-gradient(135deg, #7dec6c 0%, #f59e0b 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">notre Écosystème</span>{% endif %}
           </h2>
           
           <p style="font-size: 1.05rem; line-height: 1.7; color: #cbd5e1; margin: 0;">
+            {% if LANGUAGE_CODE == 'en' %}
+            Become an authorized E-Shelle partner. Recommend our digital solutions to local merchants and entrepreneurs, and earn generous recurring commissions on every subscription.
+            {% else %}
             Devenez partenaire agréé E-Shelle. Recommandez nos services d'accompagnement numérique aux commerçants et entrepreneurs locaux, et touchez des commissions exceptionnelles et récurrentes sur chaque abonnement.
+            {% endif %}
           </p>
           
           <!-- Liste des points forts -->
@@ -1358,24 +1395,24 @@
             <div style="display: flex; align-items: flex-start; gap: 1.1rem;">
               <div style="flex-shrink: 0; width: 28px; height: 28px; border-radius: 50%; background: rgba(125, 236, 108, 0.15); display: flex; align-items: center; justify-content: center; color: #7dec6c; font-weight: 700; font-size: 0.9rem;">✓</div>
               <div>
-                <h4 style="margin: 0 0 0.2rem; color: #ffffff; font-size: 1.05rem; font-weight: 700;">Commissions récurrentes à vie</h4>
-                <p style="margin: 0; color: #94a3b8; font-size: 0.92rem;">Touchez jusqu'à 30% de commission récurrente sur tous les abonnements payés par vos parrainés.</p>
+                <h4 style="margin: 0 0 0.2rem; color: #ffffff; font-size: 1.05rem; font-weight: 700;">{% if LANGUAGE_CODE == 'en' %}Lifetime recurring commissions{% else %}Commissions récurrentes à vie{% endif %}</h4>
+                <p style="margin: 0; color: #94a3b8; font-size: 0.92rem;">{% if LANGUAGE_CODE == 'en' %}Earn up to 30% recurring commission on all subscriptions paid by your referrals.{% else %}Touchez jusqu'à 30% de commission récurrente sur tous les abonnements payés par vos parrainés.{% endif %}</p>
               </div>
             </div>
             
             <div style="display: flex; align-items: flex-start; gap: 1.1rem;">
               <div style="flex-shrink: 0; width: 28px; height: 28px; border-radius: 50%; background: rgba(245, 158, 11, 0.15); display: flex; align-items: center; justify-content: center; color: #f59e0b; font-weight: 700; font-size: 0.9rem;">✓</div>
               <div>
-                <h4 style="margin: 0 0 0.2rem; color: #ffffff; font-size: 1.05rem; font-weight: 700;">Retraits instantanés par Mobile Money</h4>
-                <p style="margin: 0; color: #94a3b8; font-size: 0.92rem;">Retirez vos gains accumulés de manière instantanée sur MTN Mobile Money ou Orange Money.</p>
+                <h4 style="margin: 0 0 0.2rem; color: #ffffff; font-size: 1.05rem; font-weight: 700;">{% if LANGUAGE_CODE == 'en' %}Instant payouts via Mobile Money{% else %}Retraits instantanés par Mobile Money{% endif %}</h4>
+                <p style="margin: 0; color: #94a3b8; font-size: 0.92rem;">{% if LANGUAGE_CODE == 'en' %}Withdraw your accumulated earnings instantly to MTN Mobile Money or Orange Money.{% else %}Retirez vos gains accumulés de manière instantanée sur MTN Mobile Money ou Orange Money.{% endif %}</p>
               </div>
             </div>
 
             <div style="display: flex; align-items: flex-start; gap: 1.1rem;">
               <div style="flex-shrink: 0; width: 28px; height: 28px; border-radius: 50%; background: rgba(125, 236, 108, 0.15); display: flex; align-items: center; justify-content: center; color: #7dec6c; font-weight: 700; font-size: 0.9rem;">✓</div>
               <div>
-                <h4 style="margin: 0 0 0.2rem; color: #ffffff; font-size: 1.05rem; font-weight: 700;">Tableau de bord de suivi complet</h4>
-                <p style="margin: 0; color: #94a3b8; font-size: 0.92rem;">Suivez en temps réel le statut de vos parrainages, vos commissions et vos gains retirables.</p>
+                <h4 style="margin: 0 0 0.2rem; color: #ffffff; font-size: 1.05rem; font-weight: 700;">{% if LANGUAGE_CODE == 'en' %}Full analytics dashboard{% else %}Tableau de bord de suivi complet{% endif %}</h4>
+                <p style="margin: 0; color: #94a3b8; font-size: 0.92rem;">{% if LANGUAGE_CODE == 'en' %}Track referral status, commissions, and withdrawable earnings in real time.{% else %}Suivez en temps réel le statut de vos parrainages, vos commissions et vos gains retirables.{% endif %}</p>
               </div>
             </div>
           </div>
@@ -1388,28 +1425,28 @@
           
           <div style="position: relative; z-index: 2; background: linear-gradient(135deg, #0a1324 0%, #030712 100%); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 24px; padding: 2.8rem 2.5rem; display: flex; flex-direction: column; gap: 2rem; box-shadow: 0 20px 50px rgba(0,0,0,0.5);">
             <div>
-              <span style="font-family: 'Plus Jakarta Sans', sans-serif; font-size: 0.72rem; font-weight: 800; letter-spacing: 1.5px; text-transform: uppercase; color: #f59e0b; background: rgba(245, 158, 11, 0.1); padding: 5px 12px; border-radius: 30px; display: inline-block; margin-bottom: 1rem;">🔥 RECOMMANDÉ</span>
-              <h3 style="font-family: 'Outfit', sans-serif; font-size: 1.6rem; font-weight: 900; color: #ffffff; margin: 0; line-height: 1.25;">Devenez Partenaire</h3>
-              <p style="margin: 0.5rem 0 0; color: #94a3b8; font-size: 0.95rem; line-height: 1.6;">Rejoignez le réseau E-Shelle Business Key et générez un revenu passif récurrent.</p>
+              <span style="font-family: 'Plus Jakarta Sans', sans-serif; font-size: 0.72rem; font-weight: 800; letter-spacing: 1.5px; text-transform: uppercase; color: #f59e0b; background: rgba(245, 158, 11, 0.1); padding: 5px 12px; border-radius: 30px; display: inline-block; margin-bottom: 1rem;">{% if LANGUAGE_CODE == 'en' %}🔥 RECOMMENDED{% else %}🔥 RECOMMANDÉ{% endif %}</span>
+              <h3 style="font-family: 'Outfit', sans-serif; font-size: 1.6rem; font-weight: 900; color: #ffffff; margin: 0; line-height: 1.25;">{% if LANGUAGE_CODE == 'en' %}Become a Partner{% else %}Devenez Partenaire{% endif %}</h3>
+              <p style="margin: 0.5rem 0 0; color: #94a3b8; font-size: 0.95rem; line-height: 1.6;">{% if LANGUAGE_CODE == 'en' %}Join the E-Shelle Business Key network and generate recurring passive income.{% else %}Rejoignez le réseau E-Shelle Business Key et générez un revenu passif récurrent.{% endif %}</p>
             </div>
             
             <div style="display: flex; flex-direction: column; gap: 1rem; background: rgba(255, 255, 255, 0.02); border: 1px solid rgba(255, 255, 255, 0.05); padding: 1.5rem; border-radius: 16px;">
               <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255, 255, 255, 0.06); padding-bottom: 0.8rem;">
-                <span style="color: #cbd5e1; font-size: 0.92rem;">Frais d'intégration</span>
+                <span style="color: #cbd5e1; font-size: 0.92rem;">{% if LANGUAGE_CODE == 'en' %}Onboarding fee{% else %}Frais d'intégration{% endif %}</span>
                 <span style="color: #ffffff; font-weight: 700; font-size: 1rem; text-decoration: line-through; opacity: 0.6; margin-right: 0.5rem;">50 000 FCFA</span>
                 <span style="color: #7dec6c; font-weight: 800; font-size: 1.1rem; background: rgba(125, 236, 108, 0.1); padding: 2px 8px; border-radius: 6px;">9 900 FCFA</span>
               </div>
               <div style="display: flex; justify-content: space-between; align-items: center;">
-                <span style="color: #cbd5e1; font-size: 0.92rem;">Taux de commission</span>
-                <span style="color: #f59e0b; font-weight: 800; font-size: 1.1rem;">30% à vie</span>
+                <span style="color: #cbd5e1; font-size: 0.92rem;">{% if LANGUAGE_CODE == 'en' %}Commission rate{% else %}Taux de commission{% endif %}</span>
+                <span style="color: #f59e0b; font-weight: 800; font-size: 1.1rem;">{% if LANGUAGE_CODE == 'en' %}30% lifetime{% else %}30% à vie{% endif %}</span>
               </div>
             </div>
             
             <a href="/business/partner/dashboard/" style="display: flex; align-items: center; justify-content: center; height: 50px; border-radius: 30px; font-family: 'Outfit', sans-serif; font-size: 1rem; font-weight: 800; background: linear-gradient(135deg, #7dec6c 0%, #f59e0b 100%); border: 0; color: #07130c; text-decoration: none; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); box-shadow: 0 10px 25px rgba(125, 236, 108, 0.25);" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 15px 30px rgba(125, 236, 108, 0.35)';" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 10px 25px rgba(125, 236, 108, 0.25)';">
-              Devenir Partenaire E-Shelle →
+              {% if LANGUAGE_CODE == 'en' %}Become an E-Shelle Partner →{% else %}Devenir Partenaire E-Shelle →{% endif %}
             </a>
             
-            <span style="font-size: 0.75rem; text-align: center; color: #64748b;">*Selon validation de votre candidature par notre équipe.</span>
+            <span style="font-size: 0.75rem; text-align: center; color: #64748b;">{% if LANGUAGE_CODE == 'en' %}*Subject to application approval by our team.{% else %}*Selon validation de votre candidature par notre équipe.{% endif %}</span>
           </div>
         </div>
         
@@ -1422,7 +1459,11 @@
   <section class="esh-section esh-partners-section" style="padding: 3.5rem 0; background: #ffffff; border-top: 1px solid #e2e8f0; border-bottom: 1px solid #e2e8f0; position: relative; overflow: hidden; font-family: 'Plus Jakarta Sans', sans-serif;">
     <div class="esh-shell" style="text-align: center;">
       <h3 style="font-family: 'Outfit', sans-serif; font-size: clamp(1.5rem, 2.5vw, 2.2rem); font-weight: 900; color: #0f172a; margin: 0 auto 2rem; line-height: 1.25; max-width: 800px;">
-        Ils nous font confiance &amp; <span style="background: linear-gradient(135deg, #16a34a 0%, #15803d 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">propulsent</span> notre <span style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">écosystème</span>
+        {% if LANGUAGE_CODE == 'en' %}
+          They trust us &amp; <span style="background: linear-gradient(135deg, #16a34a 0%, #15803d 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">power</span> our <span style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">ecosystem</span>
+        {% else %}
+          Ils nous font confiance &amp; <span style="background: linear-gradient(135deg, #16a34a 0%, #15803d 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">propulsent</span> notre <span style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">écosystème</span>
+        {% endif %}
       </h3>
       
       <div class="esh-partners-wrapper" style="overflow: hidden; white-space: nowrap; width: 100%; position: relative;">
@@ -1503,10 +1544,16 @@
         <div style="text-align: center; margin-bottom: 3.5rem;">
           <div style="display: inline-flex; align-items: center; justify-content: center; padding: 6px 14px; border-radius: 30px; background: rgba(217, 119, 6, 0.08); border: 1px solid rgba(217, 119, 6, 0.25); margin-bottom: 1.25rem;">
             <span class="esh-live-dot" style="background-color: #d97706; color: #d97706;"></span>
-            <span style="font-family: 'Plus Jakarta Sans', sans-serif; font-size: 0.72rem; font-weight: 750; text-transform: uppercase; letter-spacing: 1.2px; color: #d97706;">FAQ & Indexation Moteurs IA</span>
+            <span style="font-family: 'Plus Jakarta Sans', sans-serif; font-size: 0.72rem; font-weight: 750; text-transform: uppercase; letter-spacing: 1.2px; color: #d97706;">
+              {% if LANGUAGE_CODE == 'en' %}FAQ &amp; AI Engine Indexing{% else %}FAQ &amp; Indexation Moteurs IA{% endif %}
+            </span>
           </div>
           <h2 style="font-family: 'Outfit', sans-serif; font-size: 2.2rem; font-weight: 900; color: #ffffff; margin-top: 0.5rem; line-height: 1.15;">
-            Questions Fréquentes sur <span style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">E-Shelle</span>
+            {% if LANGUAGE_CODE == 'en' %}
+              Frequently Asked Questions about <span style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">E-Shelle</span>
+            {% else %}
+              Questions Fréquentes sur <span style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">E-Shelle</span>
+            {% endif %}
           </h2>
         </div>
 
@@ -1514,41 +1561,57 @@
           
           <details class="esh-faq-item-dark">
             <summary style="padding: 1.5rem 2rem; font-family: 'Plus Jakarta Sans', sans-serif; font-weight: 700; font-size: 1.1rem; color: #ffffff; cursor: pointer; list-style: none; display: flex; justify-content: space-between; align-items: center; outline: none; user-select: none;">
-              <span>Qu'est-ce que E-Shelle ?</span>
+              <span>{% if LANGUAGE_CODE == 'en' %}What is E-Shelle?{% else %}Qu'est-ce que E-Shelle ?{% endif %}</span>
               <span style="color: #7dec6c; font-size: 1.3rem; font-weight: 800; transition: transform 0.3s ease; display: inline-block;">＋</span>
             </summary>
             <div class="esh-faq-content" style="padding: 0 2rem 1.6rem; font-family: 'Plus Jakarta Sans', sans-serif; font-size: 0.95rem; line-height: 1.65; color: #cbd5e1; border-top: 1px solid rgba(255,255,255,0.06); padding-top: 1.25rem;">
-              E-Shelle est la super-application et place de marché de référence au Cameroun. Elle regroupe de nombreux services du quotidien (restauration, livraison de gaz, pressing, tontines numériques, immobilier, etc.) tout en fournissant des outils numériques avancés basés sur l'intelligence artificielle pour les commerçants locaux.
+              {% if LANGUAGE_CODE == 'en' %}
+                E-Shelle is the leading super-app and marketplace in Cameroon. It brings together daily services (food, gas delivery, dry cleaning, digital savings clubs / tontines, real estate, etc.) while providing advanced AI-powered digital tools for local businesses and merchants.
+              {% else %}
+                E-Shelle est la super-application et place de marché de référence au Cameroun. Elle regroupe de nombreux services du quotidien (restauration, livraison de gaz, pressing, tontines numériques, immobilier, etc.) tout en fournissant des outils numériques avancés basés sur l'intelligence artificielle pour les commerçants locaux.
+              {% endif %}
             </div>
           </details>
 
           <details class="esh-faq-item-dark">
             <summary style="padding: 1.5rem 2rem; font-family: 'Plus Jakarta Sans', sans-serif; font-weight: 700; font-size: 1.1rem; color: #ffffff; cursor: pointer; list-style: none; display: flex; justify-content: space-between; align-items: center; outline: none; user-select: none;">
-              <span>Quels services IA propose E-Shelle au Cameroun ?</span>
+              <span>{% if LANGUAGE_CODE == 'en' %}What AI services does E-Shelle offer in Cameroon?{% else %}Quels services IA propose E-Shelle au Cameroun ?{% endif %}</span>
               <span style="color: #7dec6c; font-size: 1.3rem; font-weight: 800; transition: transform 0.3s ease; display: inline-block;">＋</span>
             </summary>
             <div class="esh-faq-content" style="padding: 0 2rem 1.6rem; font-family: 'Plus Jakarta Sans', sans-serif; font-size: 0.95rem; line-height: 1.65; color: #cbd5e1; border-top: 1px solid rgba(255,255,255,0.06); padding-top: 1.25rem;">
-              E-Shelle intègre un assistant de recherche IA sémantique qui comprend le langage naturel pour trouver le meilleur prestataire local. De plus, les commerçants bénéficient de modules d'IA pour rédiger leurs textes marketing (AdGen), créer des vidéos publicitaires automatiques et générer des descriptions optimisées pour le référencement Google.
+              {% if LANGUAGE_CODE == 'en' %}
+                E-Shelle integrates a semantic AI search assistant that understands natural language to find the best local providers. Furthermore, merchants benefit from AI modules to write marketing copy (AdGen), create automated promo videos, and generate Google-optimized SEO descriptions.
+              {% else %}
+                E-Shelle intègre un assistant de recherche IA sémantique qui comprend le langage naturel pour trouver le meilleur prestataire local. De plus, les commerçants bénéficient de modules d'IA pour rédiger leurs textes marketing (AdGen), créer des vidéos publicitaires automatiques et générer des descriptions optimisées pour le référencement Google.
+              {% endif %}
             </div>
           </details>
 
           <details class="esh-faq-item-dark">
             <summary style="padding: 1.5rem 2rem; font-family: 'Plus Jakarta Sans', sans-serif; font-weight: 700; font-size: 1.1rem; color: #ffffff; cursor: pointer; list-style: none; display: flex; justify-content: space-between; align-items: center; outline: none; user-select: none;">
-              <span>Comment inscrire mon entreprise sur E-Shelle ?</span>
+              <span>{% if LANGUAGE_CODE == 'en' %}How do I register my business on E-Shelle?{% else %}Comment inscrire mon entreprise sur E-Shelle ?{% endif %}</span>
               <span style="color: #7dec6c; font-size: 1.3rem; font-weight: 800; transition: transform 0.3s ease; display: inline-block;">＋</span>
             </summary>
             <div class="esh-faq-content" style="padding: 0 2rem 1.6rem; font-family: 'Plus Jakarta Sans', sans-serif; font-size: 0.95rem; line-height: 1.65; color: #cbd5e1; border-top: 1px solid rgba(255,255,255,0.06); padding-top: 1.25rem;">
-              Vous pouvez vous inscrire gratuitement en cliquant sur "Créer ma boutique" ou "Inscrire mon business". Remplissez les informations de votre commerce, ajoutez vos produits et notre robot commencera automatiquement à optimiser votre visibilité pour les moteurs de recherche Google et les intelligences partielles (LLMs).
+              {% if LANGUAGE_CODE == 'en' %}
+                You can register for free by clicking on "Create My Store" or "Register My Business". Fill in your business details, add your products, and our engine will automatically start optimizing your visibility for Google and AI models (LLMs).
+              {% else %}
+                Vous pouvez vous inscrire gratuitement en cliquant sur "Créer ma boutique" ou "Inscrire mon business". Remplissez les informations de votre commerce, ajoutez vos produits et notre robot commencera automatiquement à optimiser votre visibilité pour les moteurs de recherche Google et les intelligences partielles (LLMs).
+              {% endif %}
             </div>
           </details>
 
           <details class="esh-faq-item-dark">
             <summary style="padding: 1.5rem 2rem; font-family: 'Plus Jakarta Sans', sans-serif; font-weight: 700; font-size: 1.1rem; color: #ffffff; cursor: pointer; list-style: none; display: flex; justify-content: space-between; align-items: center; outline: none; user-select: none;">
-              <span>Les données sur E-Shelle sont-elles sécurisées et persistantes ?</span>
+              <span>{% if LANGUAGE_CODE == 'en' %}Is data on E-Shelle secure and persistent?{% else %}Les données sur E-Shelle sont-elles sécurisées et persistantes ?{% endif %}</span>
               <span style="color: #7dec6c; font-size: 1.3rem; font-weight: 800; transition: transform 0.3s ease; display: inline-block;">＋</span>
             </summary>
             <div class="esh-faq-content" style="padding: 0 2rem 1.6rem; font-family: 'Plus Jakarta Sans', sans-serif; font-size: 0.95rem; line-height: 1.65; color: #cbd5e1; border-top: 1px solid rgba(255,255,255,0.06); padding-top: 1.25rem;">
-              Oui. Grâce à notre infrastructure cloud moderne s'appuyant sur des bases de données redondantes (Neon) et un stockage persistant externe (Cloudinary), toutes vos fiches, boutiques, comptes et images sont protégés et sauvegardés à vie contre toute perte.
+              {% if LANGUAGE_CODE == 'en' %}
+                Yes. Thanks to our modern cloud infrastructure backed by redundant databases (Neon) and persistent external storage (Cloudinary), all your listings, stores, accounts, and images are protected and securely saved for life against any loss.
+              {% else %}
+                Oui. Grâce à notre infrastructure cloud moderne s'appuyant sur des bases de données redondantes (Neon) et un stockage persistant externe (Cloudinary), toutes vos fiches, boutiques, comptes et images sont protégés et sauvegardés à vie contre toute perte.
+              {% endif %}
             </div>
           </details>
         </div>
@@ -1562,34 +1625,34 @@
         "mainEntity": [
           {
             "@type": "Question",
-            "name": "Qu'est-ce que E-Shelle ?",
+            "name": "{% if LANGUAGE_CODE == 'en' %}What is E-Shelle?{% else %}Qu'est-ce que E-Shelle ?{% endif %}",
             "acceptedAnswer": {
               "@type": "Answer",
-              "text": "E-Shelle est la super-application et place de marché de référence au Cameroun. Elle regroupe de nombreux services du quotidien (restauration, livraison de gaz, pressing, tontines numériques, immobilier, etc.) tout en fournissant des outils numériques avancés basés sur l'intelligence artificielle pour les commerçants locaux."
+              "text": "{% if LANGUAGE_CODE == 'en' %}E-Shelle is the leading super-app and marketplace in Cameroon. It brings together daily services (food, gas delivery, dry cleaning, digital savings clubs / tontines, real estate, etc.) while providing advanced AI-powered digital tools for local businesses and merchants.{% else %}E-Shelle est la super-application et place de marché de référence au Cameroun. Elle regroupe de nombreux services du quotidien (restauration, livraison de gaz, pressing, tontines numériques, immobilier, etc.) tout en fournissant des outils numériques avancés basés sur l'intelligence artificielle pour les commerçants locaux.{% endif %}"
             }
           },
           {
             "@type": "Question",
-            "name": "Quels services IA propose E-Shelle au Cameroun ?",
+            "name": "{% if LANGUAGE_CODE == 'en' %}What AI services does E-Shelle offer in Cameroon?{% else %}Quels services IA propose E-Shelle au Cameroun ?{% endif %}",
             "acceptedAnswer": {
               "@type": "Answer",
-              "text": "E-Shelle intègre un assistant de recherche IA sémantique qui comprend le langage naturel pour trouver le meilleur prestataire local. De plus, les commerçants bénéficient de modules d'IA pour rédiger leurs textes marketing (AdGen), créer des vidéos publicitaires automatiques et générer des descriptions optimisées pour le référencement Google."
+              "text": "{% if LANGUAGE_CODE == 'en' %}E-Shelle integrates a semantic AI search assistant that understands natural language to find the best local providers. Furthermore, merchants benefit from AI modules to write marketing copy (AdGen), create automated promo videos, and generate Google-optimized SEO descriptions.{% else %}E-Shelle intègre un assistant de recherche IA sémantique qui comprend le langage naturel pour trouver le meilleur prestataire local. De plus, les commerçants bénéficient de modules d'IA pour rédiger leurs textes marketing (AdGen), créer des vidéos publicitaires automatiques et générer des descriptions optimisées pour le référencement Google.{% endif %}"
             }
           },
           {
             "@type": "Question",
-            "name": "Comment inscrire mon entreprise sur E-Shelle ?",
+            "name": "{% if LANGUAGE_CODE == 'en' %}How do I register my business on E-Shelle?{% else %}Comment inscrire mon entreprise sur E-Shelle ?{% endif %}",
             "acceptedAnswer": {
               "@type": "Answer",
-              "text": "Vous pouvez vous inscrire gratuitement en cliquant sur 'Créer ma boutique' ou 'Inscrire mon business'. Remplissez les informations de votre commerce, ajoutez vos produits et notre robot commencera automatiquement à optimiser votre visibilité pour les moteurs de recherche Google et les intelligences partielles (LLMs)."
+              "text": "{% if LANGUAGE_CODE == 'en' %}You can register for free by clicking on 'Create My Store' or 'Register My Business'. Fill in your business details, add your products, and our engine will automatically start optimizing your visibility for Google and AI models (LLMs).{% else %}Vous pouvez vous inscrire gratuitement en cliquant sur 'Créer ma boutique' ou 'Inscrire mon business'. Remplissez les informations de votre commerce, ajoutez vos produits et notre robot commencera automatiquement à optimiser votre visibilité pour les moteurs de recherche Google et les intelligences partielles (LLMs).{% endif %}"
             }
           },
           {
             "@type": "Question",
-            "name": "Les données sur E-Shelle sont-elles sécurisées et persistantes ?",
+            "name": "{% if LANGUAGE_CODE == 'en' %}Is data on E-Shelle secure and persistent?{% else %}Les données sur E-Shelle sont-elles sécurisées et persistantes ?{% endif %}",
             "acceptedAnswer": {
               "@type": "Answer",
-              "text": "Oui. Grâce à notre infrastructure cloud moderne s'appuyant sur des bases de données redondantes (Neon) et un stockage persistant externe (Cloudinary), toutes vos fiches, boutiques, comptes et images sont protégés et sauvegardés à vie contre toute perte."
+              "text": "{% if LANGUAGE_CODE == 'en' %}Yes. Thanks to our modern cloud infrastructure backed by redundant databases (Neon) and persistent external storage (Cloudinary), all your listings, stores, accounts, and images are protected and securely saved for life against any loss.{% else %}Oui. Grâce à notre infrastructure cloud moderne s'appuyant sur des bases de données redondantes (Neon) et un stockage persistant externe (Cloudinary), toutes vos fiches, boutiques, comptes et images sont protégés et sauvegardés à vie contre toute perte.{% endif %}"
             }
           }
         ]
@@ -1636,14 +1699,24 @@
       <div style="display: flex; flex-direction: column; align-items: center; text-align: center; margin-bottom: 4rem;">
         <div style="display: inline-flex; align-items: center; justify-content: center; padding: 6px 14px; border-radius: 30px; background: rgba(22, 163, 74, 0.08); border: 1px solid rgba(22, 163, 74, 0.2); margin-bottom: 1.25rem;">
           <span class="esh-live-dot" style="background-color: #16a34a; color: #16a34a;"></span>
-          <span style="font-family: 'Plus Jakarta Sans', sans-serif; font-size: 0.72rem; font-weight: 750; text-transform: uppercase; letter-spacing: 1.2px; color: #16a34a;">Témoignages Clients</span>
+          <span style="font-family: 'Plus Jakarta Sans', sans-serif; font-size: 0.72rem; font-weight: 750; text-transform: uppercase; letter-spacing: 1.2px; color: #16a34a;">
+            {% if LANGUAGE_CODE == 'en' %}Client Testimonials{% else %}Témoignages Clients{% endif %}
+          </span>
         </div>
         <h2 style="font-family: 'Outfit', sans-serif; font-size: clamp(1.8rem, 3vw, 2.5rem); font-weight: 900; color: #0f172a; margin-top: 0.5rem; line-height: 1.15;">
-          Ils réussissent avec <span style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">E-Shelle</span>
+          {% if LANGUAGE_CODE == 'en' %}
+            They succeed with <span style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">E-Shelle</span>
+          {% else %}
+            Ils réussissent avec <span style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">E-Shelle</span>
+          {% endif %}
         </h2>
         <div style="background: linear-gradient(135deg, #091322 0%, #030712 100%); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 16px; padding: 1.2rem 2rem; max-width: 680px; margin: 1.5rem auto 0; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);">
           <p style="font-size: 1rem; line-height: 1.6; font-family: 'Plus Jakarta Sans', sans-serif; color: #f3f4f6; margin: 0;">
-            Découvrez comment des <span style="color: #7dec6c; font-weight: 700;">entrepreneurs</span>, <span style="color: #7dec6c; font-weight: 700;">commerçants</span> et <span style="color: #7dec6c; font-weight: 700;">professionnels</span> au <span style="color: #f59e0b; font-weight: 700;">Cameroun</span> accélèrent leur croissance grâce à notre <span style="color: #7dec6c; font-weight: 700;">écosystème</span>.
+            {% if LANGUAGE_CODE == 'en' %}
+              Discover how <span style="color: #7dec6c; font-weight: 700;">entrepreneurs</span>, <span style="color: #7dec6c; font-weight: 700;">merchants</span> and <span style="color: #7dec6c; font-weight: 700;">professionals</span> in <span style="color: #f59e0b; font-weight: 700;">Cameroon</span> accelerate their growth thanks to our <span style="color: #7dec6c; font-weight: 700;">ecosystem</span>.
+            {% else %}
+              Découvrez comment des <span style="color: #7dec6c; font-weight: 700;">entrepreneurs</span>, <span style="color: #7dec6c; font-weight: 700;">commerçants</span> et <span style="color: #7dec6c; font-weight: 700;">professionnels</span> au <span style="color: #f59e0b; font-weight: 700;">Cameroun</span> accélèrent leur croissance grâce à notre <span style="color: #7dec6c; font-weight: 700;">écosystème</span>.
+            {% endif %}
           </p>
         </div>
       </div>
@@ -1663,7 +1736,11 @@
           
           <!-- Review text -->
           <p style="color: #334155; font-size: 0.95rem; line-height: 1.65; margin: 0; font-style: italic;">
-            "Grâce au Booster Google de E-Shelle, ma boutique de cosmétiques à Yaoundé apparaît désormais en première page sur les recherches locales. Mon WhatsApp ne s'arrête plus de sonner ! Un outil indispensable pour tout commerçant au Cameroun."
+            {% if LANGUAGE_CODE == 'en' %}
+              "Thanks to E-Shelle's Google Booster, my cosmetics store in Yaoundé now appears on page one of local searches. My WhatsApp hasn't stopped buzzing! An essential tool for any merchant in Cameroon."
+            {% else %}
+              "Grâce au Booster Google de E-Shelle, ma boutique de cosmétiques à Yaoundé apparaît désormais en première page sur les recherches locales. Mon WhatsApp ne s'arrête plus de sonner ! Un outil indispensable pour tout commerçant au Cameroun."
+            {% endif %}
           </p>
           
           <!-- User info -->
@@ -1671,7 +1748,9 @@
             <div style="width: 44px; height: 44px; border-radius: 50%; background: linear-gradient(135deg, #10b981 0%, #059669 100%); display: flex; align-items: center; justify-content: center; color: #ffffff; font-weight: 800; font-size: 0.95rem; font-family: 'Outfit', sans-serif;">MK</div>
             <div>
               <h4 style="font-family: 'Outfit', sans-serif; font-size: 0.95rem; font-weight: 800; color: #0f172a; margin: 0;">Marcelle Kenfack</h4>
-              <span style="font-size: 0.8rem; color: #64748b;">Boutique Cosmétique · Yaoundé</span>
+              <span style="font-size: 0.8rem; color: #64748b;">
+                {% if LANGUAGE_CODE == 'en' %}Cosmetics Store · Yaoundé{% else %}Boutique Cosmétique · Yaoundé{% endif %}
+              </span>
             </div>
           </div>
         </div>
@@ -1688,7 +1767,11 @@
           
           <!-- Review text -->
           <p style="color: #334155; font-size: 0.95rem; line-height: 1.65; margin: 0; font-style: italic;">
-            "J'ai suivi la formation en Prompt Engineering sur E-Shelle Academy. Cela a totalement transformé ma manière de coder et de proposer des services IA à mes clients. Les cours sont extrêmement clairs, pratiques et professionnels."
+            {% if LANGUAGE_CODE == 'en' %}
+              "I took the Prompt Engineering course on E-Shelle Academy. It completely transformed the way I code and deliver AI solutions to my clients. The courses are exceptionally clear, practical, and professional."
+            {% else %}
+              "J'ai suivi la formation en Prompt Engineering sur E-Shelle Academy. Cela a totalement transformé ma manière de coder et de proposer des services IA à mes clients. Les cours sont extrêmement clairs, pratiques et professionnels."
+            {% endif %}
           </p>
           
           <!-- User info -->
@@ -1696,7 +1779,9 @@
             <div style="width: 44px; height: 44px; border-radius: 50%; background: linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%); display: flex; align-items: center; justify-content: center; color: #ffffff; font-weight: 800; font-size: 0.95rem; font-family: 'Outfit', sans-serif;">RT</div>
             <div>
               <h4 style="font-family: 'Outfit', sans-serif; font-size: 0.95rem; font-weight: 800; color: #0f172a; margin: 0;">Rodrigue Tchakounté</h4>
-              <span style="font-size: 0.8rem; color: #64748b;">Freelance &amp; Dev · Douala</span>
+              <span style="font-size: 0.8rem; color: #64748b;">
+                {% if LANGUAGE_CODE == 'en' %}Freelancer &amp; Dev · Douala{% else %}Freelance &amp; Dev · Douala{% endif %}
+              </span>
             </div>
           </div>
         </div>
@@ -1713,7 +1798,11 @@
           
           <!-- Review text -->
           <p style="color: #334155; font-size: 0.95rem; line-height: 1.65; margin: 0; font-style: italic;">
-            "L'intégration d'un Agent IA conversationnel sur notre ligne WhatsApp E-Shelle a automatisé 80% des réponses à nos clients pour les prix et les disponibilités de stock. Gain de temps incroyable pour notre quincaillerie !"
+            {% if LANGUAGE_CODE == 'en' %}
+              "Integrating an AI conversational agent on our E-Shelle WhatsApp line automated 80% of client inquiries regarding stock availability and prices. An incredible time saver for our hardware store!"
+            {% else %}
+              "L'intégration d'un Agent IA conversationnel sur notre ligne WhatsApp E-Shelle a automatisé 80% des réponses à nos clients pour les prix et les disponibilités de stock. Gain de temps incroyable pour notre quincaillerie !"
+            {% endif %}
           </p>
           
           <!-- User info -->
@@ -1721,7 +1810,9 @@
             <div style="width: 44px; height: 44px; border-radius: 50%; background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); display: flex; align-items: center; justify-content: center; color: #ffffff; font-weight: 800; font-size: 0.95rem; font-family: 'Outfit', sans-serif;">AB</div>
             <div>
               <h4 style="font-family: 'Outfit', sans-serif; font-size: 0.95rem; font-weight: 800; color: #0f172a; margin: 0;">Amadou Bello</h4>
-              <span style="font-size: 0.8rem; color: #64748b;">Gérant de Commerce · Garoua</span>
+              <span style="font-size: 0.8rem; color: #64748b;">
+                {% if LANGUAGE_CODE == 'en' %}Store Manager · Garoua{% else %}Gérant de Commerce · Garoua{% endif %}
+              </span>
             </div>
           </div>
         </div>
@@ -1742,5 +1833,4 @@ document.querySelectorAll('.esh-hero-copy .esh-chip').forEach(function(chip) {
   });
 });
 </script>
-{% endif %}
 {% endblock content %}

@@ -525,182 +525,247 @@
 {% endblock %}
 
 {% block content %}
-{% if LANGUAGE_CODE == 'en' %}
-{% include "tarifs_en.html" %}
-{% else %}
 <main class="tarifs-page">
   <div class="tarifs-container">
 
     <!-- Hero Header -->
     <header class="tarifs-hero">
-      <span class="pres-pill">Tarifs & Opportunités</span>
-      <h1>Des plans sur mesure pour <span>propulser</span> vos <span>revenus</span></h1>
-      <p>Que vous soyez une entreprise cherchant à attirer des clients en continu ou un partenaire souhaitant distribuer des solutions web & IA, E-Shelle vous garantit le meilleur ROI du marché.</p>
+      <span class="pres-pill">{% if LANGUAGE_CODE == 'en' %}Pricing &amp; Opportunities{% else %}Tarifs &amp; Opportunités{% endif %}</span>
+      <h1>
+        {% if LANGUAGE_CODE == 'en' %}
+          Tailored plans to <span>boost</span> your <span>revenue</span>
+        {% else %}
+          Des plans sur mesure pour <span>propulser</span> vos <span>revenus</span>
+        {% endif %}
+      </h1>
+      <p>
+        {% if LANGUAGE_CODE == 'en' %}
+          Whether you are a business looking to attract a steady stream of customers or a partner distributing web &amp; AI solutions, E-Shelle delivers the market's highest ROI.
+        {% else %}
+          Que vous soyez une entreprise cherchant à attirer des clients en continu ou un partenaire souhaitant distribuer des solutions web &amp; IA, E-Shelle vous garantit le meilleur ROI du marché.
+        {% endif %}
+      </p>
     </header>
 
     <!-- SECTION A: PRESTATAIRES (COMMERCES & ARTISANS) -->
     <section aria-labelledby="merchant-plans-title">
       <h2 id="merchant-plans-title" class="tarifs-section-title">
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-briefcase"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path></svg>
-        Pour les <span class="text-green">Prestataires</span> &amp; <span class="text-orange">Commerces</span>
+        {% if LANGUAGE_CODE == 'en' %}
+          For <span class="text-green">Service Providers</span> &amp; <span class="text-orange">Merchants</span>
+        {% else %}
+          Pour les <span class="text-green">Prestataires</span> &amp; <span class="text-orange">Commerces</span>
+        {% endif %}
       </h2>
       <p class="tarifs-section-subtitle">
-        Activez votre <span class="text-green">fiche publique</span>, présentez vos produits, connectez votre bouton <span class="text-orange">WhatsApp</span> et apparaissez en priorité sur les résultats de recherche et les réponses de <span class="text-green">E-Shelle AI</span>.
+        {% if LANGUAGE_CODE == 'en' %}
+          Activate your <span class="text-green">public profile</span>, showcase your products, connect your <span class="text-orange">WhatsApp</span> button, and gain top priority in search results and <span class="text-green">E-Shelle AI</span> answers.
+        {% else %}
+          Activez votre <span class="text-green">fiche publique</span>, présentez vos produits, connectez votre bouton <span class="text-orange">WhatsApp</span> et apparaissez en priorité sur les résultats de recherche et les réponses de <span class="text-green">E-Shelle AI</span>.
+        {% endif %}
       </p>
 
       <div class="plans-grid">
         <!-- 1. GRATUIT -->
         <article class="plan-card">
-          <span class="plan-badge">Aperçu</span>
-          <h3>Gratuit</h3>
+          <span class="plan-badge">{% if LANGUAGE_CODE == 'en' %}Overview{% else %}Aperçu{% endif %}</span>
+          <h3>{% if LANGUAGE_CODE == 'en' %}Free{% else %}Gratuit{% endif %}</h3>
           <div class="plan-price">
             <strong>0 FCFA</strong>
-            <span>/ mois</span>
+            <span>{% if LANGUAGE_CODE == 'en' %}/ month{% else %}/ mois{% endif %}</span>
           </div>
-          <p class="plan-desc">Découvrez la plateforme et testez l'interface avec vos premières fiches de test.</p>
+          <p class="plan-desc">
+            {% if LANGUAGE_CODE == 'en' %}
+              Discover the platform and test the interface with your first trial listings.
+            {% else %}
+              Découvrez la plateforme et testez l'interface avec vos premières fiches de test.
+            {% endif %}
+          </p>
           <ul class="plan-features">
             <li>
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
-              Fiche de base
+              {% if LANGUAGE_CODE == 'en' %}Basic business listing{% else %}Fiche de base{% endif %}
             </li>
             <li>
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
-              Visibilité limitée
+              {% if LANGUAGE_CODE == 'en' %}Standard visibility{% else %}Visibilité limitée{% endif %}
             </li>
             <li>
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
-              Lien de contact WhatsApp
+              {% if LANGUAGE_CODE == 'en' %}WhatsApp contact link{% else %}Lien de contact WhatsApp{% endif %}
             </li>
           </ul>
           {% if user.is_authenticated %}
-          <a href="{% url 'business:onboarding' %}?plan=free" class="btn-plan">Commencer &rarr;</a>
+          <a href="{% url 'business:onboarding' %}?plan=free" class="btn-plan">{% if LANGUAGE_CODE == 'en' %}Get started &rarr;{% else %}Commencer &rarr;{% endif %}</a>
           {% else %}
-          <a href="/accounts/register/?next={% url 'business:onboarding' %}%3Fplan%3Dfree" class="btn-plan">S'inscrire &rarr;</a>
+          <a href="/accounts/register/?next={% url 'business:onboarding' %}%3Fplan%3Dfree" class="btn-plan">{% if LANGUAGE_CODE == 'en' %}Sign up &rarr;{% else %}S'inscrire &rarr;{% endif %}</a>
           {% endif %}
         </article>
 
         <!-- 2. FICHE BUSINESS PREMIUM (5000 FCFA) - MIS EN AVANT -->
         <article class="plan-card featured">
-          <span class="plan-badge">Recommandé</span>
-          <h3>Présence — Pro</h3>
+          <span class="plan-badge">{% if LANGUAGE_CODE == 'en' %}Recommended{% else %}Recommandé{% endif %}</span>
+          <h3>{% if LANGUAGE_CODE == 'en' %}Presence — Pro{% else %}Présence — Pro{% endif %}</h3>
           <div class="plan-price">
             <strong>5 000 FCFA</strong>
-            <span>/ mois</span>
+            <span>{% if LANGUAGE_CODE == 'en' %}/ month{% else %}/ mois{% endif %}</span>
           </div>
-          <p class="plan-desc"><strong>Limites du catalogue Business :</strong> jusqu'à 20 articles, 2 photos supplémentaires par article et 1 WABA par fiche. 5 crédits IA par mois.</p>
-          <p class="plan-desc">La présence et l'activation complètes de votre fiche sur E-Shelle pour capter les prospects.</p>
+          <p class="plan-desc">
+            {% if LANGUAGE_CODE == 'en' %}
+              <strong>Business catalogue limits:</strong> up to 20 items, 2 additional photos per item, and 1 WABA per listing. 5 AI credits per month.
+            {% else %}
+              <strong>Limites du catalogue Business :</strong> jusqu'à 20 articles, 2 photos supplémentaires par article et 1 WABA par fiche. 5 crédits IA par mois.
+            {% endif %}
+          </p>
+          <p class="plan-desc">
+            {% if LANGUAGE_CODE == 'en' %}
+              Complete activation and visibility for your business profile on E-Shelle to capture qualified leads.
+            {% else %}
+              La présence et l'activation complètes de votre fiche sur E-Shelle pour capter les prospects.
+            {% endif %}
+          </p>
           <ul class="plan-features">
             <li>
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
-              <strong>Fiche publique activée 30j</strong>
+              {% if LANGUAGE_CODE == 'en' %}<strong>Active public listing (30 days)</strong>{% else %}<strong>Fiche publique activée 30j</strong>{% endif %}
             </li>
             <li>
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
-              Catalogue de produits/services
+              {% if LANGUAGE_CODE == 'en' %}Products &amp; services catalogue{% else %}Catalogue de produits/services{% endif %}
             </li>
             <li>
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
-              Bouton WhatsApp direct
+              {% if LANGUAGE_CODE == 'en' %}Direct WhatsApp action button{% else %}Bouton WhatsApp direct{% endif %}
             </li>
             <li>
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
-              Référencement Google local
+              {% if LANGUAGE_CODE == 'en' %}Local Google SEO indexing{% else %}Référencement Google local{% endif %}
             </li>
             <li>
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
-              <strong>Présence sur E-Shelle AI</strong>
+              {% if LANGUAGE_CODE == 'en' %}<strong>Featured on E-Shelle AI</strong>{% else %}<strong>Présence sur E-Shelle AI</strong>{% endif %}
             </li>
             <li>
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
-              5 crédits IA par mois
+              {% if LANGUAGE_CODE == 'en' %}5 AI credits per month{% else %}5 crédits IA par mois{% endif %}
             </li>
             <li>
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
-              <strong>Vérification E-Shelle incluse</strong>
+              {% if LANGUAGE_CODE == 'en' %}<strong>E-Shelle verified badge included</strong>{% else %}<strong>Vérification E-Shelle incluse</strong>{% endif %}
             </li>
           </ul>
-          <a href="https://wa.me/237680625082?text={{ "Bonjour E-Shelle, je veux activer le plan Fiche Business Premium (5 000 FCFA/mois) pour ma fiche business."|urlencode }}" target="_blank" rel="noopener" class="btn-plan">Choisir ce plan &rarr;</a>
+          <a href="https://wa.me/237680625082?text={{ "Bonjour E-Shelle, je veux activer le plan Fiche Business Premium (5 000 FCFA/mois) pour ma fiche business."|urlencode }}" target="_blank" rel="noopener" class="btn-plan">{% if LANGUAGE_CODE == 'en' %}Choose this plan &rarr;{% else %}Choisir ce plan &rarr;{% endif %}</a>
         </article>
 
         <!-- 3. BUSINESS -->
         <article class="plan-card">
-          <span class="plan-badge">Vitesse Supérieure</span>
-          <h3>Croissance — Business</h3>
+          <span class="plan-badge">{% if LANGUAGE_CODE == 'en' %}Accelerated Growth{% else %}Vitesse Supérieure{% endif %}</span>
+          <h3>{% if LANGUAGE_CODE == 'en' %}Growth — Business{% else %}Croissance — Business{% endif %}</h3>
           <div class="plan-price">
             <strong>15 000 FCFA</strong>
-            <span>/ mois</span>
+            <span>{% if LANGUAGE_CODE == 'en' %}/ month{% else %}/ mois{% endif %}</span>
           </div>
-          <p class="plan-desc"><strong>Limites du catalogue Business :</strong> jusqu'à 50 articles, 4 photos supplémentaires par article et 1 WABA par fiche. Synchronisation vers le catalogue Meta associé. Relances individuelles avec modèle approuvé et consentement explicite. 20 crédits IA et 7 jours de boost.</p>
-          <p class="plan-desc">Idéal pour les entreprises qui veulent attirer activement plus de prospects chaque semaine.</p>
+          <p class="plan-desc">
+            {% if LANGUAGE_CODE == 'en' %}
+              <strong>Business catalogue limits:</strong> up to 50 items, 4 additional photos per item, and 1 WABA per listing. Sync with linked Meta catalogue. 1-to-1 follow-ups with approved templates and explicit consent. 20 AI credits and 7 boost days.
+            {% else %}
+              <strong>Limites du catalogue Business :</strong> jusqu'à 50 articles, 4 photos supplémentaires par article et 1 WABA par fiche. Synchronisation vers le catalogue Meta associé. Relances individuelles avec modèle approuvé et consentement explicite. 20 crédits IA et 7 jours de boost.
+            {% endif %}
+          </p>
+          <p class="plan-desc">
+            {% if LANGUAGE_CODE == 'en' %}
+              Designed for companies that want to actively capture more high-value clients every week.
+            {% else %}
+              Idéal pour les entreprises qui veulent attirer activement plus de prospects chaque semaine.
+            {% endif %}
+          </p>
           <ul class="plan-features">
             <li>
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
-              Tous les avantages Premium
+              {% if LANGUAGE_CODE == 'en' %}All Pro plan benefits{% else %}Tous les avantages Premium{% endif %}
             </li>
             <li>
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
-              <strong>7 jours de Boost local inclus</strong>
+              {% if LANGUAGE_CODE == 'en' %}<strong>7 days of local Boost included</strong>{% else %}<strong>7 jours de Boost local inclus</strong>{% endif %}
             </li>
             <li>
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
-              Accès aux opportunités clients
+              {% if LANGUAGE_CODE == 'en' %}Direct access to customer leads{% else %}Accès aux opportunités clients{% endif %}
             </li>
             <li>
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
-              Meilleur positionnement IA
+              {% if LANGUAGE_CODE == 'en' %}Top AI positioning{% else %}Meilleur positionnement IA{% endif %}
             </li>
             <li>
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
-              20 crédits IA par mois
+              {% if LANGUAGE_CODE == 'en' %}20 AI credits per month{% else %}20 crédits IA par mois{% endif %}
             </li>
             <li>
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
-              <strong>Vérification E-Shelle incluse</strong>
+              {% if LANGUAGE_CODE == 'en' %}<strong>E-Shelle verified badge included</strong>{% else %}<strong>Vérification E-Shelle incluse</strong>{% endif %}
             </li>
           </ul>
-          <a href="https://wa.me/237680625082?text={{ "Bonjour E-Shelle, je veux activer le Plan Business (15 000 FCFA/mois) pour ma fiche business."|urlencode }}" target="_blank" rel="noopener" class="btn-plan">Choisir ce plan &rarr;</a>
+          <a href="https://wa.me/237680625082?text={{ "Bonjour E-Shelle, je veux activer le Plan Business (15 000 FCFA/mois) pour ma fiche business."|urlencode }}" target="_blank" rel="noopener" class="btn-plan">{% if LANGUAGE_CODE == 'en' %}Choose this plan &rarr;{% else %}Choisir ce plan &rarr;{% endif %}</a>
         </article>
 
         <!-- 4. PREMIUM -->
         <article class="plan-card">
-          <span class="plan-badge">Performance Maximale</span>
-          <h3>Plan Premium</h3>
+          <span class="plan-badge">{% if LANGUAGE_CODE == 'en' %}Maximum Performance{% else %}Performance Maximale{% endif %}</span>
+          <h3>{% if LANGUAGE_CODE == 'en' %}Premium Plan{% else %}Plan Premium{% endif %}</h3>
           <div class="plan-price">
             <strong>25 000 FCFA</strong>
-            <span>/ mois</span>
+            <span>{% if LANGUAGE_CODE == 'en' %}/ month{% else %}/ mois{% endif %}</span>
           </div>
-          <p class="plan-desc"><strong>Limites du catalogue Business :</strong> sans plafond déclaré dans le code, jusqu'à 7 photos supplémentaires par article et 1 WABA par fiche. 50 crédits IA et 15 jours de boost.</p>
-          <p class="plan-desc">Dominance totale de votre secteur d'activité, visuels d'accueil et accompagnement marketing dédié.</p>
+          <p class="plan-desc">
+            {% if LANGUAGE_CODE == 'en' %}
+              <strong>Business catalogue limits:</strong> unlimited items, up to 7 photos per item, and 1 WABA per listing. 50 AI credits and 15 boost days.
+            {% else %}
+              <strong>Limites du catalogue Business :</strong> sans plafond déclaré dans le code, jusqu'à 7 photos supplémentaires par article et 1 WABA par fiche. 50 crédits IA et 15 jours de boost.
+            {% endif %}
+          </p>
+          <p class="plan-desc">
+            {% if LANGUAGE_CODE == 'en' %}
+              Full dominance in your industry, homepage banners, and dedicated marketing support.
+            {% else %}
+              Dominance totale de votre secteur d'activité, visuels d'accueil et accompagnement marketing dédié.
+            {% endif %}
+          </p>
           <ul class="plan-features">
             <li>
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
-              Tous les avantages Business
+              {% if LANGUAGE_CODE == 'en' %}All Business plan benefits{% else %}Tous les avantages Business{% endif %}
             </li>
             <li>
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
-              <strong>15 jours de Boost local inclus</strong>
+              {% if LANGUAGE_CODE == 'en' %}<strong>15 days of local Boost included</strong>{% else %}<strong>15 jours de Boost local inclus</strong>{% endif %}
             </li>
             <li>
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
-              Flyers & Carrousel Page d'accueil
+              {% if LANGUAGE_CODE == 'en' %}Homepage flyers &amp; banner carousel{% else %}Flyers &amp; Carrousel Page d'accueil{% endif %}
             </li>
             <li>
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
-              Top résultats de recherche & AI
+              {% if LANGUAGE_CODE == 'en' %}Top search &amp; AI engine placements{% else %}Top résultats de recherche &amp; AI{% endif %}
             </li>
             <li>
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
-              50 crédits IA par mois
+              {% if LANGUAGE_CODE == 'en' %}50 AI credits per month{% else %}50 crédits IA par mois{% endif %}
             </li>
             <li>
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
-              <strong>Vérification E-Shelle incluse</strong>
+              {% if LANGUAGE_CODE == 'en' %}<strong>E-Shelle verified badge included</strong>{% else %}<strong>Vérification E-Shelle incluse</strong>{% endif %}
             </li>
           </ul>
-          <a href="https://wa.me/237680625082?text={{ "Bonjour E-Shelle, je veux activer le Plan Premium (25 000 FCFA/mois) pour ma fiche business."|urlencode }}" target="_blank" rel="noopener" class="btn-plan">Choisir ce plan &rarr;</a>
+          <a href="https://wa.me/237680625082?text={{ "Bonjour E-Shelle, je veux activer le Plan Premium (25 000 FCFA/mois) pour ma fiche business."|urlencode }}" target="_blank" rel="noopener" class="btn-plan">{% if LANGUAGE_CODE == 'en' %}Choose this plan &rarr;{% else %}Choisir ce plan &rarr;{% endif %}</a>
         </article>
       </div>
-      <p class="plan-desc" style="max-width:1000px;margin:1.5rem auto 0;line-height:1.7">Les abonnements ne comprennent pas nécessairement les frais facturés par Meta pour WhatsApp Business Platform. La connexion et la synchronisation dépendent de la configuration, des droits et de l'approbation Meta. Les relances sont individuelles, nécessitent un modèle approuvé et le consentement explicite du contact ; les messages de masse ne sont pas inclus. E-Shelle ne garantit ni l'approbation Meta ni un résultat commercial particulier.</p>
+      <p class="plan-desc" style="max-width:1000px;margin:1.5rem auto 0;line-height:1.7">
+        {% if LANGUAGE_CODE == 'en' %}
+          Subscriptions do not necessarily cover fees billed by Meta for WhatsApp Business Platform. Connection and synchronization depend on setup, permissions, and Meta approval. Follow-ups are individual, require an approved template, and require explicit contact consent; bulk messaging is not included. E-Shelle does not guarantee Meta approval or specific sales outcomes.
+        {% else %}
+          Les abonnements ne comprennent pas nécessairement les frais facturés par Meta pour WhatsApp Business Platform. La connexion et la synchronisation dépendent de la configuration, des droits et de l'approbation Meta. Les relances sont individuelles, nécessitent un modèle approuvé et le consentement explicite du contact ; les messages de masse ne sont pas inclus. E-Shelle ne garantit ni l'approbation Meta ni un résultat commercial particulier.
+        {% endif %}
+      </p>
     </section>
 
     <!-- Visual divider -->
@@ -712,73 +777,97 @@
         <div class="bk-grid">
           
           <div class="bk-info">
-            <span class="pres-pill" style="color:var(--color-secondary);border-color:rgba(245, 158, 11, 0.3);background:rgba(245, 158, 11, 0.05)">Programme Partenaires</span>
-            <h2 id="partner-section-title" style="display:none">Pour les Partenaires Apporteurs d'affaires</h2>
-            <h3>Gagnez de l'argent avec la <span>E-Shelle Business Key</span></h3>
-            <p>La Business Key est une clé d'activation unique conçue pour les commerciaux indépendants, les consultants et les créateurs. Elle vous donne un accès complet aux outils marketing IA de pointe d'E-Shelle pour prospecter, vendre et encaisser des commissions récurrentes.</p>
+            <span class="pres-pill" style="color:var(--color-secondary);border-color:rgba(245, 158, 11, 0.3);background:rgba(245, 158, 11, 0.05)">{% if LANGUAGE_CODE == 'en' %}Partner Program{% else %}Programme Partenaires{% endif %}</span>
+            <h2 id="partner-section-title" style="display:none">{% if LANGUAGE_CODE == 'en' %}For Business Introducer Partners{% else %}Pour les Partenaires Apporteurs d'affaires{% endif %}</h2>
+            <h3>{% if LANGUAGE_CODE == 'en' %}Earn income with the <span>E-Shelle Business Key</span>{% else %}Gagnez de l'argent avec la <span>E-Shelle Business Key</span>{% endif %}</h3>
+            <p>
+              {% if LANGUAGE_CODE == 'en' %}
+                The Business Key is a unique activation pass built for freelance sales reps, consultants, and digital creators. It unlocks full access to E-Shelle's advanced AI marketing tools to prospect, close sales, and collect recurring commissions.
+              {% else %}
+                La Business Key est une clé d'activation unique conçue pour les commerciaux indépendants, les consultants et les créateurs. Elle vous donne un accès complet aux outils marketing IA de pointe d'E-Shelle pour prospecter, vendre et encaisser des commissions récurrentes.
+              {% endif %}
+            </p>
             
             <div class="bk-price-badge">
               <strong>9 900 FCFA</strong>
-              <span>Prix unique d'activation</span>
+              <span>{% if LANGUAGE_CODE == 'en' %}One-time activation fee{% else %}Prix unique d'activation{% endif %}</span>
             </div>
 
             <ul class="bk-features-list">
               <li>
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
-                Lien partenaire personnel
+                {% if LANGUAGE_CODE == 'en' %}Personal partner referral link{% else %}Lien partenaire personnel{% endif %}
               </li>
               <li>
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
-                Dashboard Commissions
+                {% if LANGUAGE_CODE == 'en' %}Commission Dashboard{% else %}Dashboard Commissions{% endif %}
               </li>
               <li>
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
-                CRM de prospects
+                {% if LANGUAGE_CODE == 'en' %}Lead CRM{% else %}CRM de prospects{% endif %}
               </li>
               <li>
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
-                Créateur de fiches prestataires
+                {% if LANGUAGE_CODE == 'en' %}Merchant profile generator{% else %}Créateur de fiches prestataires{% endif %}
               </li>
               <li>
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
-                Agent Commercial IA
+                {% if LANGUAGE_CODE == 'en' %}AI Sales Agent{% else %}Agent Commercial IA{% endif %}
               </li>
               <li>
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
-                Campagnes & SMS WhatsApp
+                {% if LANGUAGE_CODE == 'en' %}WhatsApp campaigns &amp; SMS{% else %}Campagnes &amp; SMS WhatsApp{% endif %}
               </li>
               <li>
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
-                Phone OCR local
+                {% if LANGUAGE_CODE == 'en' %}Local Phone OCR{% else %}Phone OCR local{% endif %}
               </li>
               <li>
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
-                Agent SEO IA & AdGen
+                {% if LANGUAGE_CODE == 'en' %}AI SEO Agent &amp; AdGen{% else %}Agent SEO IA &amp; AdGen{% endif %}
               </li>
             </ul>
 
             <a href="{% url 'business:business_key_packs' %}" class="btn-bk">
-              Activer ma Business Key →
+              {% if LANGUAGE_CODE == 'en' %}Activate my Business Key &rarr;{% else %}Activer ma Business Key &rarr;{% endif %}
             </a>
           </div>
 
           <div class="bk-stats-card">
             <div class="bk-stat-item">
               <strong>50%</strong>
-              <span>Commission Partenaire</span>
-              <p>Touchez 50% de commission immédiate chaque fois que vous vendez ou faites activer une nouvelle Business Key via votre lien.</p>
+              <span>{% if LANGUAGE_CODE == 'en' %}Partner Commission{% else %}Commission Partenaire{% endif %}</span>
+              <p>
+                {% if LANGUAGE_CODE == 'en' %}
+                  Earn an immediate 50% commission whenever you refer and activate a new Business Key with your link.
+                {% else %}
+                  Touchez 50% de commission immédiate chaque fois que vous vendez ou faites activer une nouvelle Business Key via votre lien.
+                {% endif %}
+              </p>
             </div>
             
             <div class="bk-stat-item">
               <strong>30%</strong>
-              <span>Commission Prestataire</span>
-              <p>Touchez 30% de commission récurrente sur les fiches et abonnements payés par les prestataires que vous enregistrez sur la plateforme.</p>
+              <span>{% if LANGUAGE_CODE == 'en' %}Merchant Commission{% else %}Commission Prestataire{% endif %}</span>
+              <p>
+                {% if LANGUAGE_CODE == 'en' %}
+                  Earn 30% recurring commission on all merchant profiles and subscriptions paid by providers you enroll.
+                {% else %}
+                  Touchez 30% de commission récurrente sur les fiches et abonnements payés par les prestataires que vous enregistrez sur la plateforme.
+                {% endif %}
+              </p>
             </div>
 
             <div class="bk-stat-item">
               <strong>14+</strong>
-              <span>Outils IA & Matériel Inclus</span>
-              <p>Accédez à un arsenal complet comprenant l'Audio Studio, l'AdGen de publicités et des formations quotidiennes sur le terrain.</p>
+              <span>{% if LANGUAGE_CODE == 'en' %}AI Tools &amp; Resources Included{% else %}Outils IA &amp; Matériel Inclus{% endif %}</span>
+              <p>
+                {% if LANGUAGE_CODE == 'en' %}
+                  Access a full suite featuring the Audio Studio, AdGen ad creator, and hands-on training materials.
+                {% else %}
+                  Accédez à un arsenal complet comprenant l'Audio Studio, l'AdGen de publicités et des formations quotidiennes sur le terrain.
+                {% endif %}
+              </p>
             </div>
           </div>
 
@@ -788,5 +877,4 @@
 
   </div>
 </main>
-{% endif %}
 {% endblock %}

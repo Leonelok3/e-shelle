@@ -100,6 +100,31 @@ def _attach_order_action(connection, contact, message, decision):
 		message,
 		intent=decision["intention"],
 	)
+	if result.get("status") == "awaiting_confirmation":
+		return {
+			**decision,
+			"action_next": "await_customer_confirmation",
+			"pending_action": {
+				"draft_id": result["draft"].pk,
+				"status": result["status"],
+				"confirmation_token": str(result["draft"].confirmation_token),
+			},
+			"reponse": result["reponse"],
+		}
+	if result.get("status") == "pending_approval":
+		reason = result["pending_action"].get("reason")
+		if reason == "catalog_item_required":
+			reply = "Quel article exact souhaites-tu commander ? Choisis un produit actif du catalogue E-Shelle pour que je prépare le récapitulatif."
+		elif reason == "catalog_price_requires_business_confirmation":
+			reply = "Le prix de cet article doit d’abord être confirmé par le prestataire. Je lui transmets ta demande."
+		else:
+			reply = "Je transmets ta demande au prestataire pour vérification avant de confirmer une commande ou un paiement."
+		return {
+			**decision,
+			"action_next": "pending_approval",
+			"pending_action": result["pending_action"],
+			"reponse": reply,
+		}
 	return {
 		**decision,
 		"action_next": "pending_approval",

@@ -34,6 +34,7 @@ from .models import (
 	BusinessWhatsAppMessage,
 	ProductView,
 	ScheduledBusinessWhatsAppMessage,
+	WhatsAppDraftOrder,
 )
 from .onboarding import MetaOnboardingError, connect_business, retry_connection_setup
 from .services import get_whatsapp_order_url, normalize_phone
@@ -122,6 +123,14 @@ def business_whatsapp_dashboard(request, business_id):
 			"scheduled_messages": (
 				contact.scheduled_messages.all()[:10] if contact else []
 			),
+			"draft_orders": WhatsAppDraftOrder.objects.filter(
+				business=business,
+				status__in=[
+					WhatsAppDraftOrder.Status.DRAFT,
+					WhatsAppDraftOrder.Status.AWAITING_CONFIRMATION,
+					WhatsAppDraftOrder.Status.CONFIRMED,
+				],
+			).select_related("contact", "catalog_item", "boutique_order", "payment_transaction")[:50],
 			"signup_configured": bool(
 				getattr(settings, "WHATSAPP_TECH_PROVIDER_APP_ID", "")
 				and getattr(settings, "WHATSAPP_TECH_PROVIDER_APP_SECRET", "")
@@ -388,26 +397,86 @@ def update_business_contact_consent(request, business_id, contact_id):
 			messages.error(request, "Indiquez où et quand le consentement a été recueilli.")
 			return redirect(f"{reverse('whatsapp_commerce:business_dashboard', args=[business.pk])}?contact={contact.pk}")
 		contact.marketing_opt_in = True
+		contact.consent_marketing = True
 		contact.consent_source = source
 		contact.consented_at = timezone.now()
 		contact.consent_recorded_by = request.user
 		contact.opted_out_at = None
 		contact.save(update_fields=[
-			"marketing_opt_in", "consent_source", "consented_at",
+			"marketing_opt_in", "consent_marketing", "consent_source", "consented_at",
 			"consent_recorded_by", "opted_out_at", "last_activity_at",
 		])
 		messages.success(request, "Le consentement explicite a été enregistré.")
 	else:
 		contact.marketing_opt_in = False
+		contact.consent_marketing = False
 		contact.consented_at = None
 		contact.consent_source = ""
 		contact.consent_recorded_by = None
 		contact.save(update_fields=[
-			"marketing_opt_in", "consented_at", "consent_source",
+			"marketing_opt_in", "consent_marketing", "consented_at", "consent_source",
 			"consent_recorded_by", "last_activity_at",
 		])
 		cancel_scheduled_contact_messages(contact, "Le consentement marketing a été retiré.")
 		messages.success(request, "Le consentement a été retiré et les relances en attente annulées.")
+	return redirect(f"{reverse('whatsapp_commerce:business_dashboard', args=[business.pk])}?contact={contact.pk}")
+
+
+@login_required
+@require_POST
+def update_whatsapp_draft_order(request, business_id, draft_id):
+	business = _owned_business(request, business_id)
+	draft = get_object_or_404(
+		WhatsAppDraftOrder.objects.select_related("contact", "catalog_item"),
+		pk=draft_id,
+		business=business,
+	)
+	action = request.POST.get("action")
+	if action == "cancel":
+		if draft.status not in {
+			WhatsAppDraftOrder.Status.DRAFT,
+			WhatsAppDraftOrder.Status.AWAITING_CONFIRMATION,
+		}:
+			messages.error(request, "Seule une demande non confirmée peut être annulée.")
+		else:
+			draft.status = WhatsAppDraftOrder.Status.CANCELLED
+			draft.audit = {**draft.audit, "status_history": [*draft.audit.get("status_history", []), "cancelled"]}
+			draft.save(update_fields=["status", "audit"])
+			BusinessWhatsAppAudit.objects.create(
+				connection=draft.connection,
+				contact=draft.contact,
+				event_type="draft_order_cancelled",
+				action="business_owner_cancelled",
+				details={"draft_id": draft.pk, "actor_id": request.user.pk},
+			)
+			messages.success(request, "La demande de commande a été annulée.")
+	elif action == "confirm":
+		latest_inbound = draft.contact.messages.filter(
+			direction=BusinessWhatsAppMessage.Direction.INBOUND,
+			created_at__gte=draft.created_at,
+		).order_by("-created_at").first()
+		from .orchestrator import is_explicit_draft_confirmation
+
+		if not latest_inbound or not is_explicit_draft_confirmation(
+			draft.contact,
+			latest_inbound.body,
+		):
+			messages.error(request, "Attendez la confirmation explicite « OUI » du client avant de confirmer.")
+		else:
+			from .orchestrator import confirm_draft_order
+
+			result = confirm_draft_order(
+				draft.contact.phone,
+				latest_inbound.body,
+				business=business,
+			)
+			if result["status"] in {"confirmed", "already_confirmed"}:
+				messages.success(request, f"Commande {result['order'].reference} confirmée.")
+			else:
+				messages.error(request, "La commande n’a pas pu être confirmée; vérifiez son état et le consentement.")
+	else:
+		messages.error(request, "Action de commande inconnue.")
+	return redirect("whatsapp_commerce:business_dashboard", business_id=business.pk)
 	return redirect(f"{reverse('whatsapp_commerce:business_dashboard', args=[business.pk])}?contact={contact.pk}")
 
 

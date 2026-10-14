@@ -21,12 +21,12 @@ et numéro déjà en place. ShellBot et les routes historiques `/whatsapp/` et
    mais chaque connexion commence avec `agent_enabled=False`. Le propriétaire
    doit ouvrir le tableau de bord de sa fiche, connecter un WABA actif, puis
    activer l’agent et sélectionner les articles à mettre en avant.
-4. `WHATSAPP_BUSINESS_AUTOMATIONS_ENABLED` active le worker globalement, tandis
-   que `automations_enabled=False` par connexion maintient les relances arrêtées
-   jusqu’à activation explicite dans le tableau de bord. En production, garder
-   ce drapeau serveur à `True` seulement si Celery et Celery Beat sont actifs et
-   que les modèles Meta sont approuvés. Les relances planifiées vérifient à nouveau l’abonnement, le
-   consentement, le statut STOP et l’approbation du modèle avant chaque envoi.
+4. `WHATSAPP_BUSINESS_AUTOMATIONS_ENABLED` est désactivé par défaut. Garder ce
+   drapeau serveur à `False` jusqu’au pilote; l’activation doit se faire
+   entreprise par entreprise, avec modèles Meta approuvés, bouton STOP respecté
+   et annulation des relances si le contact répond. Celery et Celery Beat doivent
+   être actifs. Les relances vérifient à nouveau l’abonnement, le consentement,
+   le statut STOP et l’approbation du modèle avant chaque envoi.
 5. Pour activer la cadence automatique, définir les variables d’environnement
    `WHATSAPP_COMMERCE_FOLLOW_UP_J1_TEMPLATE`,
    `WHATSAPP_COMMERCE_FOLLOW_UP_J3_TEMPLATE` et
@@ -35,6 +35,29 @@ et numéro déjà en place. ShellBot et les routes historiques `/whatsapp/` et
    un bouton de réponse rapide intitulé `STOP`; sinon la relance est ignorée et
    journalisée. Une réponse entrante annule les relances précédentes. Le worker
    crée J+1/J+3/J+7 uniquement si le consentement marketing explicite est actif.
+
+## Commande WhatsApp confirmée
+
+- Un premier message entrant crée `consent_service=True` pour le traitement de
+  la demande, sans accorder le consentement marketing. Seul `OUI PUB` (ou
+  l’enregistrement d’un accord marketing explicite dans le CRM) active
+  `consent_marketing`.
+- Si l’article actif du catalogue Business et son prix numérique sont
+  identifiables, l’agent crée un brouillon et demande au client de vérifier
+  l’article, la quantité, le total et la ville, puis de répondre `OUI`.
+- Seule une confirmation explicite `OUI`, `OUI CONFIRME` ou le token UUID du
+  brouillon crée une commande `source="whatsapp_confirmed"` et une ligne liée
+  à l’article du catalogue. Une contrainte et une transaction atomique évitent
+  les doublons par brouillon.
+- Une transaction est créée en `pending_awaiting_manual_validation`; elle ne
+  déclenche aucun paiement Mobile Money. Son lien est un contact WhatsApp du
+  prestataire prérempli pour convenir du paiement, pas une passerelle de paiement.
+  Le prestataire voit les brouillons, commandes et transactions à valider dans
+  son Inbox Business.
+- La commande ne peut être créée si l’article ou le prix ne sont pas validés,
+  si le contact n’a pas initié la conversation, ou si l’article n’appartient pas
+  au catalogue actif de cette fiche. Dans ces cas, la demande reste en attente
+  d’intervention humaine.
 
 L’inbox est accessible sur `GET /whatsapp-commerce/inbox/`; la page liste
 uniquement les fiches appartenant au compte connecté. Choisir une fiche ouvre son
@@ -80,12 +103,9 @@ de vrais messages.
   automatiques, l’envoi de médias produits et le suivi après-vente ne sont pas
   activés par cette extension : ils nécessitent des déclencheurs et un rattachement
   de données propres au tenant.
-- Une intention de commande/paiement produit une `pending_action` d’audit avec
-  `status="pending_approval"`. Le guard vérifie le consentement, l’appartenance
-  active de l’article au catalogue business et la fenêtre de 24 h ou la présence
-  d’un modèle Meta approuvé. Même si le guard passe, aucune commande ni transaction
-  n’est créée automatiquement : les modèles de boutique/paiement actuels exigent
-  des identifiants et relations qui ne sont pas fournis par un contact WhatsApp.
+- Le brouillon de commande ne devient une vraie commande qu’après la confirmation
+  explicite du client décrite ci-dessus. Aucun paiement n’est initié automatiquement;
+  le prestataire doit valider manuellement les modalités et réception du paiement.
 - L’agent n’initie pas de commande payée, de paiement Mobile Money ou de rendez-vous
   sans identité/produit/créneau et confirmation adaptés. Les schémas actuels
   `boutique.Commande`, `payments.Transaction` et `salonhub.Appointment` ne
@@ -97,6 +117,6 @@ de vrais messages.
   `message_template_status_update`; ils ne remplacent pas la validation Meta en
   temps réel avant programmation/envoi.
 - `*.pem` est déjà ignoré par `.gitignore`, mais cela ne retire pas une clé déjà
-  suivie par Git. Le fichier de clé de production doit être révoqué/rotaté, puis
-  retiré de l’historique Git par une procédure d’incident coordonnée. Ne pas
+  suivie par Git. La PEM doit être révoquée côté GCP; `.gitignore` seul ne suffit
+  pas et ne retire pas une clé déjà suivie de Git ou de son historique. Ne pas
   afficher ni recopier son contenu.

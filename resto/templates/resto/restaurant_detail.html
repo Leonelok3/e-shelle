@@ -51,8 +51,8 @@
   <svg class="w-4 h-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
   </svg>
-  Mode aperçu — Votre restaurant est en attente d'approbation. Il sera visible par tous après validation.
-  <a href="{% url 'resto:dashboard_home' %}" class="underline font-semibold ml-1">← Retour au tableau de bord</a>
+  {% if LANGUAGE_CODE == 'en' %}Preview mode — Your restaurant is awaiting approval. It will be visible to everyone once approved.{% else %}Mode aperçu — Votre restaurant est en attente d'approbation. Il sera visible par tous après validation.{% endif %}
+  <a href="{% url 'resto:dashboard_home' %}" class="underline font-semibold ml-1">{% if LANGUAGE_CODE == 'en' %}← Back to dashboard{% else %}← Retour au tableau de bord{% endif %}</a>
 </div>
 {% endif %}
 
@@ -61,7 +61,7 @@
   {% with cover_url=restaurant.cover_image|file_url %}
   {% if cover_url %}
   <img src="{{ cover_url }}"
-       alt="Photo de couverture — {{ restaurant.name }}"
+       alt="{% if LANGUAGE_CODE == 'en' %}Cover photo{% else %}Photo de couverture{% endif %} — {{ restaurant.name }}"
        loading="lazy"
        class="w-full h-full object-cover" />
   <div class="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent"></div>
@@ -142,9 +142,9 @@
           </svg>
           {{ restaurant.opening_time|split_time }} – {{ restaurant.closing_time|split_time }}
           {% if restaurant.is_open_now %}
-          <span class="text-green-600 font-medium">· Ouvert maintenant</span>
+          <span class="text-green-600 font-medium">· {% if LANGUAGE_CODE == 'en' %}Open now{% else %}Ouvert maintenant{% endif %}</span>
           {% else %}
-          <span class="text-red-500 font-medium">· Fermé</span>
+          <span class="text-red-500 font-medium">· {% if LANGUAGE_CODE == 'en' %}Closed{% else %}Fermé{% endif %}</span>
           {% endif %}
         </div>
       </div>
@@ -167,7 +167,7 @@
         <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
           <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
         </svg>
-        Commander WhatsApp
+        {% if LANGUAGE_CODE == 'en' %}Order{% else %}Commander{% endif %} WhatsApp
       </a>
 
       <!-- Call -->
@@ -180,7 +180,7 @@
         <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/>
         </svg>
-        Appeler
+        {% if LANGUAGE_CODE == 'en' %}Call{% else %}Appeler{% endif %}
       </a>
 
       <!-- Favorite -->
@@ -238,7 +238,7 @@
     {% if not menu_categories and not uncategorized_dishes %}
     <div class="text-center py-12 text-gray-400 bg-gray-50 rounded-2xl">
       <span class="text-5xl block mb-3">📋</span>
-      <p class="text-sm font-medium">Le menu sera disponible bientôt.</p>
+      <p class="text-sm font-medium">{% if LANGUAGE_CODE == 'en' %}The menu will be available soon.{% else %}Le menu sera disponible bientôt.{% endif %}</p>
     </div>
     {% endif %}
   </section>
@@ -308,7 +308,7 @@
     {% elif not review_count %}
     <div class="text-center py-8 bg-gray-50 rounded-2xl mb-6">
       <span class="text-4xl block mb-2">💬</span>
-      <p class="text-sm text-gray-500">Soyez le premier à laisser un avis !</p>
+      <p class="text-sm text-gray-500">{% if LANGUAGE_CODE == 'en' %}Be the first to leave a review!{% else %}Soyez le premier à laisser un avis !{% endif %}</p>
     </div>
     {% endif %}
 
@@ -320,7 +320,7 @@
            setRating(n) { this.rating = n; document.getElementById('rating-value').value = n; },
            submitted: false,
          }">
-      <h3 class="text-base font-semibold text-gray-900 mb-4">Laisser un avis</h3>
+      <h3 class="text-base font-semibold text-gray-900 mb-4">{% if LANGUAGE_CODE == 'en' %}Leave a review{% else %}Laisser un avis{% endif %}</h3>
 
       {% if messages %}
       {% for msg in messages %}
@@ -335,7 +335,7 @@
 
         <!-- Star picker -->
         <div class="mb-5">
-          <label class="block text-sm font-medium text-gray-700 mb-2">Votre note</label>
+          <label class="block text-sm font-medium text-gray-700 mb-2">{% if LANGUAGE_CODE == 'en' %}Your rating{% else %}Votre note{% endif %}</label>
           <div class="flex gap-1">
             {% for i in "12345" %}
             <button type="button"
@@ -350,16 +350,16 @@
           </div>
           <input type="hidden" id="rating-value" name="rating" :value="rating" />
           <p x-show="rating === 0" class="text-xs text-red-500 mt-1" style="display:none">
-            Veuillez choisir une note.
+            {% if LANGUAGE_CODE == 'en' %}Please select a rating.{% else %}Veuillez choisir une note.{% endif %}
           </p>
           <p x-show="rating > 0" class="text-xs text-gray-500 mt-1"
-             x-text="['', 'Très mauvais', 'Mauvais', 'Correct', 'Bien', 'Excellent !'][rating]">
+             x-text="['', '{% if LANGUAGE_CODE == 'en' %}Very poor{% else %}Très mauvais{% endif %}', '{% if LANGUAGE_CODE == 'en' %}Poor{% else %}Mauvais{% endif %}', '{% if LANGUAGE_CODE == 'en' %}Okay{% else %}Correct{% endif %}', '{% if LANGUAGE_CODE == 'en' %}Good{% else %}Bien{% endif %}', '{% if LANGUAGE_CODE == 'en' %}Excellent!{% else %}Excellent !{% endif %}'][rating]">
           </p>
         </div>
 
         <!-- Author name -->
         <div class="mb-4">
-          <label class="block text-sm font-medium text-gray-700 mb-1.5" for="id_author_name">Votre prénom</label>
+          <label class="block text-sm font-medium text-gray-700 mb-1.5" for="id_author_name">{% if LANGUAGE_CODE == 'en' %}Your first name{% else %}Votre prénom{% endif %}</label>
           <input type="text" name="author_name" id="id_author_name"
                  maxlength="100" required
                  placeholder="Marie, Jean, Fatou…"
@@ -368,18 +368,18 @@
 
         <!-- Comment -->
         <div class="mb-5">
-          <label class="block text-sm font-medium text-gray-700 mb-1.5" for="id_comment">Votre avis</label>
+          <label class="block text-sm font-medium text-gray-700 mb-1.5" for="id_comment">{% if LANGUAGE_CODE == 'en' %}Your review{% else %}Votre avis{% endif %}</label>
           <textarea name="comment" id="id_comment"
                     rows="3" maxlength="800" required
-                    placeholder="Partagez votre expérience… (qualité, ambiance, rapidité)"
+                    placeholder="{% if LANGUAGE_CODE == 'en' %}Share your experience… (quality, atmosphere, speed){% else %}Partagez votre expérience… (qualité, ambiance, rapidité){% endif %}"
                     class="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm resize-none focus:outline-none focus:ring-2 focus:ring-amber-400/30 focus:border-amber-400 transition"></textarea>
-          <p class="text-xs text-gray-400 mt-1">Minimum 10 caractères — votre avis sera visible après modération.</p>
+          <p class="text-xs text-gray-400 mt-1">{% if LANGUAGE_CODE == 'en' %}At least 10 characters — your review will be visible after moderation.{% else %}Minimum 10 caractères — votre avis sera visible après modération.{% endif %}</p>
         </div>
 
         <button type="submit"
                 @click="if(rating === 0) { $event.preventDefault(); document.querySelector('[x-show=\'rating === 0\']').style.display='block'; }"
                 class="w-full py-3 bg-amber-500 hover:bg-amber-600 text-white font-semibold rounded-xl transition text-sm shadow-sm shadow-amber-200">
-          Envoyer mon avis
+          {% if LANGUAGE_CODE == 'en' %}Submit my review{% else %}Envoyer mon avis{% endif %}
         </button>
       </form>
     </div>
@@ -411,7 +411,7 @@
       <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/>
       </svg>
-      Appeler
+      {% if LANGUAGE_CODE == 'en' %}Call{% else %}Appeler{% endif %}
     </a>
   </div>
 </div>

@@ -19,6 +19,7 @@ class Transaction(models.Model):
     STATUTS = [
         ("initie",     "Initié"),
         ("en_attente", "En attente de confirmation"),
+        ("pending_awaiting_manual_validation", "En attente de validation manuelle"),
         ("succes",     "Succès"),
         ("echec",      "Échec"),
         ("expire",     "Expiré"),
@@ -35,15 +36,20 @@ class Transaction(models.Model):
     ]
 
     reference    = models.CharField(max_length=40, unique=True, blank=True)
-    utilisateur  = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE,
-                                      related_name="transactions")
+    utilisateur  = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        related_name="transactions",
+        null=True,
+        blank=True,
+    )
     type_tx      = models.CharField(max_length=20, choices=TYPES)
     methode      = models.CharField(max_length=20, choices=METHODES, default="mtn_momo")
     montant      = models.DecimalField(max_digits=12, decimal_places=2)
     devise       = models.CharField(max_length=5, default="XAF")
     telephone    = models.CharField(max_length=25, blank=True,
                                      help_text="Numéro Mobile Money")
-    statut       = models.CharField(max_length=20, choices=STATUTS, default="initie")
+    statut       = models.CharField(max_length=40, choices=STATUTS, default="initie")
     # Références externes (API paiement)
     ref_operateur = models.CharField(max_length=200, blank=True,
                                       help_text="Référence de l'opérateur MTN/Airtel")
@@ -51,6 +57,14 @@ class Transaction(models.Model):
     # Objet payé
     commande     = models.ForeignKey("boutique.Commande", on_delete=models.SET_NULL,
                                       null=True, blank=True, related_name="transactions")
+    whatsapp_draft_order = models.OneToOneField(
+        "whatsapp_commerce.WhatsAppDraftOrder",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="payment_transaction",
+    )
+    payment_link = models.URLField(blank=True)
     formation    = models.ForeignKey("formations.Formation", on_delete=models.SET_NULL,
                                       null=True, blank=True, related_name="transactions")
     metadata     = models.JSONField(default=dict, blank=True)
@@ -68,7 +82,8 @@ class Transaction(models.Model):
         super().save(*args, **kwargs)
 
     def __str__(self):
-        return f"{self.reference} — {self.utilisateur.username} — {self.montant} {self.devise} ({self.statut})"
+        buyer = self.utilisateur.username if self.utilisateur_id else self.telephone or "client WhatsApp"
+        return f"{self.reference} — {buyer} — {self.montant} {self.devise} ({self.statut})"
 
 
 class PlanPremiumApp(models.Model):

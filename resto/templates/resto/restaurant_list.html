@@ -11,7 +11,7 @@
   <div class="mb-6">
     <h1 class="text-2xl font-bold text-gray-900">Restaurants</h1>
     <p class="text-sm text-gray-500 mt-1">
-      Découvrez les meilleurs établissements de votre ville
+      {% if LANGUAGE_CODE == 'en' %}Discover the best restaurants in your city{% else %}Découvrez les meilleurs établissements de votre ville{% endif %}
     </p>
   </div>
 
@@ -25,7 +25,7 @@
         <input type="text"
                name="q"
                value="{{ q }}"
-               placeholder="Rechercher un restaurant..."
+               placeholder="{% if LANGUAGE_CODE == 'en' %}Search for a restaurant...{% else %}Rechercher un restaurant...{% endif %}"
                class="w-full pl-9 pr-4 py-2.5 text-sm bg-gray-100 rounded-xl focus:outline-none focus:ring-2 focus:ring-resto-primary focus:bg-white transition"
                hx-get="{% url 'resto:restaurant_list' %}"
                hx-trigger="keyup changed delay:400ms"
@@ -41,7 +41,7 @@
         <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"/>
         </svg>
-        Filtres
+        {% if LANGUAGE_CODE == 'en' %}Filters{% else %}Filtres{% endif %}
         {% if active_city or active_category or active_status %}
         <span class="w-2 h-2 rounded-full bg-resto-primary"></span>
         {% endif %}
@@ -52,12 +52,12 @@
     <div x-show="showFilters" x-transition class="mt-4 space-y-4">
       <!-- City -->
       <div>
-        <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Ville</p>
+        <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">{% if LANGUAGE_CODE == 'en' %}City{% else %}Ville{% endif %}</p>
         <div class="flex flex-wrap gap-2">
           <a href="{% url 'resto:restaurant_list' %}{% if q %}?q={{ q }}{% endif %}"
              class="px-3 py-1.5 text-xs rounded-full font-medium transition
                     {% if not active_city %}bg-gray-900 text-white{% else %}bg-gray-100 text-gray-700 hover:bg-gray-200{% endif %}">
-            Toutes
+            {% if LANGUAGE_CODE == 'en' %}All{% else %}{% if LANGUAGE_CODE == 'en' %}All{% else %}Tout{% endif %}es{% endif %}
           </a>
           {% for city in cities %}
           <a href="?city={{ city.slug }}{% if q %}&q={{ q }}{% endif %}{% if active_category %}&category={{ active_category }}{% endif %}{% if active_status %}&status={{ active_status }}{% endif %}"
@@ -75,12 +75,12 @@
 
       <!-- Categories -->
       <div>
-        <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Catégorie</p>
+        <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">{% if LANGUAGE_CODE == 'en' %}Category{% else %}Catégorie{% endif %}</p>
         <div class="flex flex-wrap gap-2">
           <a href="?{% if active_city %}city={{ active_city }}&{% endif %}{% if q %}q={{ q }}&{% endif %}{% if active_status %}status={{ active_status }}{% endif %}"
              class="px-3 py-1.5 text-xs rounded-full font-medium transition
                     {% if not active_category %}bg-gray-900 text-white{% else %}bg-gray-100 text-gray-700 hover:bg-gray-200{% endif %}">
-            Tout
+            {% if LANGUAGE_CODE == 'en' %}All{% else %}Tout{% endif %}
           </a>
           {% for cat in food_categories %}
           <a href="?{% if active_city %}city={{ active_city }}&{% endif %}category={{ cat.slug }}{% if q %}&q={{ q }}{% endif %}{% if active_status %}&status={{ active_status }}{% endif %}"
@@ -99,7 +99,7 @@
 
       <!-- Status -->
       <div>
-        <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Statut</p>
+        <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">{% if LANGUAGE_CODE == 'en' %}Status{% else %}Statut{% endif %}</p>
         <div class="flex gap-2">
           {% for val, label in statuses %}
           <a href="?{% if active_city %}city={{ active_city }}&{% endif %}{% if active_category %}category={{ active_category }}&{% endif %}{% if q %}q={{ q }}&{% endif %}status={{ val }}"
@@ -149,10 +149,10 @@
 {% block extra_head %}
 <script>
   const STATUSES = [
-    ["", "Tous"],
+    ["", "{% if LANGUAGE_CODE == 'en' %}All{% else %}Tous{% endif %}"],
     ["open", "Ouvert"],
-    ["closed", "Fermé"],
-    ["opening_soon", "Bientôt ouvert"],
+    ["closed", "{% if LANGUAGE_CODE == 'en' %}Closed{% else %}Fermé{% endif %}"],
+    ["opening_soon", "{% if LANGUAGE_CODE == 'en' %}Good{% else %}Bien{% endif %}tôt ouvert"],
   ];
 </script>
 {% endblock %}

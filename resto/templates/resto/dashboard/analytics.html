@@ -1,7 +1,7 @@
 {% extends "resto/dashboard/base_dashboard.html" %}
 {% load static %}
 
-{% block title %}Statistiques — {{ restaurant.name }}{% endblock %}
+{% block title %}{% if LANGUAGE_CODE == 'en' %}Analytics{% else %}Statistiques{% endif %} — {{ restaurant.name }}{% endblock %}
 {% block dash_nav_analytics %}bg-orange-50 text-resto-primary font-semibold{% endblock %}
 {% block mob_analytics %}text-resto-primary{% endblock %}
 
@@ -13,8 +13,8 @@
 {% block dashboard_content %}
 <div class="space-y-6">
   <div>
-    <h1 class="text-xl font-bold text-gray-900">Statistiques</h1>
-    <p class="text-sm text-gray-500">Activité des 7 derniers jours.</p>
+    <h1 class="text-xl font-bold text-gray-900">{% if LANGUAGE_CODE == 'en' %}Analytics{% else %}Statistiques{% endif %}</h1>
+    <p class="text-sm text-gray-500">Activité des 7 derniers{% if LANGUAGE_CODE == 'en' %} days{% else %} jours{% endif %}.</p>
   </div>
 
   <!-- ── Totals ── -->
@@ -28,14 +28,14 @@
       <p class="text-3xl font-bold text-green-600">{{ total_whatsapp }}</p>
     </div>
     <div class="bg-white rounded-2xl p-4 border border-gray-100 shadow-sm text-center">
-      <p class="text-xs font-semibold text-gray-400 uppercase mb-1">Appels</p>
+      <p class="text-xs font-semibold text-gray-400 uppercase mb-1">{% if LANGUAGE_CODE == 'en' %}Calls{% else %}Appels{% endif %}</p>
       <p class="text-3xl font-bold text-blue-600">{{ total_calls }}</p>
     </div>
   </div>
 
   <!-- ── Contacts 7 days chart ── -->
   <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
-    <h2 class="font-semibold text-gray-900 mb-4">Contacts — 7 derniers jours</h2>
+    <h2 class="font-semibold text-gray-900 mb-4">Contacts — 7 derniers{% if LANGUAGE_CODE == 'en' %} days{% else %} jours{% endif %}</h2>
     <div class="relative h-64">
       <canvas id="contactsChart"></canvas>
     </div>
@@ -43,7 +43,7 @@
 
   <!-- ── WhatsApp vs Calls chart ── -->
   <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
-    <h2 class="font-semibold text-gray-900 mb-4">WhatsApp vs Appels</h2>
+    <h2 class="font-semibold text-gray-900 mb-4">WhatsApp vs {% if LANGUAGE_CODE == 'en' %}Calls{% else %}Appels{% endif %}</h2>
     <div class="relative h-48">
       <canvas id="typeChart"></canvas>
     </div>
@@ -74,7 +74,7 @@ new Chart(document.getElementById('contactsChart'), {
         pointBackgroundColor: '#22c55e',
       },
       {
-        label: 'Appels',
+        label: '{% if LANGUAGE_CODE == 'en' %}Calls{% else %}Appels{% endif %}',
         data: callsData,
         borderColor: '#3b82f6',
         backgroundColor: 'rgba(59,130,246,0.1)',
@@ -105,7 +105,7 @@ const totalCalls = callsData.reduce((a, b) => a + b, 0);
 new Chart(document.getElementById('typeChart'), {
   type: 'doughnut',
   data: {
-    labels: ['WhatsApp', 'Appels téléphoniques'],
+    labels: ['WhatsApp', '{% if LANGUAGE_CODE == 'en' %}Calls{% else %}Appels{% endif %} téléphoniques'],
     datasets: [{
       data: [totalWa, totalCalls],
       backgroundColor: ['#22c55e', '#3b82f6'],
