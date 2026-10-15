@@ -31,6 +31,7 @@ class CampayClientTests(TestCase):
     def test_payment_link_uses_server_token_and_xaf_amount(self):
         tx = self.make_transaction()
         response = Mock()
+        response.status_code = 200
         response.ok = True
         response.json.return_value = {
             "link": "https://demo.campay.net/payment/test",
@@ -49,6 +50,36 @@ class CampayClientTests(TestCase):
         self.assertEqual(request.call_args.kwargs["headers"]["Authorization"], "Token sandbox-token")
         self.assertEqual(request.call_args.kwargs["json"]["amount"], 1250)
         self.assertEqual(request.call_args.kwargs["json"]["currency"], "XAF")
+        self.assertEqual(
+            request.call_args.args[1],
+            "https://demo.campay.net/api/get_payment_link/",
+        )
+
+    @override_settings(CAMPAY_MODE="sandbox", CAMPAY_TOKEN="sandbox-token")
+    def test_transaction_status_uses_campay_endpoint(self):
+        response = Mock()
+        response.status_code = 200
+        response.ok = True
+        response.json.return_value = {"status": "PENDING"}
+
+        with patch("payments.campay.requests.request", return_value=response) as request:
+            result = CampayClient().get_transaction("provider-ref-123")
+
+        self.assertEqual(result["status"], "PENDING")
+        self.assertEqual(
+            request.call_args.args[1],
+            "https://demo.campay.net/api/transaction/provider-ref-123/",
+        )
+
+    @override_settings(CAMPAY_MODE="sandbox", CAMPAY_TOKEN="sandbox-token")
+    def test_redirect_response_is_reported_as_http_error(self):
+        response = Mock()
+        response.status_code = 301
+        response.ok = True
+
+        with patch("payments.campay.requests.request", return_value=response):
+            with self.assertRaisesRegex(CampayError, "HTTP 301"):
+                CampayClient().get_transaction("provider-ref-123")
 
     def test_reconciliation_records_success_but_does_not_fulfill_order(self):
         user = get_user_model().objects.create_user(username="buyer", password="test")
@@ -320,6 +351,51 @@ class CampayClientTests(TestCase):
         self.assertEqual(payment.status, "failed")
         self.assertEqual(subscription.status, "cancelled")
         self.assertFalse(subscription.is_active)
+
+    @override_settings(
+        ALLOWED_HOSTS=["testserver", "immigration97.com"],
+        CAMPAY_MODE="sandbox",
+        CAMPAY_TOKEN="sandbox-token",
+    )
+    def test_checkout_failure_is_visible_on_immigration97_upgrade_page(self):
+        user = get_user_model().objects.create_user(
+            username="immigration-error-buyer",
+            password="safe-test-password",
+        )
+        plan = AppPlan.objects.create(
+            app_key="prep",
+            slug="prep-premium-error-test",
+            name="Premium error test",
+            level="pro",
+            price_xaf=2500,
+            duration_days=30,
+            is_free=False,
+            is_active=True,
+        )
+        self.client.force_login(user)
+
+        with patch.object(
+            CampayClient,
+            "create_payment_link",
+            side_effect=CampayError("CamPay returned HTTP 401."),
+        ):
+            response = self.client.post(
+                reverse(
+                    "payments:campay_immigration_plan",
+                    kwargs={"plan_id": plan.pk},
+                ),
+                HTTP_HOST="immigration97.com",
+            )
+
+        self.assertRedirects(
+            response,
+            reverse("accounts:upgrade") + "?app=prep",
+            fetch_redirect_response=False,
+        )
+        page = self.client.get(response.url, HTTP_HOST="immigration97.com")
+        self.assertEqual(page.status_code, 200)
+        self.assertContains(page, "CamPay n’a pas pu démarrer le paiement")
+        self.assertContains(page, "Connexion à CamPay…")
 
     def test_immigration97_checkout_rejects_plans_for_other_apps(self):
         user = get_user_model().objects.create_user(

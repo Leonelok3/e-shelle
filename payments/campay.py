@@ -48,7 +48,7 @@ class CampayClient:
         except requests.RequestException as exc:
             raise CampayError("CamPay could not be reached.") from exc
 
-        if not response.ok:
+        if not 200 <= response.status_code < 300:
             raise CampayError(f"CamPay returned HTTP {response.status_code}.")
         try:
             result = response.json()
@@ -69,7 +69,7 @@ class CampayClient:
 
         result = self._request(
             "POST",
-            "token",
+            "token/",
             authenticated=False,
             payload={"username": username, "password": password},
         )
@@ -108,7 +108,7 @@ class CampayClient:
             if user.email:
                 payload["email"] = user.email
 
-        result = self._request("POST", "get_payment_link", payload=payload)
+        result = self._request("POST", "get_payment_link/", payload=payload)
         link = result.get("link")
         reference = result.get("reference")
         if (
@@ -128,7 +128,7 @@ class CampayClient:
             raise CampayError("Invalid CamPay transaction reference.")
         return self._request(
             "GET",
-            f"transactions/{quote(provider_reference, safe='')}",
+            f"transaction/{quote(provider_reference, safe='')}/",
         )
 
 

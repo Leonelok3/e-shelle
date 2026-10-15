@@ -106,6 +106,16 @@
     </div>
   </div>
 
+  {% if messages %}
+  <div class="max-w-2xl mx-auto px-4 pt-6" aria-live="polite">
+    {% for message in messages %}
+    <div role="alert" class="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-semibold text-red-800">
+      {{ message }}
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+
   <!-- Plans -->
   <div class="max-w-7xl mx-auto px-4 sm:px-6 py-12">
 
@@ -210,9 +220,10 @@
           </div>
           {% else %}
           {% if request.is_immigration97 and plan.campay_payment_url %}
-          <form method="post" action="{{ plan.campay_payment_url }}" class="mb-2">
+          <form method="post" action="{{ plan.campay_payment_url }}" class="campay-checkout-form mb-2">
             {% csrf_token %}
             <button type="submit"
+                    data-pending-label="{% if LANGUAGE_CODE == 'en' %}Connecting to CamPay…{% else %}Connexion à CamPay…{% endif %}"
                     class="w-full py-3 rounded-xl text-sm font-bold text-white transition hover:opacity-90"
                     style="background:{{ app_color }}">
               CamPay — {{ plan.price_xaf_formatted }}
@@ -326,5 +337,17 @@
     </p>
   </footer>
 
+  <script>
+    document.querySelectorAll('.campay-checkout-form').forEach(function (form) {
+      form.addEventListener('submit', function () {
+        var button = form.querySelector('button[type="submit"]');
+        if (button) {
+          button.disabled = true;
+          button.textContent = button.dataset.pendingLabel;
+          button.classList.add('opacity-60', 'cursor-wait');
+        }
+      });
+    });
+  </script>
 </body>
 </html>
