@@ -1,12 +1,16 @@
 import json
+from datetime import timedelta
 from decimal import Decimal
 from unittest.mock import Mock, patch
 
+from django.contrib import admin
 from django.contrib.auth import get_user_model
 from django.core import signing
 from django.test import TestCase, override_settings
 from django.urls import reverse
 
+from accounts.admin import AppSubscriptionAdmin
+from accounts.models import AppPlan, AppSubscription, PaymentHistory
 from boutique.models import Commande
 from .campay import CampayClient, CampayError, reconcile_transaction
 from .models import Transaction
@@ -158,6 +162,189 @@ class CampayClientTests(TestCase):
         self.assertTemplateUsed(response, "payments/method_choice.html")
         self.assertContains(response, "Payer avec CamPay")
         self.assertContains(response, "Continuer via WhatsApp")
+
+    @override_settings(
+        ALLOWED_HOSTS=["testserver", "immigration97.com"],
+        CAMPAY_MODE="sandbox",
+        CAMPAY_TOKEN="sandbox-token",
+    )
+    def test_immigration97_plan_checkout_records_payment_but_keeps_access_pending(self):
+        user = get_user_model().objects.create_user(
+            username="immigration-buyer",
+            password="safe-test-password",
+        )
+        plan = AppPlan.objects.create(
+            app_key="prep",
+            slug="prep-premium-test",
+            name="Premium test",
+            level="pro",
+            price_xaf=2500,
+            duration_days=30,
+            is_free=False,
+            is_active=True,
+        )
+        self.client.force_login(user)
+
+        upgrade = self.client.get(
+            reverse("accounts:upgrade") + "?app=prep",
+            HTTP_HOST="immigration97.com",
+        )
+        self.assertEqual(upgrade.status_code, 200)
+        self.assertContains(upgrade, "CamPay — 2 500 FCFA")
+
+        with patch.object(
+            CampayClient,
+            "create_payment_link",
+            return_value=("https://demo.campay.net/payment/test", "provider-ref-123"),
+        ) as create_payment_link:
+            response = self.client.post(
+                reverse(
+                    "payments:campay_immigration_plan",
+                    kwargs={"plan_id": plan.pk},
+                ),
+                HTTP_HOST="immigration97.com",
+            )
+
+        self.assertRedirects(
+            response,
+            "https://demo.campay.net/payment/test",
+            fetch_redirect_response=False,
+        )
+        self.assertIn(
+            "https://immigration97.com/payments/campay/return/",
+            create_payment_link.call_args.kwargs["redirect_url"],
+        )
+        tx = Transaction.objects.get(utilisateur=user, methode="campay")
+        subscription = AppSubscription.objects.get(user=user, plan=plan)
+        payment = PaymentHistory.objects.get(user=user, method="campay")
+        self.assertEqual(tx.statut, "en_attente")
+        self.assertEqual(payment.status, "pending")
+        self.assertEqual(payment.subscription, subscription)
+        self.assertEqual(subscription.status, "pending")
+        self.assertFalse(subscription.is_active)
+
+        with patch.object(CampayClient, "create_payment_link") as create_payment_link:
+            retry = self.client.post(
+                reverse(
+                    "payments:campay_immigration_plan",
+                    kwargs={"plan_id": plan.pk},
+                ),
+                HTTP_HOST="immigration97.com",
+            )
+        self.assertRedirects(
+            retry,
+            "https://demo.campay.net/payment/test",
+            fetch_redirect_response=False,
+        )
+        create_payment_link.assert_not_called()
+        self.assertEqual(
+            Transaction.objects.filter(
+                utilisateur=user,
+                methode="campay",
+                metadata__app_plan_id=plan.pk,
+            ).count(),
+            1,
+        )
+
+        provider = Mock(
+            mode="sandbox",
+            get_transaction=Mock(return_value={
+                "reference": "provider-ref-123",
+                "amount": 2500,
+                "currency": "XAF",
+                "status": "SUCCESSFUL",
+            }),
+        )
+        reconcile_transaction(tx, client=provider)
+        payment.refresh_from_db()
+        subscription.refresh_from_db()
+        self.assertEqual(payment.status, "success")
+        self.assertEqual(subscription.status, "pending")
+        self.assertFalse(subscription.is_active)
+
+        admin_instance = AppSubscriptionAdmin(AppSubscription, admin.site)
+        with patch.object(admin_instance, "message_user"):
+            admin_instance.activate_paid_immigration97_subscriptions(
+                Mock(),
+                AppSubscription.objects.filter(pk=subscription.pk),
+            )
+        subscription.refresh_from_db()
+        self.assertTrue(subscription.is_active)
+        self.assertEqual(subscription.expires_at - subscription.started_at, timedelta(days=30))
+    def test_failed_immigration97_payment_cancels_pending_access(self):
+        user = get_user_model().objects.create_user(
+            username="immigration-failed-buyer",
+            password="safe-test-password",
+        )
+        plan = AppPlan.objects.create(
+            app_key="prep",
+            slug="prep-premium-failed-test",
+            name="Premium failed test",
+            level="pro",
+            price_xaf=2500,
+            duration_days=30,
+            is_free=False,
+            is_active=True,
+        )
+        self.client.force_login(user)
+
+        with patch.object(
+            CampayClient,
+            "create_payment_link",
+            return_value=("https://demo.campay.net/payment/test", "provider-ref-failed"),
+        ):
+            self.client.post(
+                reverse(
+                    "payments:campay_immigration_plan",
+                    kwargs={"plan_id": plan.pk},
+                ),
+                HTTP_HOST="immigration97.com",
+            )
+
+        tx = Transaction.objects.get(utilisateur=user, methode="campay")
+        subscription = AppSubscription.objects.get(user=user, plan=plan)
+        payment = PaymentHistory.objects.get(user=user, method="campay")
+        provider = Mock(
+            mode="sandbox",
+            get_transaction=Mock(return_value={
+                "reference": "provider-ref-failed",
+                "amount": 2500,
+                "currency": "XAF",
+                "status": "FAILED",
+            }),
+        )
+
+        reconcile_transaction(tx, client=provider)
+        payment.refresh_from_db()
+        subscription.refresh_from_db()
+        self.assertEqual(payment.status, "failed")
+        self.assertEqual(subscription.status, "cancelled")
+        self.assertFalse(subscription.is_active)
+
+    def test_immigration97_checkout_rejects_plans_for_other_apps(self):
+        user = get_user_model().objects.create_user(
+            username="immigration-buyer",
+            password="safe-test-password",
+        )
+        plan = AppPlan.objects.create(
+            app_key="adgen",
+            slug="adgen-premium-test",
+            name="AdGen Premium test",
+            level="pro",
+            price_xaf=2500,
+            duration_days=30,
+            is_free=False,
+            is_active=True,
+        )
+        self.client.force_login(user)
+        response = self.client.post(
+            reverse(
+                "payments:campay_immigration_plan",
+                kwargs={"plan_id": plan.pk},
+            )
+        )
+        self.assertEqual(response.status_code, 404)
+        self.assertFalse(Transaction.objects.filter(utilisateur=user).exists())
 
     def test_webhook_status_is_verified_using_provider_api(self):
         tx = self.make_transaction(ref_operateur="provider-ref-123")

@@ -307,6 +307,7 @@ class PaymentHistory(models.Model):
         ("mtn_momo",     "MTN MoMo"),
         ("stripe",       "Carte bancaire"),
         ("cinetpay",     "CinetPay"),
+        ("campay",       "CamPay"),
         ("manual",       "Manuel (admin)"),
         ("free",         "Gratuit"),
     ]

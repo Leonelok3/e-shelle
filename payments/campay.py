@@ -173,6 +173,24 @@ def reconcile_transaction(transaction_obj, client=None):
         elif current.statut not in {"succes", "rembourse", "pending_awaiting_manual_validation", "echec"}:
             current.statut = "en_attente"
         current.save(update_fields=["metadata", "statut", "erreur", "updated_at"])
+        payment_id = metadata.get("app_payment_history_id")
+        if payment_id:
+            from accounts.models import AppSubscription, PaymentHistory
+
+            history_status = {
+                "SUCCESSFUL": "success",
+                "FAILED": "failed",
+            }.get(status)
+            if history_status:
+                PaymentHistory.objects.filter(pk=payment_id).exclude(
+                    status="success"
+                ).update(status=history_status)
+                subscription_id = metadata.get("app_subscription_id")
+                if status == "FAILED" and subscription_id:
+                    AppSubscription.objects.filter(
+                        pk=subscription_id,
+                        status="pending",
+                    ).update(status="cancelled")
 
     transaction_obj.refresh_from_db()
     return transaction_obj

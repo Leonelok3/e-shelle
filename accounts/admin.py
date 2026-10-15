@@ -1,5 +1,8 @@
-from django.contrib import admin
+from datetime import timedelta
+
+from django.contrib import admin, messages
 from django.contrib.auth.admin import UserAdmin
+from django.utils import timezone
 from django.utils.html import format_html
 from django.utils.safestring import mark_safe
 from .models import (
@@ -93,6 +96,39 @@ class AppSubscriptionAdmin(admin.ModelAdmin):
         }),
     )
     readonly_fields = ("started_at",)
+    actions = ("activate_paid_immigration97_subscriptions",)
+
+    @admin.action(description="Activer les pass Immigration97 payés en attente")
+    def activate_paid_immigration97_subscriptions(self, request, queryset):
+        subscriptions = queryset.filter(
+            status="pending",
+            plan__app_key="prep",
+            plan__price_xaf__gt=0,
+            payments__method="campay",
+            payments__status="success",
+        ).select_related("plan").distinct()
+        activated = 0
+        for subscription in subscriptions:
+            started_at = timezone.now()
+            subscription.status = "active"
+            subscription.started_at = started_at
+            subscription.expires_at = (
+                started_at + timedelta(days=subscription.plan.duration_days)
+                if subscription.plan.duration_days
+                else None
+            )
+            subscription.notes = (
+                f"{subscription.notes}\nActivation manuelle après confirmation CamPay."
+            ).strip()
+            subscription.save(update_fields=[
+                "status", "started_at", "expires_at", "notes",
+            ])
+            activated += 1
+        self.message_user(
+            request,
+            f"{activated} pass Immigration97 activé(s).",
+            level=messages.SUCCESS if activated else messages.WARNING,
+        )
 
     @admin.display(description="Statut")
     def status_badge(self, obj):

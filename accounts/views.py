@@ -5,6 +5,7 @@ from django.contrib.auth import login
 from django.contrib import messages
 from django.core.mail import send_mail
 from django.conf import settings
+from django.urls import reverse
 from django.utils import timezone
 from .forms import LoginForm
 from .models import (
@@ -436,6 +437,16 @@ def upgrade(request):
             user=request.user,
             details=(f"{plan.name_en or plan.name} plan for {plan.duration_days} days" if request.LANGUAGE_CODE == "en" else f"Plan {plan.get_level_display()} pour {plan.duration_days} jours"),
         )
+        if (
+            getattr(request, "is_immigration97", False)
+            and plan.app_key == "prep"
+            and not plan.is_free
+            and plan.price_xaf > 0
+        ):
+            plan.campay_payment_url = reverse(
+                "payments:campay_immigration_plan",
+                kwargs={"plan_id": plan.pk},
+            )
         k = plan.app_key
         if k not in plans_by_app:
             plans_by_app[k] = {

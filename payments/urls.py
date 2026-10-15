@@ -7,6 +7,7 @@ app_name = "payments"
 urlpatterns = [
     path("payer/<int:commande_id>/",     views.initier,       name="initier"),
     path("payer/<int:commande_id>/campay/", views.payer_commande_campay, name="campay_order"),
+    path("immigration97/plan/<int:plan_id>/campay/", views.payer_immigration_plan_campay, name="campay_immigration_plan"),
     path("confirmation/<int:tx_id>/",    views.confirmation,  name="confirmation"),
     path("historique/",                  views.historique,    name="historique"),
     path("webhook/",                     views.webhook,       name="webhook"),

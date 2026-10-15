@@ -214,7 +214,9 @@ def _reuse_existing_campay_checkout(request, fallback_url, *, amount, **lookup):
 
 def _start_campay_checkout(request, transaction_obj, *, description, fallback_url):
     configured_base = getattr(settings, "CAMPAY_PUBLIC_BASE_URL", "")
-    if configured_base:
+    if (transaction_obj.metadata or {}).get("immigration97_app_key") == "prep":
+        base_url = "https://immigration97.com"
+    elif configured_base:
         base_url = configured_base
     elif request.is_secure():
         base_url = request.build_absolute_uri("/").rstrip("/")
@@ -226,6 +228,7 @@ def _start_campay_checkout(request, transaction_obj, *, description, fallback_ur
         transaction_obj.statut = "echec"
         transaction_obj.erreur = "A public HTTPS return URL is required for CamPay."
         transaction_obj.save(update_fields=["statut", "erreur", "updated_at"])
+        _set_app_plan_payment_status(transaction_obj, "failed")
         messages.error(request, "Le paiement en ligne est temporairement indisponible. Vous pouvez continuer sur WhatsApp.")
         return redirect(fallback_url)
 
@@ -241,6 +244,7 @@ def _start_campay_checkout(request, transaction_obj, *, description, fallback_ur
         transaction_obj.statut = "echec"
         transaction_obj.erreur = "CamPay checkout could not be started."
         transaction_obj.save(update_fields=["statut", "erreur", "updated_at"])
+        _set_app_plan_payment_status(transaction_obj, "failed")
         logger.warning(
             "CamPay checkout failed for transaction %s: %s",
             transaction_obj.reference,
@@ -348,6 +352,94 @@ def payer_formation_campay(request, formation_id):
         description=f"E-Shelle formation {formation.pk}",
         fallback_url=fallback_url,
     )
+
+
+@login_required
+@require_POST
+def payer_immigration_plan_campay(request, plan_id):
+    from accounts.models import AppPlan, AppSubscription, PaymentHistory
+
+    fallback_url = reverse("accounts:upgrade") + "?app=prep"
+    with db_transaction.atomic():
+        plan = get_object_or_404(
+            AppPlan.objects.select_for_update(),
+            pk=plan_id,
+            app_key="prep",
+            is_active=True,
+            is_free=False,
+        )
+        if plan.price_xaf <= 0:
+            messages.error(request, "Ce plan ne peut pas être payé en ligne.")
+            return redirect(fallback_url)
+
+        existing_checkout = _reuse_existing_campay_checkout(
+            request,
+            fallback_url,
+            amount=plan.price_xaf,
+            utilisateur=request.user,
+            type_tx="abonnement",
+            metadata__app_plan_id=plan.pk,
+        )
+        if existing_checkout:
+            return existing_checkout
+
+        tx = Transaction.objects.create(
+            utilisateur=request.user,
+            type_tx="abonnement",
+            methode="campay",
+            montant=plan.price_xaf,
+            devise="XAF",
+            statut="initie",
+            metadata={
+                "immigration97_app_key": "prep",
+                "app_plan_id": plan.pk,
+                "app_plan_slug": plan.slug,
+            },
+        )
+        subscription = AppSubscription.objects.create(
+            user=request.user,
+            plan=plan,
+            status="pending",
+            payment_ref=tx.reference,
+            notes="Paiement CamPay confirmé séparément; activation manuelle requise.",
+        )
+        payment = PaymentHistory.objects.create(
+            user=request.user,
+            subscription=subscription,
+            amount_xaf=plan.price_xaf,
+            method="campay",
+            reference=tx.reference,
+            status="pending",
+            description=f"CamPay — Immigration97 Premium — {plan.name} ({plan.duration_days} jours)",
+        )
+        metadata = dict(tx.metadata or {})
+        metadata["app_payment_history_id"] = payment.pk
+        metadata["app_subscription_id"] = subscription.pk
+        tx.metadata = metadata
+        tx.save(update_fields=["metadata"])
+
+    return _start_campay_checkout(
+        request,
+        tx,
+        description=f"Immigration97 Premium - {plan.name}",
+        fallback_url=fallback_url,
+    )
+
+
+def _set_app_plan_payment_status(transaction_obj, status):
+    metadata = transaction_obj.metadata or {}
+    payment_id = metadata.get("app_payment_history_id")
+    subscription_id = metadata.get("app_subscription_id")
+    if not payment_id and not subscription_id:
+        return
+    from accounts.models import AppSubscription, PaymentHistory
+
+    if payment_id:
+        PaymentHistory.objects.filter(pk=payment_id).update(status=status)
+    if status == "failed" and subscription_id:
+        AppSubscription.objects.filter(pk=subscription_id, status="pending").update(
+            status="cancelled"
+        )
 
 
 @login_required
@@ -478,13 +570,16 @@ def campay_return(request):
     return render(request, "payments/campay_result.html", {
         "transaction": tx,
         "verified": verified,
+        "is_immigration97_plan": (
+            (tx.metadata or {}).get("immigration97_app_key") == "prep"
+        ),
         "refresh_url": request.get_full_path(),
         "whatsapp_payment_url": payment_request_url(
             brand=getattr(request, "site_brand", "E-Shelle"),
             service=_campay_transaction_label(tx),
             amount=f"{tx.montant:.0f} {tx.devise}",
             user=tx.utilisateur,
-            details=f"Référence E-Shelle {tx.reference} — validation manuelle après paiement CamPay.",
+            details=f"Référence {getattr(request, 'site_brand', 'E-Shelle')} {tx.reference} — validation manuelle après paiement CamPay.",
         ),
     })
 
@@ -495,6 +590,12 @@ def _campay_transaction_label(transaction_obj):
     if transaction_obj.formation_id:
         return f"Validation inscription formation {transaction_obj.formation.titre}"
     metadata = transaction_obj.metadata or {}
+    app_plan_id = metadata.get("app_plan_id")
+    if metadata.get("immigration97_app_key") == "prep" and app_plan_id:
+        from accounts.models import AppPlan
+
+        plan = AppPlan.objects.filter(pk=app_plan_id).first()
+        return f"Validation du pass Immigration97 Premium {plan.name}" if plan else "Validation du pass Immigration97 Premium"
     plan_name = metadata.get("plan_nom", "Premium")
     return f"Validation pack {plan_name}"
 

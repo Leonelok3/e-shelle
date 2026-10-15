@@ -209,6 +209,16 @@
             {% if LANGUAGE_CODE == 'en' %}Free access{% else %}Accès libre{% endif %}
           </div>
           {% else %}
+          {% if request.is_immigration97 and plan.campay_payment_url %}
+          <form method="post" action="{{ plan.campay_payment_url }}" class="mb-2">
+            {% csrf_token %}
+            <button type="submit"
+                    class="w-full py-3 rounded-xl text-sm font-bold text-white transition hover:opacity-90"
+                    style="background:{{ app_color }}">
+              CamPay — {{ plan.price_xaf_formatted }}
+            </button>
+          </form>
+          {% endif %}
           <a href="{{ plan.whatsapp_payment_url }}"
              target="_blank" rel="noopener noreferrer"
              class="w-full block py-3 rounded-xl text-sm font-bold text-center text-white transition hover:opacity-90"

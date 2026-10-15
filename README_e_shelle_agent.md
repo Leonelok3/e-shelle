@@ -101,6 +101,14 @@ de vrais messages.
   `CAMPAY_PASSWORD`. Ne jamais les mettre dans le dépôt, le navigateur ou un
   message. Si des identifiants apparaissent dans une capture, les révoquer et
   les renouveler dans CamPay.
+- Sur `immigration97.com`, le bouton CamPay est disponible pour l’achat d’un
+  plan payant `prep` (pass Premium), sans facturer les séances TCF gratuites ni
+  les examens à l’unité. Un retour CamPay vérifié enregistre le paiement et un
+  abonnement `pending`; après vérification, l’administrateur le sélectionne
+  dans la liste des abonnements et utilise l’action « Activer les pass
+  Immigration97 payés en attente ». Elle ne cible que les abonnements `prep`
+  associés à un paiement CamPay confirmé et démarre leur durée au moment de
+  l’activation.
 - Définir `CAMPAY_PUBLIC_BASE_URL` sur l’origine publique HTTPS du site (par
   exemple `https://e-shelle.com`). Dans l’espace développeur CamPay, configurer
   le webhook sur `https://e-shelle.com/payments/campay/webhook/`.

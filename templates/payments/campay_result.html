@@ -10,8 +10,12 @@
         <div class="section-label">Paiement confirmé par CamPay</div>
         <h1 class="section-title" style="margin:.5rem 0 1rem">Paiement reçu</h1>
         <p class="section-subtitle">
-          La référence de paiement est enregistrée. L’équipe E-Shelle doit encore
-          valider manuellement la commande ou l’activation via WhatsApp.
+          {% if is_immigration97_plan %}
+            Votre paiement du pass Immigration97 Premium est enregistré. L’équipe doit encore valider manuellement l’activation de votre accès.
+          {% else %}
+            La référence de paiement est enregistrée. L’équipe E-Shelle doit encore
+            valider manuellement la commande ou l’activation via WhatsApp.
+          {% endif %}
         </p>
         <a href="{{ whatsapp_payment_url }}" target="_blank" rel="noopener noreferrer"
            class="btn btn-primary" style="margin-top:1.5rem">
@@ -21,7 +25,11 @@
         <div class="section-label">Paiement confirmé par CamPay</div>
         <h1 class="section-title" style="margin:.5rem 0 1rem">Paiement reçu</h1>
         <p class="section-subtitle">
-          Votre paiement est confirmé. La commande ou l’accès est soumis à la validation manuelle habituelle.
+          {% if is_immigration97_plan %}
+            Votre paiement est confirmé. L’accès au pass Immigration97 Premium reste soumis à la validation manuelle habituelle.
+          {% else %}
+            Votre paiement est confirmé. La commande ou l’accès est soumis à la validation manuelle habituelle.
+          {% endif %}
         </p>
         <a href="{{ whatsapp_payment_url }}" target="_blank" rel="noopener noreferrer"
            class="btn btn-primary" style="margin-top:1.5rem">
@@ -48,7 +56,7 @@
 
       <dl style="display:grid;grid-template-columns:1fr 1fr;gap:.75rem 1.5rem;margin-top:2rem">
         <div>
-          <dt style="color:var(--text-muted);font-size:.75rem;text-transform:uppercase">Référence E-Shelle</dt>
+          <dt style="color:var(--text-muted);font-size:.75rem;text-transform:uppercase">Référence {{ request.site_brand|default:'E-Shelle' }}</dt>
           <dd style="font-family:var(--font-mono);margin-top:.2rem">{{ transaction.reference }}</dd>
         </div>
         <div>
