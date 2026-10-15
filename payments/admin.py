@@ -22,6 +22,7 @@ class TransactionAdmin(admin.ModelAdmin):
             "echec":      "#EF5350",
             "rembourse":  "#FF9800",
             "en_attente": "#FFB74D",
+            "pending_awaiting_manual_validation": "#FFB74D",
             "initie":     "#9E9E9E",
             "expire":     "#616161",
         }

@@ -93,6 +93,29 @@ standalone de ShellBot, non requis pour Django.
 Les tests doivent mocker les appels à Meta et au LLM; ils ne doivent pas envoyer
 de vrais messages.
 
+## Paiements CamPay (sandbox)
+
+- Les parcours Boutique, formations et packs Premium proposent CamPay en plus
+  du parcours WhatsApp existant. Le mode par défaut est `sandbox`; les identifiants
+  ne sont lus que côté serveur depuis `CAMPAY_TOKEN`, ou `CAMPAY_USERNAME` et
+  `CAMPAY_PASSWORD`. Ne jamais les mettre dans le dépôt, le navigateur ou un
+  message. Si des identifiants apparaissent dans une capture, les révoquer et
+  les renouveler dans CamPay.
+- Définir `CAMPAY_PUBLIC_BASE_URL` sur l’origine publique HTTPS du site (par
+  exemple `https://e-shelle.com`). Dans l’espace développeur CamPay, configurer
+  le webhook sur `https://e-shelle.com/payments/campay/webhook/`.
+- Après une redirection ou un webhook, le serveur interroge l’API CamPay et
+  compare la référence, le montant et la devise avant d’enregistrer le résultat.
+  Le statut de transaction reste en attente de validation manuelle après
+  confirmation CamPay; aucune commande, inscription ou activation Premium n’est
+  accordée automatiquement.
+- Tester exclusivement avec les identifiants du bac à sable et des transactions
+  de test. Le mode live nécessite une activation explicite via
+  `CAMPAY_MODE=production` et des identifiants live distincts renouvelés.
+- Le widget ou le lien de paiement CamPay ne reçoit jamais les secrets du
+  serveur. Le webhook entrant est considéré comme un signal non fiable; seul le
+  statut relu auprès de l’API authentifiée fait foi.
+
 ## Limites de sécurité à conserver
 
 - Les réponses libres passent uniquement par la fenêtre WhatsApp de 24 heures.

@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+
+{% block title %}Choisir un moyen de paiement — {{ request.site_brand|default:'E-Shelle' }}{% endblock %}
+
+{% block content %}
+<section class="section" style="padding-top:6rem">
+  <div class="container" style="max-width:620px">
+    <div class="glass-card" style="padding:2rem">
+      <div class="section-label">Paiement sécurisé</div>
+      <h1 class="section-title" style="margin:.5rem 0 1rem">{{ title }}</h1>
+      <p class="section-subtitle">
+        Montant : <strong>{{ amount|floatformat:0 }} FCFA</strong>
+      </p>
+      <p style="color:var(--text-secondary);margin:1.5rem 0">
+        Choisissez CamPay pour payer par Mobile Money, ou continuez sur WhatsApp
+        avec notre parcours habituel. La confirmation de la commande ou de l’accès
+        reste manuelle après réception du paiement.
+      </p>
+      <form method="post" action="{{ campay_url }}">
+        {% csrf_token %}
+        <button class="btn btn-primary btn-lg" type="submit" style="width:100%">
+          Payer avec CamPay · Mobile Money
+        </button>
+      </form>
+      <a href="{{ whatsapp_payment_url }}" class="btn btn-outline" target="_blank"
+         rel="noopener noreferrer" style="display:block;text-align:center;margin-top:1rem">
+        Continuer via WhatsApp
+      </a>
+    </div>
+  </div>
+</section>
+{% endblock %}

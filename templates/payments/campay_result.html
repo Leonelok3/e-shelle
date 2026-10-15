@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+
+{% block title %}État du paiement CamPay — {{ request.site_brand|default:'E-Shelle' }}{% endblock %}
+
+{% block content %}
+<section class="section" style="padding-top:6rem">
+  <div class="container" style="max-width:680px">
+    <div class="glass-card" style="padding:2rem">
+      {% if verified and transaction.statut == "pending_awaiting_manual_validation" %}
+        <div class="section-label">Paiement confirmé par CamPay</div>
+        <h1 class="section-title" style="margin:.5rem 0 1rem">Paiement reçu</h1>
+        <p class="section-subtitle">
+          La référence de paiement est enregistrée. L’équipe E-Shelle doit encore
+          valider manuellement la commande ou l’activation via WhatsApp.
+        </p>
+        <a href="{{ whatsapp_payment_url }}" target="_blank" rel="noopener noreferrer"
+           class="btn btn-primary" style="margin-top:1.5rem">
+          Envoyer la référence à l’équipe sur WhatsApp
+        </a>
+      {% elif verified and transaction.statut == "succes" %}
+        <div class="section-label">Paiement confirmé par CamPay</div>
+        <h1 class="section-title" style="margin:.5rem 0 1rem">Paiement reçu</h1>
+        <p class="section-subtitle">
+          Votre paiement est confirmé. La commande ou l’accès est soumis à la validation manuelle habituelle.
+        </p>
+        <a href="{{ whatsapp_payment_url }}" target="_blank" rel="noopener noreferrer"
+           class="btn btn-primary" style="margin-top:1.5rem">
+          Envoyer la référence à l’équipe sur WhatsApp
+        </a>
+      {% elif verified and transaction.statut == "echec" %}
+        <div class="section-label">Paiement non confirmé</div>
+        <h1 class="section-title" style="margin:.5rem 0 1rem">Le paiement a échoué</h1>
+        <p class="section-subtitle">Vous pouvez réessayer ou finaliser la demande via WhatsApp.</p>
+      {% else %}
+        <div class="section-label">Vérification CamPay</div>
+        <h1 class="section-title" style="margin:.5rem 0 1rem">Confirmation en attente</h1>
+        <p class="section-subtitle">
+          {% if verified %}
+            CamPay n’a pas encore confirmé le paiement. Vérifiez à nouveau dans un instant.
+          {% else %}
+            La vérification CamPay est temporairement indisponible. Aucun statut de paiement n’a été supposé.
+          {% endif %}
+        </p>
+        <a href="{{ refresh_url }}" class="btn btn-primary" style="margin-top:1.5rem">
+          Vérifier à nouveau
+        </a>
+      {% endif %}
+
+      <dl style="display:grid;grid-template-columns:1fr 1fr;gap:.75rem 1.5rem;margin-top:2rem">
+        <div>
+          <dt style="color:var(--text-muted);font-size:.75rem;text-transform:uppercase">Référence E-Shelle</dt>
+          <dd style="font-family:var(--font-mono);margin-top:.2rem">{{ transaction.reference }}</dd>
+        </div>
+        <div>
+          <dt style="color:var(--text-muted);font-size:.75rem;text-transform:uppercase">Montant</dt>
+          <dd style="font-weight:700;margin-top:.2rem">{{ transaction.montant|floatformat:0 }} {{ transaction.devise }}</dd>
+        </div>
+      </dl>
+      <a href="{% url 'payments:historique' %}" class="btn btn-outline" style="margin-top:1.5rem">
+        Historique des paiements
+      </a>
+    </div>
+  </div>
+</section>
+{% endblock %}

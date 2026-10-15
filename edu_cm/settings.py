@@ -6,6 +6,13 @@ from dotenv import load_dotenv
 BASE_DIR = Path(__file__).resolve().parent.parent
 load_dotenv(BASE_DIR / '.env')
 
+# CamPay credentials are server-side only. Sandbox is the safe default.
+CAMPAY_MODE = os.getenv("CAMPAY_MODE", "sandbox").strip().lower()
+CAMPAY_TOKEN = os.getenv("CAMPAY_TOKEN", "").strip()
+CAMPAY_USERNAME = os.getenv("CAMPAY_USERNAME", "").strip()
+CAMPAY_PASSWORD = os.getenv("CAMPAY_PASSWORD", "").strip()
+CAMPAY_PUBLIC_BASE_URL = os.getenv("CAMPAY_PUBLIC_BASE_URL", "").strip().rstrip("/")
+
 # Sécurité
 SECRET_KEY = os.getenv("DJANGO_SECRET_KEY", "dev-secret-key-change-me")
 DEBUG = os.getenv("DJANGO_DEBUG", "False").lower() in ("1", "true", "yes")

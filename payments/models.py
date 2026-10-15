@@ -9,6 +9,7 @@ import uuid
 
 class Transaction(models.Model):
     METHODES = [
+        ("campay",     "CamPay (Mobile Money)"),
         ("mtn_momo",   "MTN Mobile Money"),
         ("airtel",     "Airtel Money"),
         ("orange",     "Orange Money"),
@@ -64,7 +65,7 @@ class Transaction(models.Model):
         blank=True,
         related_name="payment_transaction",
     )
-    payment_link = models.URLField(blank=True)
+    payment_link = models.URLField(max_length=1000, blank=True)
     formation    = models.ForeignKey("formations.Formation", on_delete=models.SET_NULL,
                                       null=True, blank=True, related_name="transactions")
     metadata     = models.JSONField(default=dict, blank=True)
