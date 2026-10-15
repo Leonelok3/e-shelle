@@ -1,5 +1,6 @@
 import json
-from unittest.mock import patch
+from types import SimpleNamespace
+from unittest.mock import Mock, patch
 
 from django.contrib.auth import get_user_model
 from django.core.cache import cache
@@ -69,6 +70,34 @@ class LearningFeedbackTests(SimpleTestCase):
         result = evaluate_production("Je propose une bibliothèque.", "Sujet", "Consigne", "B2", "ee")
         self.assertEqual(result["score"], 61)
         gemini.assert_called_once()
+
+    @override_settings(OPENAI_API_KEY="")
+    @patch("ai_engine.services.eval_service.get_vertex_client", return_value=(None, "unavailable"))
+    @patch("ai_engine.services.eval_service.get_genai_studio_client")
+    def test_daily_coach_retries_second_gemini_model(self, studio_client, vertex_client):
+        client = SimpleNamespace(models=SimpleNamespace(generate_content=Mock(
+            side_effect=[
+                RuntimeError("model temporarily unavailable"),
+                SimpleNamespace(text=json.dumps(example_feedback())),
+            ],
+        )))
+        studio_client.return_value = (client, None)
+
+        result = evaluate_production(
+            "Je propose une bibliothèque.",
+            "Sujet",
+            "Consigne",
+            "B2",
+            "ee",
+        )
+
+        self.assertEqual(result["score"], 61)
+        self.assertEqual(client.models.generate_content.call_count, 2)
+        self.assertEqual(
+            [call.kwargs["model"] for call in client.models.generate_content.call_args_list],
+            ["gemini-flash-latest", "gemini-3.6-flash"],
+        )
+        vertex_client.assert_not_called()
 
     def test_training_percentages_never_become_official_c2_scores(self):
         for exam in ("tcf", "tef"):

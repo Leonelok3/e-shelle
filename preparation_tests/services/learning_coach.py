@@ -1,5 +1,6 @@
 """Evidence-based French coaching. Training scores are never official results."""
 import json
+import logging
 import math
 import time
 from collections import Counter
@@ -8,6 +9,8 @@ from functools import partial
 from django.conf import settings
 from django.urls import reverse
 from django.utils.html import strip_tags
+
+logger = logging.getLogger(__name__)
 
 CRITERIA = {
     "task": "Respect de la consigne",
@@ -129,24 +132,38 @@ def evaluate_production(text, topic, instructions, level, skill, context=None):
         "previous_attempt": context.get("previous", {})}, ensure_ascii=False)
     providers = []
     if getattr(settings, "OPENAI_API_KEY", ""):
-        providers.append(eval_service.call_openai_json)
-    providers += [partial(eval_service._call_gemini_eval_json, timeout_ms=15000, max_models=1)]
+        providers.append(("OpenAI", eval_service.call_openai_json))
+    providers.append((
+        "Gemini",
+        partial(eval_service._call_gemini_eval_json, timeout_ms=15000, max_models=2),
+    ))
     deadline = time.monotonic() + 85
-    for provider in providers:
+    for provider_name, provider in providers:
         if deadline - time.monotonic() < 35:
+            logger.warning("Correction production indisponible : budget de temps épuisé avant %s.", provider_name)
             break
         try:
             raw = provider(system, payload, temperature=0.2)
             try:
                 return normalize_feedback(raw, text, skill)
-            except (ValueError, TypeError):
+            except (ValueError, TypeError) as exc:
+                logger.warning(
+                    "Réponse du fournisseur %s invalide pour la correction (%s).",
+                    provider_name,
+                    type(exc).__name__,
+                )
                 # One bounded repair of structure, never a guessed score.
                 if deadline - time.monotonic() < 35:
                     continue
                 repair = payload + "\nLa sortie précédente était incomplète. Vérifie les quatre notes numériques "
                 repair += "et fournis au moins une priorité avec category, evidence exacte ou vide, diagnosis, action, drill et success_check."
                 return normalize_feedback(provider(system, repair, temperature=0.2), text, skill)
-        except Exception:
+        except Exception as exc:
+            logger.warning(
+                "Fournisseur %s indisponible pour la correction (%s).",
+                provider_name,
+                type(exc).__name__,
+            )
             continue
     raise RuntimeError("La correction détaillée est temporairement indisponible. Ta réponse reste à réessayer.")
 
