@@ -1,5 +1,7 @@
 from django import forms
 
+from business.models import BusinessProfile
+
 from .models import Campagne
 from .meta_templates import TemplateError, validate_selection
 
@@ -29,8 +31,16 @@ class TemplateSelectionForm(forms.Form):
 class CampagneForm(forms.ModelForm):
     """Formulaire de creation et edition de campagne WhatsApp."""
 
-    def __init__(self, *args, **kwargs):
+    business = forms.ModelChoiceField(
+        queryset=BusinessProfile.objects.none(),
+        required=False,
+        label="Pour quel business ?",
+        widget=forms.Select(attrs={"class": "wa-input"}),
+    )
+
+    def __init__(self, *args, business_queryset=None, **kwargs):
         super().__init__(*args, **kwargs)
+        self.fields["business"].queryset = business_queryset if business_queryset is not None else BusinessProfile.objects.none()
         self.fields['message_template'].required = False
 
     def clean(self):
@@ -44,9 +54,11 @@ class CampagneForm(forms.ModelForm):
         fields = [
             "nom",
             "description",
+            "business",
             "filtre_role",
             "filtre_ville",
             "filtre_date_inscription_depuis",
+            "audience_interest",
             "message_template",
         ]
         widgets = {
@@ -55,6 +67,7 @@ class CampagneForm(forms.ModelForm):
             "filtre_role": forms.TextInput(attrs={"class": "wa-input", "placeholder": "vendeur, acheteur, premium ou tous"}),
             "filtre_ville": forms.TextInput(attrs={"class": "wa-input", "placeholder": "Douala, Yaounde..."}),
             "filtre_date_inscription_depuis": forms.DateInput(attrs={"class": "wa-input", "type": "date"}),
+            "audience_interest": forms.TextInput(attrs={"class": "wa-input", "placeholder": "restaurant, poulet braisé..."}),
             "message_template": forms.Textarea(
                 attrs={
                     "class": "wa-input",

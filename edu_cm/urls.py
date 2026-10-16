@@ -9,6 +9,7 @@ from django.utils import timezone
 from business import views as business_views
 from billing import views_affiliate
 from seo_agent import views as seo_views
+from whatsapp_agent import views as whatsapp_agent_views
 import urllib.parse
 
 
@@ -884,6 +885,12 @@ urlpatterns = [
     # ── E-Shelle AI — Agent Intelligent Central ───────────────────────
     path("ai/", include("e_shelle_ai.urls", namespace="eshelle_ai")),
     path("chat/", include("chat.urls", namespace="chat")),
+    path("business/campagnes/", whatsapp_agent_views.business_campaigns, name="business_whatsapp_campaigns"),
+    path(
+        "business/campagnes/audience/",
+        whatsapp_agent_views.api_business_campaign_audience,
+        name="business_whatsapp_campaign_audience",
+    ),
     path("business/", include("business.urls", namespace="business")),
     path("b/<slug:public_slug>/", business_views.public_profile, name="business_public_short"),
     path("ref/<str:ref_code>/", views_affiliate.ref_redirect, name="public_ref_redirect"),
@@ -892,6 +899,7 @@ urlpatterns = [
     path("facebook-agent/", include("facebook_agent.urls", namespace="facebook_agent")),
 
     # ── WhatsApp Agent IA — Campagnes Meta WhatsApp Business ──────────
+    path("r/<str:short_code>/", whatsapp_agent_views.campaign_redirect, name="campaign_redirect"),
     path("whatsapp/", include("whatsapp_agent.urls", namespace="whatsapp_agent")),
     path("api/whatsapp/", include("whatsapp_agent.urls", namespace="whatsapp_agent_api")),
     path("whatsapp-commerce/", include("whatsapp_commerce.urls", namespace="whatsapp_commerce")),

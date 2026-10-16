@@ -5,6 +5,8 @@ from django.shortcuts import render
 from django.views.decorators.http import require_http_methods
 
 from .models import ConversationSession, Message
+from business.models import BusinessProfile
+from business.services import handle_ai_phone_capture
 from e_shelle_ai.services.central_agent import log_central_agent_query, route_message
 
 
@@ -42,6 +44,7 @@ def send_message(request):
     try:
         data = json.loads(request.body or "{}")
         user_input = data.get("message", "").strip()
+        business_id = data.get("business_id")
 
         if not user_input or len(user_input) > 1000:
             return JsonResponse({"error": "Message invalide"}, status=400)
@@ -51,7 +54,22 @@ def send_message(request):
 
         history = list(session.messages.values("role", "content").order_by("created_at"))
         user = request.user if request.user.is_authenticated else None
-        ai_response = route_message(user_input, history, user=user)
+        ai_response = None
+        if business_id:
+            business = BusinessProfile.objects.filter(pk=business_id, is_active=True).first()
+            if business:
+                captured_reply = handle_ai_phone_capture(user_input, business)
+                if captured_reply:
+                    ai_response = {
+                        "message": captured_reply,
+                        "module": business.module,
+                        "redirect": False,
+                        "redirect_url": "",
+                        "redirect_label": "",
+                        "results": [],
+                    }
+        if ai_response is None:
+            ai_response = route_message(user_input, history, user=user)
 
         ai_message = Message.objects.create(
             session=session,

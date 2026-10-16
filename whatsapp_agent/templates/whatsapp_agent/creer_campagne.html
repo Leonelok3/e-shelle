@@ -31,6 +31,8 @@
   .wa-muted{color:#9fb3a8}
   .wa-examples{display:grid;gap:8px;margin-top:12px}
   .wa-example{background:#07120d;border:1px solid #1d3d2c;border-radius:8px;padding:10px;color:#cfe0d6}
+  .wa-table{width:100%;border-collapse:collapse}
+  .wa-table th,.wa-table td{padding:10px;border-bottom:1px solid #1d3d2c;text-align:left}
   @media(max-width:880px){.wa-shell{padding-top:96px}.wa-grid,.wa-row{grid-template-columns:1fr}.wa-head{align-items:flex-start;flex-direction:column}}
 </style>
 
@@ -39,30 +41,34 @@
     {% include "partials/whatsapp_nav.html" %}
     <div class="wa-head">
       <h1 class="wa-title">Nouvelle campagne WhatsApp</h1>
-      <a class="wa-link" href="{% url 'whatsapp_agent:wa_dashboard' %}">Retour au dashboard</a>
+      <a class="wa-link" href="{% if owner_view %}{% url 'business_whatsapp_campaigns' %}{% else %}{% url 'whatsapp_agent:wa_dashboard' %}{% endif %}">Retour au dashboard</a>
     </div>
     {% if whatsapp_dry_run %}
     <div class="wa-alert">Mode simulation actif: tu peux valider et lancer sans envoyer de vrais messages Meta.</div>
     {% endif %}
 
-    <form method="post" class="wa-grid" id="campaign-form">
+    <form method="post" class="wa-grid" id="campaign-form" data-audience-url="{% if owner_view %}{% url 'business_whatsapp_campaign_audience' %}{% else %}{% url 'whatsapp_agent:wa_business_campaign_audience' %}{% endif %}">
       {% csrf_token %}
       <section class="wa-panel">
         <h2>Parametres</h2>
         <div class="wa-field">{{ form.nom.label_tag }}{{ form.nom }}</div>
         <div class="wa-field">{{ form.description.label_tag }}{{ form.description }}</div>
         <h2>Destinataires</h2>
+        <div class="wa-field">{{ form.business.label_tag }}{{ form.business }}</div>
         <div class="wa-alert">
-          Pour choisir des numeros precis deja importes, passe par le carnet global.
+          {% if owner_view %}L'audience est limitée aux contacts de ce business ayant donné leur accord pour le marketing WhatsApp.{% else %}Pour choisir des numeros precis deja importes, passe par le carnet global.{% endif %}
+          {% if not owner_view %}
           <a class="wa-link" href="{% url 'whatsapp_agent:wa_contacts' %}">Voir et selectionner les contacts WhatsApp</a>
+          {% endif %}
         </div>
         <div class="wa-row">
           <div class="wa-field">{{ form.filtre_role.label_tag }}{{ form.filtre_role }}</div>
           <div class="wa-field">{{ form.filtre_ville.label_tag }}{{ form.filtre_ville }}</div>
         </div>
+        <div class="wa-field">{{ form.audience_interest.label_tag }}{{ form.audience_interest }}</div>
         <div class="wa-field">{{ form.filtre_date_inscription_depuis.label_tag }}{{ form.filtre_date_inscription_depuis }}</div>
         <div class="wa-actions">
-          <button class="wa-btn ghost" type="button" id="preview-contacts">Apercu destinataires</button>
+          <button class="wa-btn ghost" type="button" id="preview-contacts">Actualiser l'audience</button>
           <span class="wa-muted" id="contacts-count">Aucun apercu lance.</span>
         </div>
         <div class="wa-examples" id="contacts-examples"></div>
@@ -85,27 +91,61 @@
         <div class="wa-field">{{ form.message_template.label_tag }}{{ form.message_template }}</div>
         {{ selection.errors }}
         {{ meta_params_initial|json_script:'saved-meta-params' }}
+        {% if not owner_view %}
         {% include 'whatsapp_agent/_meta_selector.html' %}
+        {% endif %}
         <div class="wa-actions">
+          {% if not owner_view %}
           <button class="wa-btn gold" type="button" id="generate-ai">Generer avec l'IA</button>
           <button class="wa-btn ghost" type="button" id="generate-variations-ai" style="border-color:#22c55e; color:#86efac;">⚡ Generer 5 variantes Anti-Spam IA</button>
+          {% endif %}
           <button class="wa-btn ghost" type="submit" name="action" value="draft">Sauvegarder brouillon</button>
+          {% if not owner_view %}
           <button class="wa-btn validate" type="submit" name="action" value="validate">Valider la campagne</button>
+          {% endif %}
         </div>
         <div class="wa-preview-phone" style="margin-top:16px">
-          <div class="wa-bubble" id="message-preview">Votre message apparait ici...</div>
+          <div class="wa-bubble" id="message-preview">Votre message apparaît ici…</div>
+          <p class="wa-muted" style="margin:.75rem 0 0">Les variables Meta comme <code>&#123;&#123;1&#125;&#125;</code> sont remplacées par le prénom du contact au moment de la personnalisation.</p>
         </div>
       </section>
     </form>
+    {% if owner_view %}
+    {% if campaign_example_message %}
+    <section class="wa-panel" style="margin-top:20px;padding:18px">
+      <h2>Exemple de message envoyé</h2>
+      <div class="wa-bubble">{{ campaign_example_message }}</div>
+      <p class="wa-muted" style="margin-bottom:0">Lien individuel : <a class="wa-link" href="{{ campaign_example_link }}">{{ campaign_example_link }}</a></p>
+    </section>
+    {% endif %}
+    <section class="wa-panel" style="margin-top:20px;padding:18px">
+      <h2>Campagnes de vos business</h2>
+      <table class="wa-table">
+        <thead><tr><th>Business</th><th>Campagne</th><th>Statut</th><th>Audience</th><th>Envoyés</th><th>Clics</th></tr></thead>
+        <tbody>
+          {% for campaign in owner_campaigns %}
+          <tr>
+            <td>{{ campaign.business.display_name }}</td><td>{{ campaign.nom }}</td>
+            <td>{{ campaign.get_statut_display }}</td><td>{{ campaign.total_destinataires }}</td>
+            <td>{{ campaign.total_envoyes }}</td><td>{{ campaign.clicked_count }}</td>
+          </tr>
+          {% empty %}<tr><td colspan="6" class="wa-muted">Aucune campagne pour le moment.</td></tr>{% endfor %}
+        </tbody>
+      </table>
+    </section>
+    {% endif %}
   </div>
 </main>
 
 <script>
   const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+  const campaignForm = document.getElementById('campaign-form');
   const messageInput = document.querySelector('[data-message-input]');
   const messagePreview = document.getElementById('message-preview');
   const roleInput = document.getElementById('id_filtre_role');
   const cityInput = document.getElementById('id_filtre_ville');
+  const businessInput = document.getElementById('id_business');
+  const interestInput = document.getElementById('id_audience_interest');
   const dateInput = document.getElementById('id_filtre_date_inscription_depuis');
   const descInput = document.getElementById('id_description');
   let selectedPreset = '';
@@ -126,18 +166,59 @@
   }
 
   document.getElementById('preview-contacts').addEventListener('click', async () => {
-    const data = await postJson("{% url 'whatsapp_agent:wa_api_apercu' %}", {
+    const count = document.getElementById('contacts-count');
+    const examples = document.getElementById('contacts-examples');
+    if (!businessInput.value && campaignForm.dataset.audienceUrl.includes('/business/')) {
+      count.textContent = 'Choisissez un business pour afficher son audience.';
+      examples.innerHTML = '';
+      return;
+    }
+    const payload = {
+      business_id: businessInput.value,
+      city: cityInput.value,
+      interest: interestInput.value,
       filtre_role: roleInput.value,
       filtre_ville: cityInput.value,
       date_depuis: dateInput.value
-    });
-    document.getElementById('contacts-count').textContent = `${data.total} contact(s) trouve(s).`;
-    document.getElementById('contacts-examples').innerHTML = data.exemples.map(item =>
-      `<div class="wa-example">${item.prenom} - ${item.ville || 'Ville non renseignee'} - ${item.role || 'Role non renseigne'}</div>`
+    };
+    const url = businessInput.value
+      ? campaignForm.dataset.audienceUrl
+      : "{% url 'whatsapp_agent:wa_api_apercu' %}";
+    let data;
+    try {
+      data = await postJson(url, payload);
+    } catch (error) {
+      count.textContent = 'Impossible de charger cette audience.';
+      examples.innerHTML = '';
+      return;
+    }
+    if (data.error) {
+      count.textContent = data.error;
+      examples.innerHTML = '';
+      return;
+    }
+    const criteria = [data.business, data.city, data.interest].filter(Boolean).join(' - ');
+    count.textContent = data.business
+      ? `${data.total} contacts trouves pour ${criteria}.`
+      : `${data.total} contact(s) trouve(s).`;
+    examples.innerHTML = (data.examples || data.exemples || []).map(item =>
+      `<div class="wa-example">${item.name || `${item.prenom} - ${item.ville || 'Ville non renseignee'}`}</div>`
     ).join('');
   });
+  businessInput.addEventListener('change', () => document.getElementById('preview-contacts').click());
+  [cityInput, interestInput].forEach(input => {
+    let debounce;
+    input.addEventListener('input', () => {
+      window.clearTimeout(debounce);
+      if (businessInput.value) {
+        debounce = window.setTimeout(() => document.getElementById('preview-contacts').click(), 300);
+      }
+    });
+  });
 
-  document.getElementById('generate-ai').addEventListener('click', async () => {
+  const generateButton = document.getElementById('generate-ai');
+  if (generateButton) {
+    generateButton.addEventListener('click', async () => {
     const button = document.getElementById('generate-ai');
     button.disabled = true;
     button.textContent = 'Generation...';
@@ -152,7 +233,8 @@
     }
     button.disabled = false;
     button.textContent = "Generer avec l'IA E-Shelle";
-  });
+    });
+  }
 
   const btnVariations = document.getElementById('generate-variations-ai');
   if (btnVariations) {

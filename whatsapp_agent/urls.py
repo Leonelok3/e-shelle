@@ -5,9 +5,11 @@ from . import views
 app_name = "whatsapp_agent"
 
 urlpatterns = [
+    path("r/<str:short_code>/", views.campaign_redirect, name="campaign_redirect"),
     path("api/templates-meta/", views.api_templates_meta, name="wa_api_templates_meta"),
     path("campagnes/<int:pk>/modele/", views.selectionner_modele, name="wa_modele"),
     path("campagnes/", views.dashboard_campagnes, name="wa_dashboard"),
+    path("api/campagnes/audience/", views.api_business_campaign_audience, name="wa_business_campaign_audience"),
     path("inbox/", views.inbox_whatsapp, name="wa_inbox"),
     path("contacts/", views.contacts_whatsapp, name="wa_contacts"),
     path("contacts/campagne/", views.creer_campagne_contacts, name="wa_contacts_campagne"),

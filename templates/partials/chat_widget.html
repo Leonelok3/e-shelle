@@ -61,7 +61,7 @@
 {% endif %}
 
 <!-- Central AI Interactive Floating Widget -->
-<div id="chat-float" class="es-chat-float">
+<div id="chat-float" class="es-chat-float" data-business-id="{{ business.id|default:'' }}">
   <button type="button" class="es-chat-float__link" onclick="toggleEshChatPanel()" aria-label="Ouvrir E-Shelle AI">
     <span class="es-chat-float__icon">
       <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
@@ -531,7 +531,10 @@ function sendEshChatMessage(event) {
       'Content-Type': 'application/json',
       'X-CSRFToken': csrfToken
     },
-    body: JSON.stringify({ message: messageText })
+    body: JSON.stringify({
+      message: messageText,
+      business_id: document.getElementById('chat-float')?.dataset.businessId || ''
+    })
   })
   .then(response => {
     if (!response.ok) {

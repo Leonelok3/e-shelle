@@ -74,6 +74,7 @@
         </div>
 
         <div style="display:flex;gap:.75rem;flex-wrap:wrap;margin-top:1.25rem">
+          <a href="{% url 'business_whatsapp_campaigns' %}" class="btn btn-primary">{% if LANGUAGE_CODE == 'en' %}WhatsApp campaigns{% else %}Campagnes WhatsApp{% endif %}</a>
           <a href="{{ public_url }}" target="_blank" rel="noopener" class="btn btn-primary">{% if LANGUAGE_CODE == 'en' %}View my profile{% else %}Voir ma boutique{% endif %}</a>
           <a href="{% url 'business:business_edit' current.id %}" class="btn btn-primary">{% if LANGUAGE_CODE == 'en' %}Edit profile{% else %}Modifier la fiche{% endif %}</a>
           <a href="{% url 'business:ai_delivery_kit' current.id %}" class="btn btn-primary">{% if LANGUAGE_CODE == 'en' %}AI customer kit{% else %}Kit IA client{% endif %}</a>
@@ -88,6 +89,16 @@
           <a href="/chat/" class="btn btn-outline-white">{% if LANGUAGE_CODE == 'en' %}Try in chat{% else %}Tester dans le chat{% endif %}</a>
           <a href="{% url 'business:performance_report' current.id %}" class="btn btn-outline-white">{% if LANGUAGE_CODE == 'en' %}PDF/WhatsApp report{% else %}Rapport PDF/WhatsApp{% endif %}</a>
         </div>
+        {% if whatsapp_campaigns %}
+        <section style="margin-top:1.25rem;background:rgba(10,15,13,.72);border:1px solid rgba(168,255,83,.25);border-radius:14px;padding:1rem">
+          <h3 style="color:#a8ff53;margin:0 0 .75rem">{% if LANGUAGE_CODE == 'en' %}Recent WhatsApp campaigns{% else %}Campagnes WhatsApp récentes{% endif %}</h3>
+          {% for campaign in whatsapp_campaigns %}
+          <p style="color:rgba(255,255,255,.8);margin:.35rem 0">
+            <strong>{{ campaign.nom }}</strong> — {{ campaign.total_envoyes }} {% if LANGUAGE_CODE == 'en' %}sent{% else %}envoyés{% endif %}, {{ campaign.clicked_count }} {% if LANGUAGE_CODE == 'en' %}clicks{% else %}clics{% endif %} · {{ campaign.get_statut_display }}
+          </p>
+          {% endfor %}
+        </section>
+        {% endif %}
       </article>
 
       <aside style="background:rgba(255,255,255,.045);border:1px solid rgba(255,255,255,.1);border-radius:18px;padding:1.25rem;color:rgba(255,255,255,.74)">

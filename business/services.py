@@ -1,4 +1,7 @@
+import re
+
 from django.contrib.contenttypes.models import ContentType
+from django.conf import settings
 from django.db import transaction
 from django.urls import reverse
 from django.utils import timezone
@@ -98,6 +101,217 @@ def create_tracking_event(
         source=source,
         metadata=metadata or {},
     )
+
+
+@transaction.atomic
+def create_lead_from_event(event, phone, consent=True):
+    """Connecte un evenement business a ses contacts WhatsApp avec consentement trace."""
+    from whatsapp_agent.models import ContactWhatsApp
+    from whatsapp_commerce.models import BusinessWhatsAppContact
+
+    digits = "".join(character for character in str(phone or "") if character.isdigit())
+    if digits.startswith("00"):
+        digits = digits[2:]
+    national_number = digits[3:] if digits.startswith("237") else digits
+    if len(national_number) != 9 or not national_number.startswith("6"):
+        raise ValueError("Un numero camerounais valide est requis.")
+    normalized_phone = f"+237{national_number}"
+
+    metadata = event.metadata if isinstance(event.metadata, dict) else {}
+    city = str(metadata.get("city") or event.business.city or "").strip()
+    interest_value = metadata.get("interest", "")
+    interests = interest_value if isinstance(interest_value, list) else [interest_value]
+    tags = list(dict.fromkeys(value.strip() for value in [city, *map(str, interests)] if value and value.strip()))
+    source = (event.source or "business_event")[:120]
+    consent = bool(consent)
+
+    business_contact, created = BusinessWhatsAppContact.objects.get_or_create(
+        business=event.business,
+        phone=normalized_phone,
+        defaults={
+            "marketing_opt_in": consent,
+            "consent_marketing": consent,
+            "consent_service": True,
+            "consent_source": source if consent else "",
+            "consented_at": timezone.now() if consent else None,
+            "tags": tags,
+        },
+    )
+    custom_fields = business_contact.custom_fields if isinstance(business_contact.custom_fields, dict) else {}
+    custom_fields.update(
+        {
+            "source": source,
+            "source_event_id": str(event.public_id),
+            "city": city,
+            "interest": interests,
+        }
+    )
+    business_contact.custom_fields = custom_fields
+    if not created:
+        existing_tags = business_contact.tags if isinstance(business_contact.tags, list) else []
+        business_contact.tags = list(dict.fromkeys([*existing_tags, *tags]))
+        business_contact.consent_service = True
+        if consent and not business_contact.opted_out_at:
+            business_contact.marketing_opt_in = True
+            business_contact.consent_marketing = True
+            business_contact.consent_source = source
+            business_contact.consented_at = timezone.now()
+        business_contact.save(
+            update_fields=[
+                "tags",
+                "custom_fields",
+                "consent_service",
+                "marketing_opt_in",
+                "consent_marketing",
+                "consent_source",
+                "consented_at",
+                "last_activity_at",
+            ]
+        )
+    else:
+        business_contact.save(update_fields=["custom_fields", "last_activity_at"])
+
+    global_contact, global_created = ContactWhatsApp.objects.get_or_create(
+        numero=normalized_phone,
+        defaults={
+            "ville": city,
+            "groupe": ", ".join(str(value) for value in interests if value),
+            "source": ContactWhatsApp.SOURCE_API,
+            "consentement_confirme": consent,
+            "consentement_source": source if consent else "",
+            "consentement_le": timezone.now() if consent else None,
+        },
+    )
+    if not global_created:
+        if city and not global_contact.ville:
+            global_contact.ville = city
+        if tags:
+            global_contact.groupe = ", ".join(
+                dict.fromkeys(filter(None, [global_contact.groupe, *map(str, interests)]))
+            )
+        if consent and not global_contact.desinscrit:
+            global_contact.consentement_confirme = True
+            global_contact.consentement_source = source
+            global_contact.consentement_le = timezone.now()
+        global_contact.save()
+    if global_contact.desinscrit and business_contact.opted_out_at is None:
+        business_contact.opted_out_at = global_contact.desinscrit_le or timezone.now()
+        business_contact.marketing_opt_in = False
+        business_contact.consent_marketing = False
+        business_contact.save(
+            update_fields=["opted_out_at", "marketing_opt_in", "consent_marketing", "last_activity_at"]
+        )
+    return business_contact, global_contact
+
+
+def handle_ai_phone_capture(user_message, business, lead_event=None):
+    """Capture a Cameroon mobile number only when the user explicitly opts in."""
+    phone_match = re.search(
+        r"(?<!\d)(?:\+?237[\s().-]*)?6(?:[\s().-]*\d){8}(?!\d)",
+        user_message or "",
+    )
+    if not phone_match:
+        return None
+
+    text = (user_message or "").casefold()
+    explicit_yes = re.search(r"\b(?:oui|ok|d'accord|j'accepte|je confirme)\b", text)
+    explicit_no = re.search(r"\b(?:non|stop|pas de promo|ne veux pas|ne souhaite pas)\b", text)
+    if not explicit_yes or explicit_no:
+        return None
+    if lead_event is not None and lead_event.business_id != business.pk:
+        raise ValueError("L'evenement de suivi ne correspond pas au business.")
+
+    if lead_event is None:
+        interests = [business.module, business.get_module_display().casefold(), business.name]
+        if business.module == BusinessProfile.Module.RESTO:
+            interests.append("restaurant")
+        lead_event = create_tracking_event(
+            business,
+            BusinessLeadEvent.EventType.WHATSAPP,
+            business.whatsapp_url(),
+            source="e_shelle_ai",
+            metadata={
+                "city": business.city,
+                "interest": interests,
+                "consent": "marketing_opt_in",
+            },
+        )
+    phone = phone_match.group(0)
+    business_contact, _ = create_lead_from_event(lead_event, phone, consent=True)
+    if not business_contact.marketing_opt_in:
+        return "Ce numero est desinscrit des promotions et ne peut pas etre ajoute a la liste."
+    return f"Parfait, j'ai bien noté {phone} pour les promos de {business.display_name}."
+
+
+def iter_campaign_contacts(business, city="", interest=""):
+    """Yield opted-in business contacts matching city and interest tags."""
+    from whatsapp_commerce.models import BusinessWhatsAppContact
+
+    contacts = BusinessWhatsAppContact.objects.filter(
+        business=business,
+        marketing_opt_in=True,
+        consent_marketing=True,
+        opted_out_at__isnull=True,
+    ).order_by("-last_activity_at")
+    city = (city or "").strip().casefold()
+    interest = (interest or "").strip().casefold()
+    for contact in contacts.iterator(chunk_size=1000):
+        tags = contact.tags if isinstance(contact.tags, list) else []
+        custom_fields = contact.custom_fields if isinstance(contact.custom_fields, dict) else {}
+        searchable = " ".join(
+            [*(str(tag) for tag in tags), str(custom_fields.get("city", ""))]
+        ).casefold()
+        if city and city not in searchable:
+            continue
+        if interest and interest not in searchable:
+            continue
+        yield contact
+
+
+@transaction.atomic
+def generate_campaign_links(campaign):
+    """Create or reuse one tracked redirect link per consented audience contact."""
+    import secrets
+    import string
+
+    from django.utils.text import slugify
+    from whatsapp_agent.models import CampaignLinkClick
+
+    if not campaign.business_id:
+        raise ValueError("La campagne doit etre liee a un business.")
+
+    base_slug = slugify(campaign.business.slug or campaign.business.name) or "biz"
+    prefix = f"{base_slug[:3]}{campaign.pk}-"
+    alphabet = string.ascii_lowercase + string.digits
+    base_url = getattr(settings, "SITE_URL", "https://e-shelle.com").rstrip("/")
+    links = []
+    for contact in iter_campaign_contacts(
+        campaign.business,
+        campaign.filtre_ville,
+        campaign.audience_interest,
+    ):
+        existing = CampaignLinkClick.objects.filter(campaign=campaign, contact=contact).first()
+        if existing is None:
+            for _ in range(20):
+                short_code = prefix[:16] + "".join(secrets.choice(alphabet) for _ in range(4))
+                if not CampaignLinkClick.objects.filter(short_code=short_code).exists():
+                    existing = CampaignLinkClick.objects.create(
+                        campaign=campaign,
+                        contact=contact,
+                        short_code=short_code,
+                    )
+                    break
+            if existing is None:
+                raise RuntimeError("Impossible de generer un code de suivi WhatsApp unique.")
+        links.append(
+            {
+                "phone": contact.phone,
+                "link": f"{base_url}/r/{existing.short_code}/",
+                "contact": contact,
+                "click": existing,
+            }
+        )
+    return links
 
 
 def record_business_impression(

@@ -2294,6 +2294,13 @@ def dashboard(request):
         )
         chart_stats = _event_chart_stats(event_stats, request.LANGUAGE_CODE)
         marketing_pack = _build_marketing_pack(current, request.LANGUAGE_CODE)
+    from whatsapp_agent.models import Campagne
+
+    whatsapp_campaigns = (
+        Campagne.objects.filter(business=current).order_by("-cree_le")[:5]
+        if current
+        else Campagne.objects.none()
+    )
     return render(
         request,
         "business/dashboard.html",
@@ -2310,6 +2317,7 @@ def dashboard(request):
             "share_whatsapp_url": share_whatsapp_url,
             "whatsapp_url": whatsapp_url,
             "filters": {"days": days, "business": current.id if current else ""},
+            "whatsapp_campaigns": whatsapp_campaigns,
         },
     )
 

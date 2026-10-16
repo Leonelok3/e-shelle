@@ -5,22 +5,24 @@ import json
 import mimetypes
 import os
 import re
+import urllib.parse
 
 from django.apps import apps
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.contrib import messages
 from django.contrib.admin.views.decorators import staff_member_required
+from django.contrib.auth.decorators import login_required
 from django.core.files.storage import default_storage
 from django.core.exceptions import ValidationError, SuspiciousFileOperation
 from django.core.paginator import Paginator
-from django.db.models import Count, Q, Sum
+from django.db.models import Count, F, Q, Sum
 from django.db import transaction
 from django.http import FileResponse, Http404, HttpResponse, HttpResponseRedirect, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 from django.views.decorators.csrf import csrf_exempt
-from django.views.decorators.http import require_POST
+from django.views.decorators.http import require_GET, require_POST
 from rest_framework import status
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
@@ -29,9 +31,11 @@ from rest_framework.response import Response
 from .forms import CampagneForm, TemplateSelectionForm
 from .calling import WhatsAppCallingError, get_call_permission, initiate_call, post_call_action, request_call_permission
 from .meta_templates import TemplateError, approved_templates, validate_selection, message_parameters, template_preview
-from .models import Campagne, ContactWhatsApp, ConversationWhatsApp, MessageEnvoi, MessageWhatsApp, WhatsAppCall, WhatsAppTestSend
+from .models import CampaignLinkClick, Campagne, ContactWhatsApp, ConversationWhatsApp, MessageEnvoi, MessageWhatsApp, WhatsAppCall, WhatsAppTestSend
 from .services import AI_PRESETS, WhatsAppService
 from .tasks import lancer_campagne_direct, lancer_campagne_task, recalculer_stats_campagne
+from business.models import BusinessLeadEvent, BusinessProfile
+from business.services import generate_campaign_links, iter_campaign_contacts
 
 
 def staff_required(view_func):
@@ -421,8 +425,9 @@ def importer_contacts(request):
 def creer_campagne(request):
     """Creation d'une campagne en brouillon."""
 
+    businesses = BusinessProfile.objects.all().order_by("name")
     if request.method == "POST":
-        form = CampagneForm(request.POST)
+        form = CampagneForm(request.POST, business_queryset=businesses)
         selection = TemplateSelectionForm(request.POST)
         form_valid = form.is_valid()
         selection_valid = selection.is_valid()
@@ -431,19 +436,33 @@ def creer_campagne(request):
             selection.apply(campagne)
             campagne.cree_par = request.user
             action = request.POST.get("action", "draft")
-            campagne.statut = Campagne.STATUT_VALIDEE if action == "validate" else Campagne.STATUT_BROUILLON
+            campagne.statut = (
+                Campagne.STATUT_VALIDEE
+                if action == "validate" and not campagne.business_id
+                else Campagne.STATUT_BROUILLON
+            )
             campagne.save()
-            _creer_messages_campagne(campagne)
-            if action == "validate":
+            if campagne.business_id:
+                campagne.total_destinataires = _business_campaign_audience(
+                    campagne.business,
+                    campagne.filtre_ville,
+                    campagne.audience_interest,
+                )[0]
+                campagne.save(update_fields=["total_destinataires"])
+            else:
+                _creer_messages_campagne(campagne)
+            if action == "validate" and not campagne.business_id:
                 messages.success(
                     request,
                     "Campagne validee. Verifie les destinataires puis lance l'envoi quand tu es pret.",
                 )
+            elif campagne.business_id:
+                messages.success(request, "Brouillon lie au business enregistre. L'envoi Meta sera active apres validation du parcours.")
             else:
                 messages.success(request, "Campagne WhatsApp sauvegardee en brouillon.")
             return redirect("whatsapp_agent:wa_detail", pk=campagne.pk)
     else:
-        form = CampagneForm()
+        form = CampagneForm(business_queryset=businesses)
         selection = TemplateSelectionForm()
 
     return render(
@@ -456,8 +475,141 @@ def creer_campagne(request):
             "meta_params_initial": selection.cleaned_data.get('meta_params') or [] if selection.is_bound else [],
             "ai_presets": AI_PRESETS,
             "whatsapp_dry_run": settings.WHATSAPP_DRY_RUN,
+            "businesses": businesses,
         },
     )
+
+
+def _business_campaign_audience(business, city="", interest=""):
+    total = 0
+    examples = []
+    for contact in iter_campaign_contacts(business, city, interest):
+        total += 1
+        if len(examples) < 5:
+            examples.append(contact)
+    return total, examples
+
+
+@login_required
+def business_campaigns(request):
+    businesses = BusinessProfile.objects.filter(owner=request.user).order_by("name")
+    campaigns = Campagne.objects.filter(business__owner=request.user).select_related("business").order_by("-cree_le")
+    form_options = {"business_queryset": businesses}
+    if request.method == "POST":
+        form = CampagneForm(request.POST, **form_options)
+        form.fields["business"].required = True
+        if form.is_valid():
+            campaign = form.save(commit=False)
+            campaign.cree_par = request.user
+            campaign.statut = Campagne.STATUT_BROUILLON
+            campaign.save()
+            campaign.total_destinataires = len(generate_campaign_links(campaign))
+            campaign.save(update_fields=["total_destinataires"])
+            messages.success(request, "Brouillon WhatsApp enregistre. Aucun message Meta n'a ete envoye.")
+            return redirect("business_whatsapp_campaigns")
+    else:
+        form = CampagneForm(**form_options)
+        form.fields["business"].required = True
+    latest_campaign = campaigns.first()
+    sample_link = (
+        latest_campaign.link_clicks.select_related("contact").first()
+        if latest_campaign
+        else None
+    )
+    sample_message = ""
+    if latest_campaign and sample_link:
+        first_name = sample_link.contact.display_name or sample_link.contact.phone if sample_link.contact else ""
+        sample_message = (
+            latest_campaign.message_template
+            .replace("{{prénom}}", first_name)
+            .replace("{{prenom}}", first_name)
+            .replace("{{1}}", first_name)
+        )
+        sample_message = f"{sample_message}\n\nVoir : {settings.SITE_URL.rstrip('/')}/r/{sample_link.short_code}/"
+    return render(
+        request,
+        "whatsapp_agent/creer_campagne.html",
+        {
+            "form": form,
+            "selection": TemplateSelectionForm(),
+            "template_key": "",
+            "meta_params_initial": [],
+            "ai_presets": {},
+            "whatsapp_dry_run": settings.WHATSAPP_DRY_RUN,
+            "owner_view": True,
+            "owner_campaigns": campaigns,
+            "businesses": businesses,
+            "campaign_example_message": sample_message,
+            "campaign_example_link": (
+                f"{settings.SITE_URL.rstrip('/')}/r/{sample_link.short_code}/" if sample_link else ""
+            ),
+        },
+    )
+
+
+@login_required
+@require_POST
+def api_business_campaign_audience(request):
+    data = _json_body(request)
+    businesses = BusinessProfile.objects.all() if request.user.is_staff else BusinessProfile.objects.filter(owner=request.user)
+    business = get_object_or_404(businesses, pk=data.get("business_id"))
+    total, examples = _business_campaign_audience(
+        business,
+        data.get("city", ""),
+        data.get("interest", ""),
+    )
+    return JsonResponse(
+        {
+            "total": total,
+            "business": business.display_name,
+            "city": data.get("city", ""),
+            "interest": data.get("interest", ""),
+            "examples": [{"name": contact.display_name or contact.phone} for contact in examples],
+        }
+    )
+
+
+@require_GET
+def campaign_redirect(request, short_code):
+    with transaction.atomic():
+        click = get_object_or_404(
+            CampaignLinkClick.objects.select_for_update().select_related(
+                "campaign__business",
+                "contact",
+            ),
+            short_code=short_code,
+        )
+        campaign = click.campaign
+        business = campaign.business
+        if business is None:
+            raise Http404("Cette campagne n'est plus liee a un business.")
+
+        ip_address = request.META.get("REMOTE_ADDR") or None
+        CampaignLinkClick.objects.filter(pk=click.pk).update(
+            clicked_at=timezone.now(),
+            ip=ip_address,
+        )
+        Campagne.objects.filter(pk=campaign.pk).update(clicked_count=F("clicked_count") + 1)
+        BusinessLeadEvent.objects.create(
+            business=business,
+            event_type="campaign_click",
+            source="whatsapp_campaign",
+            target_url="",
+            metadata={
+                "campaign_id": campaign.pk,
+                "contact_phone": click.contact.phone if click.contact else "",
+            },
+            ip_address=ip_address,
+            user_agent=request.META.get("HTTP_USER_AGENT", "")[:300],
+        )
+
+        number = business.clean_whatsapp_number
+        if not number:
+            target_url = business.get_absolute_url()
+        else:
+            text = f"Bonjour, je viens de E-Shelle campagne {campaign.pk}"
+            target_url = f"https://wa.me/{number}?{urllib.parse.urlencode({'text': text})}"
+    return redirect(target_url)
 
 
 @staff_required
@@ -504,6 +656,9 @@ def lancer_campagne(request, pk):
     """Declenche la tache Celery d'envoi massif."""
 
     campagne = get_object_or_404(Campagne, pk=pk)
+    if campagne.business_id:
+        messages.error(request, "L'envoi des campagnes liees a un business n'est pas encore disponible.")
+        return redirect("whatsapp_agent:wa_detail", pk=campagne.pk)
     confirmation = request.POST.get("confirm_launch") == "on"
     if campagne.statut != Campagne.STATUT_VALIDEE:
         messages.warning(request, "Valide d'abord la campagne avant de lancer l'envoi.")

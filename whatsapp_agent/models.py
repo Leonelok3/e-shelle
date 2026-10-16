@@ -62,9 +62,18 @@ class Campagne(models.Model):
 
     nom = models.CharField(max_length=200)
     description = models.TextField(blank=True)
+    business = models.ForeignKey(
+        "business.BusinessProfile",
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="whatsapp_campaigns",
+    )
     message_template = models.TextField(
         help_text="Message a envoyer. Utilise {{prenom}} pour personnaliser."
     )
+    audience_interest = models.CharField(max_length=180, blank=True)
+    price_charged = models.IntegerField(default=10000)
     template_meta_name = models.CharField(max_length=512, blank=True)
     template_meta_language = models.CharField(max_length=20, blank=True)
     template_meta_params = models.JSONField(default=list, blank=True)
@@ -86,6 +95,7 @@ class Campagne(models.Model):
     total_livres = models.IntegerField(default=0)
     total_lus = models.IntegerField(default=0)
     total_echecs = models.IntegerField(default=0)
+    clicked_count = models.IntegerField(default=0)
 
     cree_par = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True)
     cree_le = models.DateTimeField(auto_now_add=True)
@@ -105,6 +115,29 @@ class Campagne(models.Model):
         if not self.total_destinataires:
             return 0
         return round((self.total_envoyes + self.total_echecs) * 100 / self.total_destinataires)
+
+
+class CampaignLinkClick(models.Model):
+    campaign = models.ForeignKey(Campagne, on_delete=models.CASCADE, related_name="link_clicks")
+    contact = models.ForeignKey(
+        "whatsapp_commerce.BusinessWhatsAppContact",
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="campaign_link_clicks",
+    )
+    short_code = models.CharField(unique=True, max_length=20)
+    clicked_at = models.DateTimeField(auto_now_add=True)
+    ip = models.GenericIPAddressField(null=True, blank=True)
+
+    class Meta:
+        ordering = ["-clicked_at"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["campaign", "contact"],
+                name="wa_campaign_contact_link_uniq",
+            )
+        ]
 
 
 class WhatsAppTestSend(models.Model):
