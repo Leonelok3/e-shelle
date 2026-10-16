@@ -3,6 +3,7 @@ import re
 from django.contrib.contenttypes.models import ContentType
 from django.conf import settings
 from django.db import transaction
+from django.db.models import Q
 from django.urls import reverse
 from django.utils import timezone
 
@@ -269,31 +270,32 @@ def iter_campaign_contacts(business, city="", interest=""):
 
 
 def get_audience_for_campaign(business, city="", interest="", user=None):
-    """Return eligible contacts using global E-Shelle consent for staff campaigns."""
+    """Return the filtered consented audience for staff or business-owner campaigns."""
     from whatsapp_commerce.models import BusinessWhatsAppContact
-
-    if not (user and (user.is_staff or user.is_superuser)):
-        return list(iter_campaign_contacts(business, city, interest))
 
     contacts = BusinessWhatsAppContact.objects.filter(
         marketing_opt_in=True,
         consent_marketing=True,
         opted_out_at__isnull=True,
     ).order_by("-last_activity_at")
+    if not (user and (user.is_staff or user.is_superuser)):
+        contacts = contacts.filter(business=business)
+
     city = (city or "").strip().casefold()
     interest = (interest or "").strip().casefold()
-    audience = []
-    for contact in contacts.iterator(chunk_size=1000):
-        custom_fields = contact.custom_fields if isinstance(contact.custom_fields, dict) else {}
-        contact_city = str(custom_fields.get("city") or "").casefold()
-        tags = contact.tags if isinstance(contact.tags, list) else []
-        matching_tags = [str(tag).casefold() for tag in tags]
-        if city and city not in contact_city:
-            continue
-        if interest and not any(interest in tag for tag in matching_tags):
-            continue
-        audience.append(contact)
-    return audience
+    if city:
+        contacts = contacts.filter(
+            Q(custom_fields__city__icontains=city)
+            | Q(display_name__icontains=city)
+            | Q(tags__icontains=city)
+        )
+    if interest:
+        contacts = contacts.filter(
+            Q(tags__icontains=interest)
+            | Q(custom_fields__interest__icontains=interest)
+            | Q(custom_fields__city__icontains=interest)
+        )
+    return contacts
 
 
 @transaction.atomic
@@ -313,10 +315,11 @@ def generate_campaign_links(campaign):
     alphabet = string.ascii_lowercase + string.digits
     base_url = getattr(settings, "SITE_URL", "https://e-shelle.com").rstrip("/")
     links = []
-    for contact in iter_campaign_contacts(
+    for contact in get_audience_for_campaign(
         campaign.business,
         campaign.filtre_ville,
         campaign.audience_interest,
+        user=campaign.cree_par,
     ):
         existing = CampaignLinkClick.objects.filter(campaign=campaign, contact=contact).first()
         if existing is None:

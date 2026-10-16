@@ -105,6 +105,19 @@
       <div class="wa-preview-card">
         <h2>Apercu final avant envoi</h2>
         <p class="wa-muted">Destinataires prepares: <strong>{{ campagne.total_destinataires }}</strong></p>
+        {% if campagne.business_id %}
+        <p class="wa-muted">
+          {% if audience_is_global %}Audience globale E-Shelle, filtree selon la ville et l'interet choisis.
+          {% else %}Audience limitee aux contacts consentants de ce business.{% endif %}
+        </p>
+        {% if audience_contacts %}
+        <div class="wa-examples">
+          {% for contact in audience_contacts %}
+          <div class="wa-example">{{ contact.display_name|default:contact.phone }} · {{ contact.phone }}</div>
+          {% endfor %}
+        </div>
+        {% endif %}
+        {% endif %}
         {% if contacts_selectionnes %}
         <p class="wa-muted">Selection manuelle: <strong>{{ contacts_selectionnes }} contact(s) du carnet WhatsApp</strong></p>
         {% endif %}

@@ -7,7 +7,12 @@ from django.urls import reverse
 from django.utils import timezone
 
 from business.models import BusinessLeadEvent, BusinessProfile
-from business.services import create_lead_from_event, generate_campaign_links, handle_ai_phone_capture
+from business.services import (
+    create_lead_from_event,
+    generate_campaign_links,
+    get_audience_for_campaign,
+    handle_ai_phone_capture,
+)
 from whatsapp_agent.models import CampaignLinkClick, Campagne, ContactWhatsApp
 from whatsapp_commerce.models import BusinessWhatsAppContact
 
@@ -208,21 +213,30 @@ class BusinessCampaignTests(TestCase):
             name="Pressing Test",
             city="Douala",
         )
-        global_contact = BusinessWhatsAppContact.objects.create(
-            business=pressing,
-            phone="+237699000002",
-            marketing_opt_in=True,
-            consent_marketing=True,
-            custom_fields={"city": "Douala"},
-            tags=["pressing"],
-        )
+        global_contacts = []
+        for phone, name in [
+            ("+237699000002", "Paul"),
+            ("+237699000004", "Marie"),
+            ("+237699000005", "Jacques"),
+        ]:
+            global_contacts.append(
+                BusinessWhatsAppContact.objects.create(
+                    business=pressing,
+                    phone=phone,
+                    display_name=name,
+                    marketing_opt_in=True,
+                    consent_marketing=True,
+                    custom_fields={"city": "Douala, Cameroon"},
+                    tags=["restaurant", "Akwa", "pressing"],
+                )
+            )
         BusinessWhatsAppContact.objects.create(
             business=pressing,
             phone="+237699000003",
             marketing_opt_in=True,
             consent_marketing=False,
-            custom_fields={"city": "Douala"},
-            tags=["pressing"],
+            custom_fields={"city": "Douala, Cameroon"},
+            tags=["restaurant", "Akwa", "pressing"],
         )
         self.client.force_login(self.staff)
 
@@ -232,17 +246,20 @@ class BusinessCampaignTests(TestCase):
                 {
                     "business_id": restaurant.pk,
                     "city": "Douala",
-                    "interest": "",
+                    "interest": "restaurant",
                 }
             ),
             content_type="application/json",
         )
 
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.json()["total"], 1)
+        self.assertEqual(response.json()["total"], 3)
         self.assertTrue(response.json()["global_audience"])
         self.assertIn("MODE E-SHELLE ADMIN", response.json()["audience_message"])
-        self.assertEqual(response.json()["examples"][0]["name"], global_contact.phone)
+        self.assertSetEqual(
+            {example["name"] for example in response.json()["examples"]},
+            {contact.display_name for contact in global_contacts},
+        )
 
         response = self.client.post(
             reverse("whatsapp_agent:wa_business_campaign_audience"),
@@ -256,7 +273,7 @@ class BusinessCampaignTests(TestCase):
             content_type="application/json",
         )
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.json()["total"], 1)
+        self.assertEqual(response.json()["total"], 3)
 
     def test_staff_campaign_form_explains_global_audience(self):
         self.client.force_login(self.staff)
@@ -303,6 +320,99 @@ class BusinessCampaignTests(TestCase):
         self.assertRedirects(response, reverse("whatsapp_agent:wa_detail", args=[campaign.pk]))
         self.assertEqual(campaign.total_destinataires, 1)
         self.assertEqual(campaign.business, restaurant)
+
+    def test_global_campaign_audience_filters_city_and_interest_across_contact_fields(self):
+        restaurant = BusinessProfile.objects.create(
+            owner=self.owner,
+            module=BusinessProfile.Module.RESTO,
+            name="RICO'S KITCHIN",
+            city="Douala",
+        )
+        pressing = BusinessProfile.objects.create(
+            owner=self.other_owner,
+            module=BusinessProfile.Module.PRESSING,
+            name="Pressing Test",
+            city="Douala",
+        )
+        for phone, name in [
+            ("+237699000021", "Paul"),
+            ("+237699000022", "Marie"),
+            ("+237699000023", "Jacques"),
+        ]:
+            BusinessWhatsAppContact.objects.create(
+                business=pressing,
+                phone=phone,
+                display_name=name,
+                marketing_opt_in=True,
+                consent_marketing=True,
+                custom_fields={"city": "Douala, Cameroon"},
+                tags=["restaurant", "Akwa"],
+            )
+
+        campaign = Campagne.objects.create(
+            nom="RICO'S KITCHIN - Douala",
+            business=restaurant,
+            message_template="Promotion restaurant",
+            filtre_ville="Douala",
+            audience_interest="restaurant",
+            cree_par=self.staff,
+        )
+        audience = get_audience_for_campaign(
+            campaign.business,
+            campaign.filtre_ville,
+            campaign.audience_interest,
+            user=self.staff,
+        )
+
+        self.assertEqual(audience.count(), 3)
+        self.assertSetEqual(
+            set(audience.values_list("display_name", flat=True)),
+            {"Paul", "Marie", "Jacques"},
+        )
+
+    def test_campaign_detail_refreshes_business_audience_count_and_final_preview(self):
+        restaurant = BusinessProfile.objects.create(
+            owner=self.owner,
+            module=BusinessProfile.Module.RESTO,
+            name="RICO'S KITCHIN",
+            city="Douala",
+        )
+        pressing = BusinessProfile.objects.create(
+            owner=self.other_owner,
+            module=BusinessProfile.Module.PRESSING,
+            name="Pressing Test",
+            city="Douala",
+        )
+        for index, name in enumerate(["Paul", "Marie", "Jacques"], start=31):
+            BusinessWhatsAppContact.objects.create(
+                business=pressing,
+                phone=f"+2376990000{index}",
+                display_name=name,
+                marketing_opt_in=True,
+                consent_marketing=True,
+                custom_fields={"city": "Douala, Cameroon"},
+                tags=["restaurant", "Akwa"],
+            )
+        campaign = Campagne.objects.create(
+            nom="RICO'S KITCHIN - Douala",
+            business=restaurant,
+            message_template="Promotion restaurant",
+            filtre_ville="Douala",
+            audience_interest="restaurant",
+            cree_par=self.staff,
+            total_destinataires=0,
+        )
+        self.client.force_login(self.staff)
+
+        response = self.client.get(reverse("whatsapp_agent:wa_detail", args=[campaign.pk]))
+
+        campaign.refresh_from_db()
+        self.assertEqual(campaign.total_destinataires, 3)
+        self.assertContains(response, "Destinataires prepares: <strong>3</strong>")
+        self.assertContains(response, "Audience globale E-Shelle")
+        self.assertContains(response, "Paul")
+        self.assertContains(response, "Marie")
+        self.assertContains(response, "Jacques")
 
     def test_campaign_links_are_personal_and_filtered_to_consented_audience(self):
         contact = self.create_opted_in_contact()

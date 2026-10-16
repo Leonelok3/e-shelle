@@ -484,7 +484,7 @@ def creer_campagne(request):
 
 def _business_campaign_audience(business, city="", interest="", user=None):
     contacts = get_audience_for_campaign(business, city, interest, user=user)
-    return len(contacts), contacts[:5]
+    return contacts.count(), list(contacts[:5])
 
 
 @login_required
@@ -628,6 +628,15 @@ def detail_campagne(request, pk):
 
     campagne = get_object_or_404(Campagne.objects.select_related("cree_par"), pk=pk)
     recalculer_stats_campagne(campagne)
+    audience_contacts = []
+    if campagne.business_id:
+        campagne.total_destinataires, audience_contacts = _business_campaign_audience(
+            campagne.business,
+            campagne.filtre_ville,
+            campagne.audience_interest,
+            user=request.user,
+        )
+        campagne.save(update_fields=["total_destinataires"])
     messages_qs = campagne.messages.select_related("user", "commercial_prospect").order_by("-mis_a_jour_le")
     paginator = Paginator(messages_qs, 30)
     page_obj = paginator.get_page(request.GET.get("page"))
@@ -641,6 +650,10 @@ def detail_campagne(request, pk):
         "whatsapp_agent/detail_campagne.html",
         {
             "campagne": campagne,
+            "audience_contacts": audience_contacts,
+            "audience_is_global": bool(
+                campagne.business_id and (request.user.is_staff or request.user.is_superuser)
+            ),
             "page_obj": page_obj,
             "progress_envoyes": _percent(campagne.total_envoyes, campagne.total_destinataires),
             "progress_livres": _percent(campagne.total_livres, campagne.total_destinataires),
