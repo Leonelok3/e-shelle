@@ -119,6 +119,10 @@ def _creer_messages_campagne(campagne):
         consentement_confirme=True,
         desinscrit=False,
     ).order_by("nom", "numero")
+    # Future promotional sends must use:
+    # campagne.destinataires_contacts.filter(consent_marketing=True, desinscrit=False)
+    # Service replies must independently require consent_service=True. MessageEnvoi
+    # currently has no ContactWhatsApp FK, so do not filter via contact__ here.
     if contacts_whatsapp.exists():
         batch = []
         for idx, contact in enumerate(contacts_whatsapp):

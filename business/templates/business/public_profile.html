@@ -151,7 +151,21 @@
 
         <div style="display:flex;flex-wrap:wrap;gap:.8rem;margin-top:1.7rem">
           {% if whatsapp_url %}
-            <a href="{{ whatsapp_url }}" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;justify-content:center;min-height:48px;padding:.75rem 1rem;border-radius:12px;background:#7dec6c;color:#06120a;font-weight:900">{% if LANGUAGE_CODE == 'en' %}Contact on WhatsApp{% else %}Contacter WhatsApp{% endif %}</a>
+            <form method="post" action="{% url 'business:whatsapp_consent' business.public_slug %}" style="display:flex;flex-direction:column;gap:.65rem;max-width:620px">
+              {% csrf_token %}
+              <label style="display:flex;align-items:flex-start;gap:.55rem;color:rgba(255,255,255,.88);font-size:.85rem;line-height:1.45">
+                <input type="checkbox" name="consent_service" required checked style="margin-top:.2rem">
+                {% if LANGUAGE_CODE == 'en' %}I agree that {{ business.display_name }} may reply to me on WhatsApp about my order{% else %}J'accepte que {{ business.display_name }} me réponde sur WhatsApp pour ma commande{% endif %}
+              </label>
+              <label style="display:flex;align-items:flex-start;gap:.55rem;color:rgba(255,255,255,.72);font-size:.85rem;line-height:1.45">
+                <input type="checkbox" name="consent_marketing" style="margin-top:.2rem">
+                {% if LANGUAGE_CODE == 'en' %}I also agree to receive up to 1 promotion per week from {{ business.display_name }} and e-shelle.com on WhatsApp (reply STOP at any time){% else %}J'accepte aussi de recevoir max 1 promo/semaine de {{ business.display_name }} et e-shelle.com sur WhatsApp (STOP à tout moment){% endif %}
+              </label>
+              <label for="whatsapp-consent-phone" style="color:rgba(255,255,255,.72);font-size:.82rem">{% if LANGUAGE_CODE == 'en' %}Your WhatsApp number{% else %}Votre numéro WhatsApp{% endif %}</label>
+              <input id="whatsapp-consent-phone" type="tel" name="phone" required autocomplete="tel" placeholder="+237 6XX XXX XXX" style="min-height:42px;padding:.55rem .7rem;border:1px solid rgba(255,255,255,.2);border-radius:10px;background:rgba(255,255,255,.06);color:#fff">
+              <small style="color:rgba(255,255,255,.6);line-height:1.4">{% if LANGUAGE_CODE == 'en' %}Your number is kept for your order; promotions are sent only if you check the second box. Reply STOP to unsubscribe.{% else %}Vos données : numéro conservé pour la commande, promo seulement si vous cochez la 2e case. Répondez STOP pour vous désinscrire.{% endif %}</small>
+              <button type="submit" style="display:inline-flex;align-items:center;justify-content:center;min-height:48px;padding:.75rem 1rem;border:0;border-radius:12px;background:#7dec6c;color:#06120a;font-weight:900;cursor:pointer">{% if LANGUAGE_CODE == 'en' %}Contact on WhatsApp{% else %}Contacter WhatsApp{% endif %}</button>
+            </form>
           {% endif %}
           <a href="{{ share_whatsapp_url }}" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;justify-content:center;min-height:48px;padding:.75rem 1rem;border-radius:12px;background:linear-gradient(135deg,#7dec6c,#f59e0b);color:#06120a;font-weight:900">{% if LANGUAGE_CODE == 'en' %}Share my business{% else %}Partager ma boutique{% endif %}</a>
           <button type="button" data-copy-link="{{ public_url }}" style="display:inline-flex;align-items:center;justify-content:center;min-height:48px;padding:.75rem 1rem;border-radius:12px;border:1px solid rgba(255,255,255,.18);background:transparent;color:#fff;font-weight:850">{% if LANGUAGE_CODE == 'en' %}Copy link{% else %}Copier le lien{% endif %}</button>

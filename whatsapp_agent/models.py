@@ -25,6 +25,17 @@ class ContactWhatsApp(models.Model):
     consentement_confirme = models.BooleanField(default=False)
     consentement_source = models.CharField(max_length=80, blank=True)
     consentement_le = models.DateTimeField(null=True, blank=True)
+    consent_service = models.BooleanField(default=False, null=True, blank=True)
+    consent_marketing = models.BooleanField(default=False, null=True, blank=True)
+    consent_date = models.DateTimeField(null=True, blank=True)
+    consent_source = models.CharField(max_length=255, null=True, blank=True)
+    consent_entity = models.ForeignKey(
+        "business.BusinessProfile",
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="whatsapp_consents",
+    )
     call_permission_status = models.CharField(max_length=20, default="no_permission")
     call_permission_expires_at = models.DateTimeField(null=True, blank=True)
     desinscrit = models.BooleanField(default=False)

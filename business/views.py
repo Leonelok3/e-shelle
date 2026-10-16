@@ -646,6 +646,14 @@ def _business_public_target(request, business, event_kind):
     return f"/chat/?q={urllib.parse.quote(query)}"
 
 
+def _public_profile_whatsapp_url(request, business, public_url):
+    if request.LANGUAGE_CODE == "en":
+        message = f"Hello {business.display_name}, I found your E-Shelle business listing: {public_url}"
+    else:
+        message = f"Bonjour {business.display_name}, je viens de votre boutique E-Shelle: {public_url}"
+    return business.whatsapp_url(message)
+
+
 def public_profile(request, public_slug):
     """Vitrine publique centrale d'une activite E-Shelle."""
     business = get_object_or_404(BusinessProfile, public_slug=public_slug, is_active=True)
@@ -660,11 +668,9 @@ def public_profile(request, public_slug):
     public_url = request.build_absolute_uri(business.get_absolute_url())
     if request.LANGUAGE_CODE == "en":
         share_text = f"Discover {business.display_name} on E-Shelle: {public_url}"
-        whatsapp_message = f"Hello {business.display_name}, I found your E-Shelle business listing: {public_url}"
     else:
         share_text = f"Decouvrez {business.display_name} sur E-Shelle: {public_url}"
-        whatsapp_message = f"Bonjour {business.display_name}, je viens de votre boutique E-Shelle: {public_url}"
-    whatsapp_url = business.whatsapp_url(whatsapp_message)
+    whatsapp_url = _public_profile_whatsapp_url(request, business, public_url)
     is_owner = request.user.is_authenticated and business.owner == request.user
     reviews = business.reviews.all() if is_owner else business.approved_reviews
     return render(
@@ -683,6 +689,39 @@ def public_profile(request, public_slug):
             "review_stars": range(1, 6),
         },
     )
+
+
+@require_POST
+def capture_whatsapp_consent(request, public_slug):
+    """Enregistre les choix de consentement avant d'ouvrir WhatsApp."""
+    business = get_object_or_404(BusinessProfile, public_slug=public_slug, is_active=True)
+    if request.POST.get("consent_service") != "on":
+        messages.error(request, "Vous devez accepter pour être recontacté pour votre commande")
+        return redirect("business:public_profile", public_slug=business.public_slug)
+
+    from whatsapp_agent.models import ContactWhatsApp
+    from whatsapp_agent.services import WhatsAppService
+
+    phone = WhatsAppService.normaliser_numero(request.POST.get("phone", ""))
+    if not phone or not phone.startswith("+") or not phone[1:].isdigit() or not 8 <= len(phone[1:]) <= 15:
+        messages.error(request, "Veuillez saisir un numéro WhatsApp valide.")
+        return redirect("business:public_profile", public_slug=business.public_slug)
+
+    consent_marketing = request.POST.get("consent_marketing") == "on"
+    consent_source = f"{request.get_host()}{business.get_absolute_url()} - case cochée"
+    ContactWhatsApp.objects.update_or_create(
+        numero=phone,
+        defaults={
+            "consent_service": True,
+            "consent_marketing": consent_marketing,
+            "consent_date": timezone.now(),
+            "consent_source": consent_source,
+            "consent_entity": business,
+        },
+    )
+    public_url = request.build_absolute_uri(business.get_absolute_url())
+    whatsapp_url = _public_profile_whatsapp_url(request, business, public_url)
+    return redirect(whatsapp_url)
 
 
 def provider_plans(request):

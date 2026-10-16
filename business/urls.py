@@ -60,6 +60,7 @@ urlpatterns = [
     path("payment/success/<int:pk>/", views.payment_success, name="payment_success"),
     path("t/<uuid:public_id>/", views.track, name="track"),
     path("go/<int:business_id>/<str:event_type>/", views.go_business, name="go_business"),
+    path("@<slug:public_slug>/whatsapp-consent/", views.capture_whatsapp_consent, name="whatsapp_consent"),
     path("slide/<int:slide_id>/", views.go_slide, name="go_slide"),
     path("partner/admin/slide-generator-ai/", views.ai_slide_generator_page, name="ai_slide_generator_page"),
     path("api/v1/generate-slide-ai/", views.api_generate_slide_ai, name="api_generate_slide_ai"),

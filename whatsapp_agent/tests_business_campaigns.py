@@ -2,6 +2,7 @@ import json
 from pathlib import Path
 
 from django.contrib.auth import get_user_model
+from django.contrib.messages import get_messages
 from django.test import TestCase, override_settings
 from django.urls import reverse
 from django.utils import timezone
@@ -51,6 +52,7 @@ class BusinessCampaignTests(TestCase):
             name="Le Boj",
             city="Douala",
             phone="699000099",
+            whatsapp="+237680625082",
         )
 
     def create_event(self, interest="restaurant"):
@@ -70,6 +72,79 @@ class BusinessCampaignTests(TestCase):
             consent_source="business_profile",
             tags=tags or ["Douala", "restaurant Akwa"],
         )
+
+    def test_public_profile_shows_service_and_optional_marketing_consent(self):
+        response = self.client.get(
+            reverse("business:public_profile", kwargs={"public_slug": self.business.public_slug})
+        )
+
+        self.assertContains(response, 'name="consent_service"')
+        self.assertContains(response, 'name="consent_marketing"')
+        self.assertContains(response, 'name="phone"')
+        self.assertContains(response, "STOP")
+        self.assertContains(response, "required checked")
+
+    def test_whatsapp_consent_is_saved_and_redirects_to_the_existing_target(self):
+        profile = self.client.get(
+            reverse("business:public_profile", kwargs={"public_slug": self.business.public_slug})
+        )
+        existing_target = profile.context["whatsapp_url"]
+        response = self.client.post(
+            reverse("business:whatsapp_consent", kwargs={"public_slug": self.business.public_slug}),
+            {
+                "phone": "699 000 001",
+                "consent_service": "on",
+                "consent_marketing": "on",
+            },
+        )
+
+        contact = ContactWhatsApp.objects.get(numero="+237699000001")
+        self.assertRedirects(response, existing_target, fetch_redirect_response=False)
+        self.assertTrue(contact.consent_service)
+        self.assertTrue(contact.consent_marketing)
+        self.assertEqual(contact.consent_entity, self.business)
+        self.assertIsNotNone(contact.consent_date)
+        self.assertIn(self.business.get_absolute_url(), contact.consent_source)
+
+    def test_missing_service_consent_does_not_save_contact(self):
+        response = self.client.post(
+            reverse("business:whatsapp_consent", kwargs={"public_slug": self.business.public_slug}),
+            {"phone": "699000001"},
+        )
+
+        self.assertRedirects(
+            response,
+            reverse("business:public_profile", kwargs={"public_slug": self.business.public_slug}),
+            fetch_redirect_response=False,
+        )
+        self.assertFalse(ContactWhatsApp.objects.exists())
+        self.assertIn(
+            "Vous devez accepter pour être recontacté pour votre commande",
+            [str(message) for message in get_messages(response.wsgi_request)],
+        )
+
+    def test_updating_contact_preserves_legacy_campaign_and_unsubscribe_fields(self):
+        existing = ContactWhatsApp.objects.create(
+            numero="+237699000001",
+            consentement_confirme=True,
+            desinscrit=True,
+            note="Historique des campagnes précédentes",
+        )
+
+        self.client.post(
+            reverse("business:whatsapp_consent", kwargs={"public_slug": self.business.public_slug}),
+            {
+                "phone": "699000001",
+                "consent_service": "on",
+            },
+        )
+
+        existing.refresh_from_db()
+        self.assertTrue(existing.consentement_confirme)
+        self.assertTrue(existing.desinscrit)
+        self.assertEqual(existing.note, "Historique des campagnes précédentes")
+        self.assertFalse(existing.consent_marketing)
+        self.assertTrue(existing.consent_service)
 
     def test_lead_bridge_creates_business_and_global_contacts_with_consent(self):
         event = self.create_event("restaurant Akwa")
