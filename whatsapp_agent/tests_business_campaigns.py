@@ -195,6 +195,115 @@ class BusinessCampaignTests(TestCase):
         self.assertEqual(response.json()["total"], 1)
         self.assertEqual(response.json()["business"], self.business.display_name)
 
+    def test_staff_audience_preview_uses_global_consent_across_businesses(self):
+        restaurant = BusinessProfile.objects.create(
+            owner=self.owner,
+            module=BusinessProfile.Module.RESTO,
+            name="RICO'S KITCHIN",
+            city="Douala",
+        )
+        pressing = BusinessProfile.objects.create(
+            owner=self.other_owner,
+            module=BusinessProfile.Module.PRESSING,
+            name="Pressing Test",
+            city="Douala",
+        )
+        global_contact = BusinessWhatsAppContact.objects.create(
+            business=pressing,
+            phone="+237699000002",
+            marketing_opt_in=True,
+            consent_marketing=True,
+            custom_fields={"city": "Douala"},
+            tags=["pressing"],
+        )
+        BusinessWhatsAppContact.objects.create(
+            business=pressing,
+            phone="+237699000003",
+            marketing_opt_in=True,
+            consent_marketing=False,
+            custom_fields={"city": "Douala"},
+            tags=["pressing"],
+        )
+        self.client.force_login(self.staff)
+
+        response = self.client.post(
+            reverse("whatsapp_agent:wa_business_campaign_audience"),
+            data=json.dumps(
+                {
+                    "business_id": restaurant.pk,
+                    "city": "Douala",
+                    "interest": "",
+                }
+            ),
+            content_type="application/json",
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json()["total"], 1)
+        self.assertTrue(response.json()["global_audience"])
+        self.assertIn("MODE E-SHELLE ADMIN", response.json()["audience_message"])
+        self.assertEqual(response.json()["examples"][0]["name"], global_contact.phone)
+
+        response = self.client.post(
+            reverse("whatsapp_agent:wa_business_campaign_audience"),
+            data=json.dumps(
+                {
+                    "business_id": restaurant.pk,
+                    "city": "Douala",
+                    "interest": "pressing",
+                }
+            ),
+            content_type="application/json",
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json()["total"], 1)
+
+    def test_staff_campaign_form_explains_global_audience(self):
+        self.client.force_login(self.staff)
+
+        response = self.client.get(reverse("whatsapp_agent:wa_creer"))
+
+        self.assertContains(response, "MODE E-SHELLE ADMIN : Audience globale E-Shelle.")
+
+    def test_staff_business_campaign_draft_counts_global_audience(self):
+        restaurant = BusinessProfile.objects.create(
+            owner=self.owner,
+            module=BusinessProfile.Module.RESTO,
+            name="RICO'S KITCHIN",
+            city="Douala",
+        )
+        pressing = BusinessProfile.objects.create(
+            owner=self.other_owner,
+            module=BusinessProfile.Module.PRESSING,
+            name="Pressing Test",
+            city="Douala",
+        )
+        BusinessWhatsAppContact.objects.create(
+            business=pressing,
+            phone="+237699000002",
+            marketing_opt_in=True,
+            consent_marketing=True,
+            custom_fields={"city": "Douala"},
+            tags=["pressing"],
+        )
+        self.client.force_login(self.staff)
+
+        response = self.client.post(
+            reverse("whatsapp_agent:wa_creer"),
+            {
+                "nom": "Promo RICO'S KITCHIN",
+                "business": restaurant.pk,
+                "filtre_ville": "Douala",
+                "message_template": "Bonjour {{1}}, promo resto !",
+                "action": "draft",
+            },
+        )
+
+        campaign = Campagne.objects.get()
+        self.assertRedirects(response, reverse("whatsapp_agent:wa_detail", args=[campaign.pk]))
+        self.assertEqual(campaign.total_destinataires, 1)
+        self.assertEqual(campaign.business, restaurant)
+
     def test_campaign_links_are_personal_and_filtered_to_consented_audience(self):
         contact = self.create_opted_in_contact()
         self.create_opted_in_contact(

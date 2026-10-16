@@ -56,7 +56,9 @@
         <h2>Destinataires</h2>
         <div class="wa-field">{{ form.business.label_tag }}{{ form.business }}</div>
         <div class="wa-alert">
-          {% if owner_view %}L'audience est limitée aux contacts de ce business ayant donné leur accord pour le marketing WhatsApp.{% else %}Pour choisir des numeros precis deja importes, passe par le carnet global.{% endif %}
+          {% if is_admin_campaign_mode %}MODE E-SHELLE ADMIN : Audience globale E-Shelle. Vous pouvez envoyer une campagne resto à un contact qui a consenti pour pressing. Consentement E-Shelle.
+          {% elif owner_view %}L'audience est limitée aux contacts de ce business ayant donné leur accord pour le marketing WhatsApp.
+          {% else %}Pour choisir des numeros precis deja importes, passe par le carnet global.{% endif %}
           {% if not owner_view %}
           <a class="wa-link" href="{% url 'whatsapp_agent:wa_contacts' %}">Voir et selectionner les contacts WhatsApp</a>
           {% endif %}
@@ -201,6 +203,9 @@
     count.textContent = data.business
       ? `${data.total} contacts trouves pour ${criteria}.`
       : `${data.total} contact(s) trouve(s).`;
+    if (data.audience_message) {
+      count.textContent += ` ${data.audience_message}`;
+    }
     examples.innerHTML = (data.examples || data.exemples || []).map(item =>
       `<div class="wa-example">${item.name || `${item.prenom} - ${item.ville || 'Ville non renseignee'}`}</div>`
     ).join('');

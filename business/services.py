@@ -268,6 +268,34 @@ def iter_campaign_contacts(business, city="", interest=""):
         yield contact
 
 
+def get_audience_for_campaign(business, city="", interest="", user=None):
+    """Return eligible contacts using global E-Shelle consent for staff campaigns."""
+    from whatsapp_commerce.models import BusinessWhatsAppContact
+
+    if not (user and (user.is_staff or user.is_superuser)):
+        return list(iter_campaign_contacts(business, city, interest))
+
+    contacts = BusinessWhatsAppContact.objects.filter(
+        marketing_opt_in=True,
+        consent_marketing=True,
+        opted_out_at__isnull=True,
+    ).order_by("-last_activity_at")
+    city = (city or "").strip().casefold()
+    interest = (interest or "").strip().casefold()
+    audience = []
+    for contact in contacts.iterator(chunk_size=1000):
+        custom_fields = contact.custom_fields if isinstance(contact.custom_fields, dict) else {}
+        contact_city = str(custom_fields.get("city") or "").casefold()
+        tags = contact.tags if isinstance(contact.tags, list) else []
+        matching_tags = [str(tag).casefold() for tag in tags]
+        if city and city not in contact_city:
+            continue
+        if interest and not any(interest in tag for tag in matching_tags):
+            continue
+        audience.append(contact)
+    return audience
+
+
 @transaction.atomic
 def generate_campaign_links(campaign):
     """Create or reuse one tracked redirect link per consented audience contact."""

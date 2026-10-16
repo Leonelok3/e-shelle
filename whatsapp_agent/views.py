@@ -35,7 +35,7 @@ from .models import CampaignLinkClick, Campagne, ContactWhatsApp, ConversationWh
 from .services import AI_PRESETS, WhatsAppService
 from .tasks import lancer_campagne_direct, lancer_campagne_task, recalculer_stats_campagne
 from business.models import BusinessLeadEvent, BusinessProfile
-from business.services import generate_campaign_links, iter_campaign_contacts
+from business.services import generate_campaign_links, get_audience_for_campaign
 
 
 def staff_required(view_func):
@@ -447,6 +447,7 @@ def creer_campagne(request):
                     campagne.business,
                     campagne.filtre_ville,
                     campagne.audience_interest,
+                    user=request.user,
                 )[0]
                 campagne.save(update_fields=["total_destinataires"])
             else:
@@ -476,18 +477,14 @@ def creer_campagne(request):
             "ai_presets": AI_PRESETS,
             "whatsapp_dry_run": settings.WHATSAPP_DRY_RUN,
             "businesses": businesses,
+            "is_admin_campaign_mode": request.user.is_staff or request.user.is_superuser,
         },
     )
 
 
-def _business_campaign_audience(business, city="", interest=""):
-    total = 0
-    examples = []
-    for contact in iter_campaign_contacts(business, city, interest):
-        total += 1
-        if len(examples) < 5:
-            examples.append(contact)
-    return total, examples
+def _business_campaign_audience(business, city="", interest="", user=None):
+    contacts = get_audience_for_campaign(business, city, interest, user=user)
+    return len(contacts), contacts[:5]
 
 
 @login_required
@@ -551,12 +548,18 @@ def business_campaigns(request):
 @require_POST
 def api_business_campaign_audience(request):
     data = _json_body(request)
-    businesses = BusinessProfile.objects.all() if request.user.is_staff else BusinessProfile.objects.filter(owner=request.user)
+    is_admin_campaign_mode = request.user.is_staff or request.user.is_superuser
+    businesses = (
+        BusinessProfile.objects.all()
+        if is_admin_campaign_mode
+        else BusinessProfile.objects.filter(owner=request.user)
+    )
     business = get_object_or_404(businesses, pk=data.get("business_id"))
     total, examples = _business_campaign_audience(
         business,
         data.get("city", ""),
         data.get("interest", ""),
+        user=request.user,
     )
     return JsonResponse(
         {
@@ -564,6 +567,13 @@ def api_business_campaign_audience(request):
             "business": business.display_name,
             "city": data.get("city", ""),
             "interest": data.get("interest", ""),
+            "global_audience": is_admin_campaign_mode,
+            "audience_message": (
+                "MODE E-SHELLE ADMIN : Audience globale E-Shelle. Vous pouvez envoyer une campagne resto "
+                "à un contact qui a consenti pour pressing. Consentement E-Shelle."
+                if is_admin_campaign_mode
+                else "L'audience est limitée aux contacts de ce business ayant donné leur accord pour le marketing WhatsApp."
+            ),
             "examples": [{"name": contact.display_name or contact.phone} for contact in examples],
         }
     )
