@@ -63,6 +63,52 @@ class BusinessCampaignTests(TestCase):
             metadata={"city": "Douala", "interest": interest},
         )
 
+    @override_settings(WHATSAPP_COMMERCE_ENABLED=False)
+    def test_business_campaign_launch_explains_feature_is_not_enabled(self):
+        campaign = Campagne.objects.create(
+            nom="Promo Le Boj",
+            business=self.business,
+            message_template="Promotion",
+            statut=Campagne.STATUT_VALIDEE,
+        )
+        self.client.force_login(self.staff)
+
+        response = self.client.post(
+            reverse("whatsapp_agent:wa_lancer", args=[campaign.pk]),
+            {"confirm_launch": "on"},
+        )
+
+        campaign.refresh_from_db()
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(campaign.statut, Campagne.STATUT_VALIDEE)
+        self.assertIn(
+            "Fonction Business en activation, contactez le support.",
+            [str(message) for message in get_messages(response.wsgi_request)],
+        )
+
+    @override_settings(WHATSAPP_COMMERCE_ENABLED=True)
+    def test_business_campaign_without_prepared_recipients_is_not_launched(self):
+        campaign = Campagne.objects.create(
+            nom="Promo Le Boj",
+            business=self.business,
+            message_template="Promotion",
+            statut=Campagne.STATUT_VALIDEE,
+        )
+        self.client.force_login(self.staff)
+
+        response = self.client.post(
+            reverse("whatsapp_agent:wa_lancer", args=[campaign.pk]),
+            {"confirm_launch": "on"},
+        )
+
+        campaign.refresh_from_db()
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(campaign.statut, Campagne.STATUT_VALIDEE)
+        self.assertIn(
+            "Aucun destinataire consentant n'est prepare pour cette campagne.",
+            [str(message) for message in get_messages(response.wsgi_request)],
+        )
+
     def create_opted_in_contact(self, phone="+237699000001", tags=None):
         return BusinessWhatsAppContact.objects.create(
             business=self.business,

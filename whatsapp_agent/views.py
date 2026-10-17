@@ -683,8 +683,8 @@ def lancer_campagne(request, pk):
     """Declenche la tache Celery d'envoi massif."""
 
     campagne = get_object_or_404(Campagne, pk=pk)
-    if campagne.business_id:
-        messages.error(request, "L'envoi des campagnes liees a un business n'est pas encore disponible.")
+    if campagne.business_id and not settings.WHATSAPP_COMMERCE_ENABLED:
+        messages.error(request, "Fonction Business en activation, contactez le support.")
         return redirect("whatsapp_agent:wa_detail", pk=campagne.pk)
     confirmation = request.POST.get("confirm_launch") == "on"
     if campagne.statut != Campagne.STATUT_VALIDEE:
@@ -692,6 +692,9 @@ def lancer_campagne(request, pk):
         return redirect("whatsapp_agent:wa_detail", pk=campagne.pk)
     if not confirmation:
         messages.warning(request, "Coche la confirmation finale avant de lancer la campagne.")
+        return redirect("whatsapp_agent:wa_detail", pk=campagne.pk)
+    if campagne.business_id and not campagne.messages.filter(statut=MessageEnvoi.STATUT_EN_ATTENTE).exists():
+        messages.error(request, "Aucun destinataire consentant n'est prepare pour cette campagne.")
         return redirect("whatsapp_agent:wa_detail", pk=campagne.pk)
     if campagne.template_meta_name:
         try:
