@@ -20,6 +20,21 @@ class DeliveryTests(TestCase):
             numero_whatsapp="+237699000001", message_final="Bonjour")
         self.url = reverse("whatsapp_agent:wa_test", args=[self.campaign.pk])
 
+    def test_message_status_choices_are_the_single_status_contract(self):
+        status_values = {value for value, _label in MessageEnvoi.STATUTS}
+
+        self.assertEqual(
+            status_values,
+            {
+                MessageEnvoi.STATUT_EN_ATTENTE,
+                MessageEnvoi.STATUT_ENVOYE,
+                MessageEnvoi.STATUT_LIVRE,
+                MessageEnvoi.STATUT_LU,
+                MessageEnvoi.STATUT_ECHEC,
+            },
+        )
+        self.assertNotIn("pret", status_values)
+
     @patch("whatsapp_agent.services.requests.post")
     def test_hello_world_uses_english_and_no_body_parameters(self, post):
         post.return_value.status_code = 200
@@ -161,4 +176,3 @@ class DeliveryTests(TestCase):
         media_url = reverse("whatsapp_agent:wa_media", args=[msg.id])
         resp = self.client.get(media_url)
         self.assertEqual(resp.status_code, 302)
-
