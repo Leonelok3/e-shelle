@@ -4,6 +4,7 @@ from unittest.mock import patch
 from datetime import timedelta
 
 from django.core.files.uploadedfile import SimpleUploadedFile
+from django.contrib.auth import get_user_model
 from django.test import TestCase, Client, override_settings
 from django.utils import timezone
 
@@ -19,6 +20,18 @@ class OCRJobTests(TestCase):
         self.settings_override = override_settings(PHONE_OCR_UPLOAD_ROOT=Path(self.tmp.name))
         self.settings_override.enable()
         self.addCleanup(self.settings_override.disable)
+        staff = get_user_model().objects.create_user(username="ocr-staff", is_staff=True)
+        self.client.force_login(staff)
+
+    def test_ocr_routes_require_staff_and_are_noindex(self):
+        self.assertEqual(Client().get("/phone-ocr/").status_code, 404)
+        non_staff = get_user_model().objects.create_user(username="ocr-user")
+        client = Client()
+        client.force_login(non_staff)
+        self.assertEqual(client.get("/phone-ocr/").status_code, 404)
+        response = self.client.get("/phone-ocr/")
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response["X-Robots-Tag"], "noindex, nofollow")
 
     def submit(self):
         return self.client.post('/phone-ocr/submit/', {'media': SimpleUploadedFile('test.mp4', b'video', content_type='video/mp4')}, HTTP_ACCEPT='application/json')
@@ -27,6 +40,7 @@ class OCRJobTests(TestCase):
     def test_async_result_and_session_isolation(self, enqueue):
         response = self.submit()
         self.assertEqual(response.status_code, 202)
+        self.assertEqual(response["X-Robots-Tag"], "noindex, nofollow")
         job = OCRJob.objects.get()
         self.assertEqual(job.status, 'queued')
         enqueue.assert_called_once()
@@ -36,7 +50,9 @@ class OCRJobTests(TestCase):
             process_ocr_job(str(job.pk))
         job.refresh_from_db()
         self.assertEqual(job.numbers, ['+237699123456'])
-        self.assertEqual(self.client.get(url).json()['status'], 'done')
+        status_response = self.client.get(url)
+        self.assertEqual(status_response.json()['status'], 'done')
+        self.assertEqual(status_response["X-Robots-Tag"], "noindex, nofollow")
         self.assertEqual(list(Path(self.tmp.name).iterdir()), [])
         with patch('phone_ocr_agent.tasks.extract_from_video') as extract:
             process_ocr_job(str(job.pk))

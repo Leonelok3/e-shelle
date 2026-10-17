@@ -7,6 +7,7 @@ from django.shortcuts import get_object_or_404, redirect
 from django.urls import reverse
 from django.views.decorators.http import require_POST
 
+from .access import staff_only_noindex
 from .models import OCRJob
 from .tasks import cleanup_files, process_ocr_job, upload_root
 
@@ -25,6 +26,7 @@ def owned_job(request, job_id):
     return get_object_or_404(OCRJob, pk=job_id, session_key=request.session.session_key or "")
 
 
+@staff_only_noindex
 @require_POST
 def submit(request):
     files = request.FILES.getlist("media")
@@ -61,6 +63,7 @@ def submit(request):
     return JsonResponse({"status_url": reverse("phone_ocr_agent:job_status", args=[job.pk]), "result_url": result_url}, status=202)
 
 
+@staff_only_noindex
 def status(request, job_id):
     job = owned_job(request, job_id)
     response = JsonResponse({"status": job.status, "error": job.error})

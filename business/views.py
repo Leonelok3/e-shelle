@@ -61,7 +61,6 @@ BUSINESS_KEY_FULL_TOOLS = [
     "Kit commercial et scripts WhatsApp",
     "Agent Commercial IA",
     "Contacts et campagnes WhatsApp",
-    "Phone OCR local",
     "Agent SEO IA",
     "AdGen publicites IA",
     "Audio Studio IA",
@@ -452,7 +451,6 @@ def _business_key_sector_cards(referral_link=""):
             "answer": "Oui, mais les nouveaux clients cherchent d'abord sur WhatsApp, Google ou via recommandation. E-Shelle vous donne une vitrine simple.",
             "links": [
                 ("Creer une fiche", "/business/onboarding/?plan=free"),
-                ("Importer contacts", "/phone-ocr/"),
                 ("Contacts WhatsApp", "/whatsapp/contacts/"),
                 ("Campagne WhatsApp", "/whatsapp/campagnes/"),
             ],
@@ -1334,7 +1332,6 @@ def business_key_kit(request):
         ("Agent Commercial IA", "/commercial-agent/", "Qualifier les prospects et preparer les messages."),
         ("WhatsApp Agent", "/whatsapp/campagnes/", "Lancer et suivre les campagnes."),
         ("Contacts WhatsApp", "/whatsapp/contacts/", "Choisir les numeros a relancer."),
-        ("Phone OCR", "/phone-ocr/", "Extraire des numeros depuis une capture autorisee."),
         ("AdGen", "/pub/", "Generer posts, accroches et visuels marketing."),
         ("SEO Agent", "/seo/", "Creer des pages locales rentables."),
     ]
@@ -2191,7 +2188,6 @@ def partner_dashboard(request):
         ("Opportunites E-Shelle", "/business/opportunites/"),
         ("Contacts WhatsApp", "/whatsapp/contacts/"),
         ("Campagnes WhatsApp", "/whatsapp/campagnes/"),
-        ("Phone OCR", "/phone-ocr/"),
         ("Agent SEO IA", "/seo/"),
         ("Creer une fiche business", "/business/onboarding/?plan=free"),
     ]

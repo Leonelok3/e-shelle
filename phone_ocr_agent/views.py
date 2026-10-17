@@ -7,6 +7,7 @@ from django.urls import reverse
 from django.utils import timezone
 from django.views.decorators.http import require_POST
 
+from .access import staff_only_noindex
 from whatsapp_agent.models import Campagne, ContactWhatsApp
 
 
@@ -96,6 +97,7 @@ def _save_whatsapp_contacts(request, numbers, ville, groupe, note, module, conse
     return {"created": created, "updated": updated, "error": None}
 
 
+@staff_only_noindex
 def dashboard(request):
     from .job_views import owned_job, submit
     job_id = request.POST.get("job") if request.method == "POST" else request.GET.get("job")
@@ -237,6 +239,7 @@ def dashboard(request):
     return render(request, "phone_ocr_agent/dashboard.html", context)
 
 
+@staff_only_noindex
 @require_POST
 def export_csv(request):
     numbers = [line.strip() for line in request.POST.get("numbers", "").splitlines() if line.strip()]
