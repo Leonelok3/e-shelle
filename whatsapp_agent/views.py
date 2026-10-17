@@ -115,15 +115,16 @@ def _creer_messages_campagne(campagne):
     if not variantes:
         variantes = [template_brut]
 
-    contacts_whatsapp = campagne.destinataires_contacts.filter(
-        consentement_confirme=True,
-        desinscrit=False,
-    ).order_by("nom", "numero")
-    # Future promotional sends must use:
-    # campagne.destinataires_contacts.filter(consent_marketing=True, desinscrit=False)
-    # Service replies must independently require consent_service=True. MessageEnvoi
-    # currently has no ContactWhatsApp FK, so do not filter via contact__ here.
-    if contacts_whatsapp.exists():
+    if campagne.destinataires_contacts.exists() or campagne.consent_type == Campagne.CONSENT_SERVICE:
+        consent_field = (
+            "consent_service"
+            if campagne.consent_type == Campagne.CONSENT_SERVICE
+            else "consent_marketing"
+        )
+        contacts_whatsapp = campagne.destinataires_contacts.filter(
+            **{consent_field: True},
+            desinscrit=False,
+        ).order_by("nom", "numero")
         batch = []
         for idx, contact in enumerate(contacts_whatsapp):
             tpl_choisi = variantes[idx % len(variantes)]
@@ -370,6 +371,9 @@ def importer_contacts(request):
                         "consentement_confirme": True,
                         "consentement_source": "manual_confirmation",
                         "consentement_le": timezone.now(),
+                        "consent_marketing": True,
+                        "consent_date": timezone.now(),
+                        "consent_source": "manual_marketing_import",
                         "importe_par": request.user,
                     },
                 )
@@ -381,13 +385,24 @@ def importer_contacts(request):
                         if value and getattr(contact, field) != value:
                             setattr(contact, field, value)
                             changed = True
-                    if not contact.consentement_confirme and not contact.desinscrit:
-                        contact.consentement_confirme = True
-                        contact.consentement_source = "manual_confirmation"
-                        contact.consentement_le = timezone.now()
-                        changed = True
+                    if not contact.desinscrit:
+                        now = timezone.now()
+                        if not contact.consentement_confirme:
+                            contact.consentement_confirme = True
+                            contact.consentement_source = "manual_confirmation"
+                            contact.consentement_le = now
+                            changed = True
+                        if not contact.consent_marketing:
+                            contact.consent_marketing = True
+                            contact.consent_date = now
+                            contact.consent_source = "manual_marketing_import"
+                            changed = True
                     if changed:
-                        contact.save(update_fields=["ville", "groupe", "note", "consentement_confirme", "consentement_source", "consentement_le", "mis_a_jour_le"])
+                        contact.save(update_fields=[
+                            "ville", "groupe", "note", "consentement_confirme",
+                            "consentement_source", "consentement_le", "consent_marketing",
+                            "consent_date", "consent_source", "mis_a_jour_le",
+                        ])
                     updated += 1
                 contact_ids.append(contact.id)
 
@@ -960,6 +975,9 @@ def api_import_contact(request):
         "consentement_confirme": True,
         "consentement_source": str(data.get("consentement_source") or "api_confirmation").strip()[:80],
         "consentement_le": timezone.now(),
+        "consent_marketing": True,
+        "consent_date": timezone.now(),
+        "consent_source": str(data.get("consentement_source") or "api_marketing_import").strip()[:255],
         "importe_par": request.user if request.user.is_authenticated else None,
     }
     contact, created = ContactWhatsApp.objects.get_or_create(numero=numero, defaults=defaults)
@@ -970,13 +988,23 @@ def api_import_contact(request):
             if value and getattr(contact, field) != value:
                 setattr(contact, field, value)
                 updated = True
-        if not contact.consentement_confirme and not contact.desinscrit:
-            contact.consentement_confirme = True
-            contact.consentement_source = defaults["consentement_source"]
-            contact.consentement_le = defaults["consentement_le"]
-            updated = True
+        if not contact.desinscrit:
+            if not contact.consentement_confirme:
+                contact.consentement_confirme = True
+                contact.consentement_source = defaults["consentement_source"]
+                contact.consentement_le = defaults["consentement_le"]
+                updated = True
+            if not contact.consent_marketing:
+                contact.consent_marketing = True
+                contact.consent_date = defaults["consent_date"]
+                contact.consent_source = defaults["consent_source"]
+                updated = True
         if updated:
-            contact.save(update_fields=["nom", "ville", "groupe", "source", "note", "consentement_confirme", "consentement_source", "consentement_le", "mis_a_jour_le"])
+            contact.save(update_fields=[
+                "nom", "ville", "groupe", "source", "note", "consentement_confirme",
+                "consentement_source", "consentement_le", "consent_marketing",
+                "consent_date", "consent_source", "mis_a_jour_le",
+            ])
         return Response(
             {"status": "exists", "id": contact.id, "numero": contact.numero},
             status=status.HTTP_200_OK,

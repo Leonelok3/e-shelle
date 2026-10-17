@@ -57,6 +57,13 @@ class ContactWhatsApp(models.Model):
 class Campagne(models.Model):
     """Campagne d'envoi WhatsApp vers les utilisateurs E-Shelle."""
 
+    CONSENT_MARKETING = "marketing"
+    CONSENT_SERVICE = "service"
+    CONSENT_TYPES = [
+        (CONSENT_MARKETING, "Marketing"),
+        (CONSENT_SERVICE, "Service"),
+    ]
+
     STATUT_BROUILLON = "brouillon"
     STATUT_VALIDEE = "validee"
     STATUT_EN_COURS = "en_cours"
@@ -82,6 +89,12 @@ class Campagne(models.Model):
     )
     message_template = models.TextField(
         help_text="Message a envoyer. Utilise {{prenom}} pour personnaliser."
+    )
+    consent_type = models.CharField(
+        max_length=16,
+        choices=CONSENT_TYPES,
+        default=CONSENT_MARKETING,
+        verbose_name="Type de consentement requis",
     )
     audience_interest = models.CharField(max_length=180, blank=True)
     price_charged = models.IntegerField(default=10000)

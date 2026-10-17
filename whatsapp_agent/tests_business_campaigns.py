@@ -1,5 +1,6 @@
 import json
 from pathlib import Path
+from unittest.mock import patch
 
 from django.contrib.auth import get_user_model
 from django.contrib.messages import get_messages
@@ -14,7 +15,8 @@ from business.services import (
     get_audience_for_campaign,
     handle_ai_phone_capture,
 )
-from whatsapp_agent.models import CampaignLinkClick, Campagne, ContactWhatsApp
+from whatsapp_agent.models import CampaignLinkClick, Campagne, ContactWhatsApp, MessageEnvoi
+from whatsapp_agent.views import _creer_messages_campagne
 from whatsapp_commerce.models import BusinessWhatsAppContact
 
 
@@ -534,6 +536,46 @@ class BusinessCampaignTests(TestCase):
         self.assertContains(response, "Paul")
         self.assertContains(response, "Marie")
         self.assertContains(response, "Jacques")
+
+    def test_campaign_messages_require_the_selected_consent_type(self):
+        marketing_contact = ContactWhatsApp.objects.create(
+            numero="+237699000031",
+            consent_marketing=True,
+        )
+        service_contact = ContactWhatsApp.objects.create(
+            numero="+237699000032",
+            consent_service=True,
+        )
+        legacy_contact = ContactWhatsApp.objects.create(
+            numero="+237699000033",
+            consentement_confirme=True,
+        )
+        campaign = Campagne.objects.create(
+            nom="Consentement filtre",
+            message_template="Bonjour",
+            filtre_role="selection_contacts",
+        )
+        campaign.destinataires_contacts.set(
+            [marketing_contact, service_contact, legacy_contact]
+        )
+
+        with patch("whatsapp_agent.views.WhatsAppService.recuperer_contacts") as fallback:
+            _creer_messages_campagne(campaign)
+            self.assertEqual(
+                list(campaign.messages.values_list("numero_whatsapp", flat=True)),
+                [marketing_contact.numero],
+            )
+            fallback.assert_not_called()
+
+            campaign.consent_type = Campagne.CONSENT_SERVICE
+            campaign.save(update_fields=["consent_type"])
+            _creer_messages_campagne(campaign)
+
+        self.assertEqual(
+            list(campaign.messages.values_list("numero_whatsapp", flat=True)),
+            [service_contact.numero],
+        )
+        self.assertEqual(campaign.messages.count(), 1)
 
     def test_campaign_links_are_personal_and_filtered_to_consented_audience(self):
         contact = self.create_opted_in_contact()

@@ -31,6 +31,13 @@ class TemplateSelectionForm(forms.Form):
 class CampagneForm(forms.ModelForm):
     """Formulaire de creation et edition de campagne WhatsApp."""
 
+    consent_type = forms.ChoiceField(
+        choices=Campagne.CONSENT_TYPES,
+        initial=Campagne.CONSENT_MARKETING,
+        required=False,
+        label=Campagne._meta.get_field("consent_type").verbose_name,
+        widget=forms.Select(attrs={"class": "wa-input"}),
+    )
     business = forms.ModelChoiceField(
         queryset=BusinessProfile.objects.none(),
         required=False,
@@ -45,6 +52,8 @@ class CampagneForm(forms.ModelForm):
 
     def clean(self):
         data = super().clean()
+        if not data.get("consent_type"):
+            data["consent_type"] = Campagne.CONSENT_MARKETING
         if not data.get('message_template') and not self.data.get('meta_template'):
             self.add_error('message_template', 'Renseigne un message ou selectionne un modele Meta.')
         return data
@@ -55,6 +64,7 @@ class CampagneForm(forms.ModelForm):
             "nom",
             "description",
             "business",
+            "consent_type",
             "filtre_role",
             "filtre_ville",
             "filtre_date_inscription_depuis",
@@ -64,6 +74,7 @@ class CampagneForm(forms.ModelForm):
         widgets = {
             "nom": forms.TextInput(attrs={"class": "wa-input", "placeholder": "Promotion week-end"}),
             "description": forms.Textarea(attrs={"class": "wa-input", "rows": 3}),
+            "consent_type": forms.Select(attrs={"class": "wa-input"}),
             "filtre_role": forms.TextInput(attrs={"class": "wa-input", "placeholder": "vendeur, acheteur, premium ou tous"}),
             "filtre_ville": forms.TextInput(attrs={"class": "wa-input", "placeholder": "Douala, Yaounde..."}),
             "filtre_date_inscription_depuis": forms.DateInput(attrs={"class": "wa-input", "type": "date"}),

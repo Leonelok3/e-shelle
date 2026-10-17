@@ -44,6 +44,9 @@ def _save_whatsapp_contacts(request, numbers, ville, groupe, note, module, conse
                 "consentement_confirme": True,
                 "consentement_source": "manual_confirmation",
                 "consentement_le": timezone.now(),
+                "consent_marketing": True,
+                "consent_date": timezone.now(),
+                "consent_source": "manual_marketing_import",
                 "importe_par": request.user if request.user.is_authenticated else None,
             },
         )
@@ -56,13 +59,24 @@ def _save_whatsapp_contacts(request, numbers, ville, groupe, note, module, conse
                     if value and getattr(contact, field) != value:
                         setattr(contact, field, value)
                         changed = True
-                if not contact.consentement_confirme and not contact.desinscrit:
-                    contact.consentement_confirme = True
-                    contact.consentement_source = "manual_confirmation"
-                    contact.consentement_le = timezone.now()
-                    changed = True
+                if not contact.desinscrit:
+                    now = timezone.now()
+                    if not contact.consentement_confirme:
+                        contact.consentement_confirme = True
+                        contact.consentement_source = "manual_confirmation"
+                        contact.consentement_le = now
+                        changed = True
+                    if not contact.consent_marketing:
+                        contact.consent_marketing = True
+                        contact.consent_date = now
+                        contact.consent_source = "manual_marketing_import"
+                        changed = True
                 if changed:
-                    contact.save(update_fields=["ville", "groupe", "note", "consentement_confirme", "consentement_source", "consentement_le", "mis_a_jour_le"])
+                    contact.save(update_fields=[
+                        "ville", "groupe", "note", "consentement_confirme",
+                        "consentement_source", "consentement_le", "consent_marketing",
+                        "consent_date", "consent_source", "mis_a_jour_le",
+                    ])
                 updated += 1
         contact_ids.append(contact.id)
 
