@@ -179,6 +179,16 @@ class WhatsAppTestSend(models.Model):
         ordering = ["-cree_le"]
 
 
+class WhatsAppWebhookHealth(models.Model):
+    """Persists only the timestamp of the latest verified WhatsApp webhook."""
+
+    key = models.PositiveSmallIntegerField(primary_key=True, default=1, editable=False)
+    last_received_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        verbose_name = "Etat de reception du webhook WhatsApp"
+
+
 class MessageEnvoi(models.Model):
     """Message personnalise envoye dans une campagne."""
 

@@ -766,6 +766,7 @@ def commercial_pdf_view(request):
     return response
 
 urlpatterns = [
+    path("health/whatsapp", whatsapp_agent_views.whatsapp_health, name="whatsapp_health"),
     path("i18n/", include("django.conf.urls.i18n")),
     path("avatar/", avatar_redirect, name="avatar_redirect"),
     path("e-shelle-commercial.pdf", commercial_pdf_view, name="commercial_pdf"),

@@ -7,7 +7,7 @@ from django.contrib.auth import get_user_model
 from django.test import TestCase, override_settings
 from django.urls import reverse
 
-from .models import Campagne, MessageEnvoi, WhatsAppTestSend
+from .models import Campagne, MessageEnvoi, WhatsAppTestSend, WhatsAppWebhookHealth
 from .services import WhatsAppService
 
 
@@ -19,6 +19,47 @@ class DeliveryTests(TestCase):
         self.original = MessageEnvoi.objects.create(campagne=self.campaign,
             numero_whatsapp="+237699000001", message_final="Bonjour")
         self.url = reverse("whatsapp_agent:wa_test", args=[self.campaign.pk])
+
+    @override_settings(
+        WHATSAPP_CONFIG_READY=True,
+        WHATSAPP_COMMERCE_ENABLED=True,
+        WHATSAPP_DRY_RUN=False,
+    )
+    def test_whatsapp_health_exposes_flags_pending_count_and_webhook_time(self):
+        response = self.client.get(reverse("whatsapp_health"))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response["Cache-Control"], "no-store")
+        self.assertEqual(
+            response.json(),
+            {
+                "WHATSAPP_CONFIG_READY": True,
+                "WHATSAPP_COMMERCE_ENABLED": True,
+                "WHATSAPP_DRY_RUN": False,
+                "messages_en_attente": 1,
+                "last_webhook_received_at": None,
+            },
+        )
+
+    @override_settings(WHATSAPP_APP_SECRET="test-app-secret")
+    def test_verified_webhook_updates_health_timestamp(self):
+        payload = json.dumps(
+            {"object": "whatsapp_business_account", "entry": []}
+        ).encode()
+        signature = "sha256=" + hmac.new(
+            b"test-app-secret", payload, hashlib.sha256
+        ).hexdigest()
+
+        response = self.client.post(
+            reverse("whatsapp_agent:wa_webhook"),
+            data=payload,
+            content_type="application/json",
+            headers={"X-Hub-Signature-256": signature},
+        )
+
+        self.assertEqual(response.status_code, 200)
+        health = WhatsAppWebhookHealth.objects.get(pk=1)
+        self.assertIsNotNone(health.last_received_at)
 
     def test_message_status_choices_are_the_single_status_contract(self):
         status_values = {value for value, _label in MessageEnvoi.STATUTS}

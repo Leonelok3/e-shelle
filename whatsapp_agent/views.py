@@ -31,7 +31,7 @@ from rest_framework.response import Response
 from .forms import CampagneForm, TemplateSelectionForm
 from .calling import WhatsAppCallingError, get_call_permission, initiate_call, post_call_action, request_call_permission
 from .meta_templates import TemplateError, approved_templates, validate_selection, message_parameters, template_preview
-from .models import CampaignLinkClick, Campagne, ContactWhatsApp, ConversationWhatsApp, MessageEnvoi, MessageWhatsApp, WhatsAppCall, WhatsAppTestSend
+from .models import CampaignLinkClick, Campagne, ContactWhatsApp, ConversationWhatsApp, MessageEnvoi, MessageWhatsApp, WhatsAppCall, WhatsAppTestSend, WhatsAppWebhookHealth
 from .services import AI_PRESETS, WhatsAppService
 from .tasks import lancer_campagne_direct, lancer_campagne_task, recalculer_stats_campagne
 from business.models import BusinessLeadEvent, BusinessProfile
@@ -73,6 +73,26 @@ def _json_body(request):
         return json.loads(request.body.decode("utf-8") or "{}")
     except json.JSONDecodeError:
         return {}
+
+
+@require_GET
+def whatsapp_health(request):
+    webhook_health = WhatsAppWebhookHealth.objects.filter(pk=1).first()
+    response = JsonResponse({
+        "WHATSAPP_CONFIG_READY": bool(getattr(settings, "WHATSAPP_CONFIG_READY", False)),
+        "WHATSAPP_COMMERCE_ENABLED": bool(getattr(settings, "WHATSAPP_COMMERCE_ENABLED", False)),
+        "WHATSAPP_DRY_RUN": bool(getattr(settings, "WHATSAPP_DRY_RUN", True)),
+        "messages_en_attente": MessageEnvoi.objects.filter(
+            statut=MessageEnvoi.STATUT_EN_ATTENTE
+        ).count(),
+        "last_webhook_received_at": (
+            webhook_health.last_received_at.isoformat()
+            if webhook_health and webhook_health.last_received_at
+            else None
+        ),
+    })
+    response["Cache-Control"] = "no-store"
+    return response
 
 
 def _parse_liste_numeros(raw_text):
@@ -1203,6 +1223,9 @@ def webhook_meta(request):
                     for campagne in Campagne.objects.filter(messages__whatsapp_message_id=message_id).distinct():
                         recalculer_stats_campagne(campagne)
 
+    webhook_health, _created = WhatsAppWebhookHealth.objects.get_or_create(pk=1)
+    webhook_health.last_received_at = timezone.now()
+    webhook_health.save(update_fields=["last_received_at"])
     return JsonResponse({"status": "ok"})
 
 
