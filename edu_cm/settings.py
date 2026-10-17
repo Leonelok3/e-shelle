@@ -2,6 +2,7 @@ from pathlib import Path
 import os
 from urllib.parse import urlparse
 from dotenv import load_dotenv
+from django.core.exceptions import ImproperlyConfigured
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 load_dotenv(BASE_DIR / '.env')
@@ -630,6 +631,10 @@ WHATSAPP_API_URL = os.getenv(
 )
 WHATSAPP_VERIFY_TOKEN = os.getenv("WHATSAPP_VERIFY_TOKEN", "")
 WHATSAPP_DRY_RUN = os.getenv("WHATSAPP_DRY_RUN", "True").lower() in ("1", "true", "yes")
+if DATABASE_URL.strip() and WHATSAPP_DRY_RUN:
+    raise ImproperlyConfigured(
+        "WHATSAPP_DRY_RUN must be disabled when DATABASE_URL is configured."
+    )
 WHATSAPP_APP_SECRET = os.getenv("WHATSAPP_APP_SECRET", "")
 WHATSAPP_CONFIG_READY = bool(
     WHATSAPP_TOKEN
