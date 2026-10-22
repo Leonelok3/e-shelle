@@ -24,6 +24,31 @@
       <button type="submit">{% if LANGUAGE_CODE == 'en' %}Import CSV{% else %}Importer CSV{% endif %}</button>
     </form>
 
+    <form id="catalog-photo-import" class="catalog-import" method="post" enctype="multipart/form-data" action="{% url 'business:catalog_photo_upload' %}">
+      {% csrf_token %}
+      <input type="hidden" name="business_id" value="{{ business.id }}">
+      <label for="catalog-product-photo">{% if LANGUAGE_CODE == 'en' %}Photo to product{% else %}Photo → Produit{% endif %}</label>
+      <input id="catalog-product-photo" type="file" name="photo" accept="image/png,image/jpeg,image/webp" required>
+      <button type="submit">📸 {% if LANGUAGE_CODE == 'en' %}Photo → Product{% else %}Photo → Produit{% endif %}</button>
+      <p id="catalog-photo-result" role="status" aria-live="polite"></p>
+    </form>
+    <script>
+      document.getElementById('catalog-photo-import').addEventListener('submit', async function (event) {
+        event.preventDefault();
+        const result = document.getElementById('catalog-photo-result');
+        result.textContent = {% if LANGUAGE_CODE == 'en' %}'Reading photo…'{% else %}'Lecture de la photo…'{% endif %};
+        try {
+          const response = await fetch(this.action, {method: 'POST', body: new FormData(this), headers: {'X-Requested-With': 'XMLHttpRequest'}});
+          const payload = await response.json();
+          if (!response.ok || !payload.ok) throw new Error(payload.error || 'Import failed');
+          result.textContent = payload.product.nom + ' · ' + payload.product.prix_detail + ' FCFA';
+          window.location.reload();
+        } catch (error) {
+          result.textContent = error.message;
+        }
+      });
+    </script>
+
     <div class="catalog-grid">
       <form class="catalog-card" method="post" enctype="multipart/form-data">
         {% csrf_token %}
@@ -171,6 +196,7 @@
             </em>
           </div>
           <div class="catalog-item-actions">
+            {% if item.stock_quantity > 50 %}<span class="njangi-badge">{% if LANGUAGE_CODE == 'en' %}Lancer en Njangi{% else %}Lancer en Njangi{% endif %}</span>{% endif %}
             <a href="{% url 'business:catalog_item_edit' business.id item.id %}" style="display:inline-flex;align-items:center;justify-content:center;min-height:38px;padding:.55rem .75rem;border-radius:9px;border:1px solid rgba(124,246,108,.25);background:#101c33;color:#fff;font-weight:900;text-decoration:none;cursor:pointer">{% if LANGUAGE_CODE == 'en' %}Edit{% else %}Modifier{% endif %}</a>
             <form method="post" action="{% url 'business:catalog_item_action' business.id item.id %}">
               {% csrf_token %}
@@ -231,6 +257,7 @@
 .catalog-item em.status-on{background:rgba(34,197,94,.14);color:#86efac}
 .catalog-item em.status-off{background:rgba(148,163,184,.14);color:#cbd5e1}
 .catalog-item-actions{display:flex;gap:.5rem;flex-wrap:wrap;justify-content:flex-end}
+.njangi-badge{display:inline-flex;align-items:center;padding:.5rem .7rem;border-radius:999px;background:#ffd91f;color:#102014;font-size:.75rem;font-weight:950}
 .catalog-item-actions button{min-height:38px;padding:.55rem .75rem;background:#172033}
 .catalog-item-actions button.is-on{background:#14532d;color:#86efac}
 .catalog-item-actions button.danger{background:#3b1212;color:#fecaca;border-color:rgba(248,113,113,.28)}

@@ -46,6 +46,7 @@ urlpatterns = [
     path("fiche/<int:business_id>/modifier/", views.business_edit, name="business_edit"),
     path("catalogue/<int:business_id>/", views.catalog_manage, name="catalog_manage"),
     path("catalogue/<int:business_id>/importer-csv/", views.catalog_import_csv, name="catalog_import_csv"),
+    path("catalog/photo-upload/", views.catalog_photo_upload, name="catalog_photo_upload"),
     path("catalogue/<int:business_id>/item/<int:item_id>/", views.catalog_item_action, name="catalog_item_action"),
     path("catalogue/<int:business_id>/item/<int:item_id>/modifier/", views.catalog_item_edit, name="catalog_item_edit"),
     path("catalogue/<int:business_id>/item/<int:item_id>/generer-description/", views.catalog_item_generate_description, name="catalog_item_generate_description"),

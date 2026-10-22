@@ -38,6 +38,8 @@ from .orchestrator import confirm_draft_order
 from boutique.models import Commande, LigneCommande
 from payments.models import Transaction
 from .orchestrator import can_create_order
+from .campaigns import accept_njangi_invitation, lancer_njangi_achat, send_vocal_campaign
+from njangi.models import NjangiAchatGroupe, NjangiAchatParticipation
 
 
 class BusinessWhatsAppTests(TestCase):
@@ -55,6 +57,111 @@ class BusinessWhatsAppTests(TestCase):
 			module=BusinessProfile.Module.GENERAL,
 			name="Boutique B",
 		)
+
+	@override_settings(WHATSAPP_DRY_RUN=False)
+	@patch("whatsapp_commerce.campaigns._request_meta")
+	@patch("whatsapp_commerce.campaigns._generate_business_vocal")
+	def test_vocal_pidgin_sends_via_business_waba(self, generate_audio, meta_request):
+		connection = BusinessWhatsAppConnection.objects.create(
+			business=self.business,
+			waba_id="vocal-waba",
+			phone_number_id="vocal-phone",
+			status=BusinessWhatsAppConnection.Status.ACTIVE,
+			phone_registered=True,
+			webhook_subscribed=True,
+		)
+		connection.set_access_token("vocal-test-token")
+		connection.save(update_fields=["access_token_encrypted"])
+		self.business.language = BusinessProfile.Language.PIDGIN
+		self.business.save(update_fields=["language", "updated_at"])
+		product = BusinessCatalogItem.objects.create(
+			business=self.business,
+			title="Ciment 32.5",
+			price_label="4850 FCFA",
+			stock_quantity=120,
+		)
+		contact = BusinessWhatsAppContact.objects.create(
+			business=self.business,
+			phone="+237699000041",
+			marketing_opt_in=True,
+			consent_marketing=True,
+		)
+		unconsented = BusinessWhatsAppContact.objects.create(
+			business=self.business,
+			phone="+237699000042",
+			marketing_opt_in=False,
+			consent_marketing=False,
+		)
+		generate_audio.return_value.audio_file.url = "https://cdn.example/vocal.mp3"
+		meta_request.return_value = {"messages": [{"id": "wamid-pidgin-audio"}]}
+
+		result = send_vocal_campaign(self.business, [contact, unconsented], product, "pidgin")
+
+		self.assertEqual(result["sent"], 1)
+		self.assertEqual(result["skipped"], 1)
+		self.assertEqual(meta_request.call_args.args[:2], ("POST", "vocal-phone/messages"))
+		self.assertEqual(meta_request.call_args.kwargs["payload"]["type"], "audio")
+		self.assertEqual(
+			contact.messages.get(wa_message_id="wamid-pidgin-audio").language,
+			"pidgin",
+		)
+		generate_audio.assert_called_once_with(self.business, product, "pidgin")
+
+	@override_settings(WHATSAPP_DRY_RUN=True)
+	def test_njangi_achat_atteint_prix_groupe(self):
+		product = BusinessCatalogItem.objects.create(
+			business=self.business,
+			title="Ciment 32.5",
+			price_label="4700 FCFA",
+			prix_gros_xaf=4000,
+			stock_quantity=1200,
+		)
+		group = NjangiAchatGroupe.objects.create(
+			product=product,
+			quantite_cible=1000,
+			quantite_actuelle=950,
+			prix_njangi="4000.00",
+			prix_normal="4700.00",
+			date_cloture=timezone.now() + timezone.timedelta(days=2),
+		)
+		shop = BusinessProfile.objects.create(
+			owner=self.other_owner,
+			module=BusinessProfile.Module.QUINCAILLERIE,
+			name="Quincaillerie Akwa",
+			city="Douala",
+			district="Akwa",
+		)
+		connection = BusinessWhatsAppConnection.objects.create(
+			business=shop,
+			waba_id="njangi-waba",
+			phone_number_id="njangi-phone",
+			status=BusinessWhatsAppConnection.Status.ACTIVE,
+			phone_registered=True,
+			webhook_subscribed=True,
+		)
+		connection.set_access_token("njangi-test-token")
+		connection.save(update_fields=["access_token_encrypted"])
+		contact = BusinessWhatsAppContact.objects.create(
+			business=shop,
+			phone="+237699000051",
+			marketing_opt_in=True,
+			consent_marketing=True,
+			last_inbound_at=timezone.now(),
+		)
+
+		result = lancer_njangi_achat(group.pk)
+		accepted = accept_njangi_invitation(contact, "OUI")
+
+		group.refresh_from_db()
+		participation = NjangiAchatParticipation.objects.get(achat_groupe=group, business=shop)
+		self.assertEqual(result["sent"], 1)
+		self.assertEqual(participation.status, NjangiAchatParticipation.Status.ACCEPTED)
+		self.assertEqual(group.quantite_actuelle, 1000)
+		self.assertEqual(group.status, NjangiAchatGroupe.Status.REACHED)
+		self.assertEqual(group.progress_pct, 100)
+		self.assertEqual(group.economie_par_boutique(), 35000)
+		self.assertSetEqual(set(group.businesses_participants.all()), {shop})
+		self.assertTrue(accepted["reached"])
 
 	@patch("whatsapp_commerce.onboarding.requests.request")
 	def test_embedded_signup_exchanges_token_registers_and_subscribes(self, request):

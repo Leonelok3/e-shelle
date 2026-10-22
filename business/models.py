@@ -15,6 +15,13 @@ from django.utils.text import slugify
 class BusinessProfile(models.Model):
     """Profil economique global lie a une fiche prestataire d'un module."""
 
+    class Language(models.TextChoices):
+        FRENCH = "fr", "Français"
+        ENGLISH = "en", "English"
+        PIDGIN = "pidgin", "Cameroonian Pidgin"
+        EWONDO = "ewondo", "Ewondo"
+        BASSA = "bassa", "Bassa"
+
     class Module(models.TextChoices):
         RESTO = "resto", "Resto"
         GAZ = "gaz", "Gaz"
@@ -84,6 +91,7 @@ class BusinessProfile(models.Model):
     country = models.CharField(max_length=100, default="Cameroun", blank=True)
     city = models.CharField(max_length=100, blank=True)
     district = models.CharField(max_length=120, blank=True)
+    language = models.CharField(max_length=16, choices=Language.choices, default=Language.FRENCH)
     phone = models.CharField(max_length=40, blank=True)
     whatsapp = models.CharField(max_length=40, blank=True)
     description = models.TextField(blank=True)

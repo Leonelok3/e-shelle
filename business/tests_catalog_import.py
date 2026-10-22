@@ -2,6 +2,7 @@ from django.contrib.auth import get_user_model
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import TestCase
 from django.urls import reverse
+from unittest.mock import patch, Mock
 
 from .catalog_import import CatalogImportError, import_catalog_csv
 from .models import BusinessCatalogItem, BusinessProfile
@@ -75,6 +76,36 @@ class TchokosCatalogImportTests(TestCase):
         self.assertEqual(tiles.price_label, "8500 FCFA")
         self.assertEqual(sheets.category, "Toiture")
         self.assertEqual(BusinessCatalogItem.objects.filter(business=self.business).count(), 10)
+
+    @patch("business.models.BusinessCatalogItem.image.field.storage.url", return_value="https://cdn.example/product.jpg")
+    @patch("business.models.BusinessCatalogItem.image.field.storage.save", return_value="business/catalogue/product.jpg")
+    @patch("e_shelle_ai.services.openai_service.EshelleAIService")
+    @patch("phone_ocr_agent.services.extract_from_image")
+    def test_photo_import_creates_product(self, extract_image, ai_service, _save_image, _image_url):
+        from types import SimpleNamespace
+
+        from .catalog_import import import_from_photo
+
+        extract_image.return_value = SimpleNamespace(text="Ciment 32.5 4850 FCFA prix gros 4500 stock 120")
+        completion = Mock()
+        completion.choices = [
+            SimpleNamespace(
+                message=SimpleNamespace(
+                    content='{"sku":"TC-PHOTO-01","nom":"Ciment 32.5","nom_en":"Cement 32.5","prix_detail":4850,"prix_gros":4500,"stock":120,"categorie":"Ciment"}'
+                )
+            )
+        ]
+        ai_service.return_value.client.chat.completions.create.return_value = completion
+        photo = SimpleUploadedFile("ciment.jpg", b"image-bytes", content_type="image/jpeg")
+
+        result = import_from_photo(photo, self.business.pk)
+
+        product = BusinessCatalogItem.objects.get(business=self.business, sku="TC-PHOTO-01")
+        self.assertTrue(result["created"])
+        self.assertEqual(result["product"]["nom"], "Ciment 32.5")
+        self.assertEqual(product.title_en, "Cement 32.5")
+        self.assertEqual(product.price_label, "4850 FCFA")
+        extract_image.assert_called_once_with(photo)
 
     def test_invalid_file_does_not_partially_import(self):
         csv_file = self.upload(

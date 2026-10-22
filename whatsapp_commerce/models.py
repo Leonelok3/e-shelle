@@ -141,6 +141,7 @@ class BusinessWhatsAppMessage(models.Model):
 	wa_message_id = models.CharField(max_length=200, unique=True)
 	direction = models.CharField(max_length=12, choices=Direction.choices)
 	message_type = models.CharField(max_length=32, default="text")
+	language = models.CharField(max_length=16, blank=True)
 	body = models.TextField(blank=True)
 	status = models.CharField(max_length=24, blank=True)
 	meta_timestamp = models.DateTimeField(null=True, blank=True)

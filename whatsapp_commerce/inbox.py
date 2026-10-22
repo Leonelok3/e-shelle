@@ -261,7 +261,28 @@ def process_business_whatsapp_webhook(payload):
 						_message_datetime(message.get("timestamp")),
 					)
 					if created and contact and saved_message and not contact.opted_out_at:
-						_run_sales_agent(connection, contact, saved_message)
+						from .campaigns import accept_njangi_invitation
+
+						accepted = accept_njangi_invitation(contact, saved_message.body)
+						if accepted:
+							reply = (
+								f"Participation confirmée : {accepted['quantity']} unité(s) à "
+								f"{accepted['group'].prix_njangi}F. Merci pour ta réponse !"
+							)
+							wa_message_id = send_business_reply(contact, reply)
+							BusinessWhatsAppAudit.objects.create(
+								connection=connection,
+								contact=contact,
+								event_type="njangi_group_buy_accepted",
+								action="explicit_oui",
+								details={
+									"group_buy_id": accepted["group"].pk,
+									"quantity": accepted["quantity"],
+									"wa_message_id": wa_message_id,
+								},
+							)
+						else:
+							_run_sales_agent(connection, contact, saved_message)
 
 			for status in value.get("statuses", []):
 				if not isinstance(status, dict) or not status.get("id"):

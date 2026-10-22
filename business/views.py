@@ -44,7 +44,7 @@ from .models import (
     UnmetSearchRequest,
     UnmetSearchResponse,
 )
-from .catalog_import import CatalogImportError, import_catalog_csv
+from .catalog_import import CatalogImportError, import_catalog_csv, import_from_photo
 from .ai_delivery import ensure_english_kit_content, generate_client_ai_kit, kit_summary_for_whatsapp
 from .ai_arsenal import arsenal_agents, arsenal_stats, fidelisation_agent, opportunites_agent
 from .reporting import business_report_context, render_business_report_pdf
@@ -2237,6 +2237,7 @@ def onboarding(request):
         if city == "Autre":
             city = request.POST.get("city_custom", "").strip()
         district = request.POST.get("district", "").strip()
+        language = request.POST.get("language", BusinessProfile.Language.FRENCH)
         phone = request.POST.get("phone", "").strip()
         whatsapp = request.POST.get("whatsapp", "").strip()
         promo_headline = request.POST.get("promo_headline", "").strip()
@@ -2261,6 +2262,7 @@ def onboarding(request):
                 country=country,
                 city=city,
                 district=district,
+                language=language if language in dict(BusinessProfile.Language.choices) else BusinessProfile.Language.FRENCH,
                 phone=phone,
                 whatsapp=whatsapp or phone,
                 promo_headline=promo_headline,
@@ -2296,6 +2298,7 @@ def onboarding(request):
         {
             "plan": plan,
             "modules": BusinessProfile.Module.choices,
+            "languages": BusinessProfile.Language.choices,
         },
     )
 
@@ -2475,6 +2478,23 @@ def catalog_import_csv(request, business_id):
             f"{result['total']} ligne(s) traitée(s). Les produits absents du fichier sont conservés.",
         )
     return redirect("business:catalog_manage", business_id=business.pk)
+
+
+@login_required
+@require_POST
+def catalog_photo_upload(request):
+    business_id = request.POST.get("business_id")
+    business = get_object_or_404(BusinessProfile, pk=business_id, owner=request.user)
+    image = request.FILES.get("photo")
+    if not image:
+        return JsonResponse({"ok": False, "error": "Choisis une photo produit."}, status=400)
+    try:
+        result = import_from_photo(image, business.pk)
+    except CatalogImportError as exc:
+        return JsonResponse({"ok": False, "error": str(exc)}, status=400)
+    except BusinessProfile.DoesNotExist:
+        return JsonResponse({"ok": False, "error": "Profil Business introuvable."}, status=404)
+    return JsonResponse({"ok": True, **result}, status=201 if result["created"] else 200)
 
 
 @login_required
@@ -2785,6 +2805,7 @@ def business_edit(request, business_id):
         district = request.POST.get("district", "").strip()
         phone = request.POST.get("phone", "").strip()
         whatsapp = request.POST.get("whatsapp", "").strip()
+        language = request.POST.get("language", BusinessProfile.Language.FRENCH)
         promo_headline = request.POST.get("promo_headline", "").strip()
         promo_headline_en = request.POST.get("promo_headline_en", "").strip()
         promo_offer = request.POST.get("promo_offer", "").strip()
@@ -2803,6 +2824,7 @@ def business_edit(request, business_id):
                 business.module = module
             business.city = city
             business.district = district
+            business.language = language if language in dict(BusinessProfile.Language.choices) else BusinessProfile.Language.FRENCH
             business.phone = phone
             business.whatsapp = whatsapp or phone
             business.promo_headline = promo_headline
@@ -2828,6 +2850,7 @@ def business_edit(request, business_id):
         {
             "business": business,
             "modules": BusinessProfile.Module.choices,
+            "languages": BusinessProfile.Language.choices,
         },
     )
 
