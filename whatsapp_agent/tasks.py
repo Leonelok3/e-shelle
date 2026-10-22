@@ -5,6 +5,8 @@ from django.utils import timezone
 from .models import Campagne, MessageEnvoi
 from .services import WhatsAppService
 from .meta_templates import message_parameters
+from whatsapp_commerce.campaigns import send_business_campaign_message
+from whatsapp_commerce.onboarding import MetaOnboardingError
 
 
 def recalculer_stats_campagne(campagne: Campagne):
@@ -36,6 +38,30 @@ def recalculer_stats_campagne(campagne: Campagne):
 def _traiter_message_direct(msg: MessageEnvoi):
     """Traite un message sans Celery, utile en local et en simulation."""
 
+    if msg.campagne.business_id:
+        try:
+            result = send_business_campaign_message(msg)
+        except MetaOnboardingError as exc:
+            result = {"success": False, "message_id": "", "erreur": str(exc)}
+        if result["success"]:
+            msg.statut = MessageEnvoi.STATUT_ENVOYE
+            msg.whatsapp_message_id = result["message_id"]
+            msg.erreur = ""
+            msg.envoye_le = timezone.now()
+        else:
+            msg.statut = MessageEnvoi.STATUT_ECHEC
+            msg.erreur = result["erreur"]
+        msg.save(
+            update_fields=[
+                "statut",
+                "whatsapp_message_id",
+                "erreur",
+                "envoye_le",
+                "mis_a_jour_le",
+            ]
+        )
+        return
+
     is_manuel = msg.campagne.filtre_role == "selection_contacts" or msg.campagne.destinataires_contacts.exists()
     if not is_manuel and WhatsAppService.deja_contacte(msg.numero_whatsapp):
         msg.statut = MessageEnvoi.STATUT_ECHEC
@@ -61,7 +87,8 @@ def _traiter_message_direct(msg: MessageEnvoi):
         msg.erreur = ""
         msg.envoye_le = timezone.now()
         msg.save(update_fields=["statut", "whatsapp_message_id", "erreur", "envoye_le", "mis_a_jour_le"])
-        WhatsAppService.journaliser_envoi(msg.numero_whatsapp, msg)
+        if not msg.campagne.business_id:
+            WhatsAppService.journaliser_envoi(msg.numero_whatsapp, msg)
     else:
         msg.statut = MessageEnvoi.STATUT_ECHEC
         msg.erreur = result["erreur"]
@@ -93,10 +120,16 @@ def lancer_campagne_direct(campagne_id: int):
 
 @shared_task(bind=True, max_retries=2)
 def envoyer_message_task(self, message_envoi_id: int):
-    """Envoie un seul message et reessaie deux fois en cas d'echec temporaire."""
+    """Envoie un message; les campagnes Business restent en tentative unique."""
 
-    msg = MessageEnvoi.objects.select_related("campagne").get(id=message_envoi_id)
-    is_manuel = msg.campagne.filtre_role == "selection_contacts" or msg.campagne.destinataires_contacts.exists()
+    msg = MessageEnvoi.objects.select_related("campagne", "business_contact").get(id=message_envoi_id)
+    if msg.campagne.business_id and msg.statut != MessageEnvoi.STATUT_EN_ATTENTE:
+        return
+    is_manuel = (
+        msg.campagne.business_id
+        or msg.campagne.filtre_role == "selection_contacts"
+        or msg.campagne.destinataires_contacts.exists()
+    )
     if not is_manuel and WhatsAppService.deja_contacte(msg.numero_whatsapp):
         msg.statut = MessageEnvoi.STATUT_ECHEC
         msg.erreur = "Destinataire deja contacte par une campagne precedente."
@@ -109,13 +142,19 @@ def envoyer_message_task(self, message_envoi_id: int):
         prenom = msg.user.first_name.strip()
     params = [prenom or "Client"]
 
-    result = WhatsAppService.envoyer_message(
-        msg.numero_whatsapp,
-        msg.message_final,
-        template_name=msg.campagne.template_meta_name,
-        template_language=msg.campagne.template_meta_language,
-        template_params=message_parameters(msg.campagne, msg) if msg.campagne.template_meta_name else params,
-    )
+    if msg.campagne.business_id:
+        try:
+            result = send_business_campaign_message(msg)
+        except MetaOnboardingError as exc:
+            result = {"success": False, "message_id": "", "erreur": str(exc)}
+    else:
+        result = WhatsAppService.envoyer_message(
+            msg.numero_whatsapp,
+            msg.message_final,
+            template_name=msg.campagne.template_meta_name,
+            template_language=msg.campagne.template_meta_language,
+            template_params=message_parameters(msg.campagne, msg) if msg.campagne.template_meta_name else params,
+        )
 
     if result["success"]:
         msg.statut = MessageEnvoi.STATUT_ENVOYE
@@ -123,10 +162,11 @@ def envoyer_message_task(self, message_envoi_id: int):
         msg.erreur = ""
         msg.envoye_le = timezone.now()
         msg.save(update_fields=["statut", "whatsapp_message_id", "erreur", "envoye_le", "mis_a_jour_le"])
-        WhatsAppService.journaliser_envoi(msg.numero_whatsapp, msg)
+        if not msg.campagne.business_id:
+            WhatsAppService.journaliser_envoi(msg.numero_whatsapp, msg)
     else:
         msg.erreur = result["erreur"]
-        if self.request.retries < self.max_retries:
+        if not msg.campagne.business_id and self.request.retries < self.max_retries:
             msg.save(update_fields=["erreur", "mis_a_jour_le"])
             raise self.retry(countdown=60)
         msg.statut = MessageEnvoi.STATUT_ECHEC

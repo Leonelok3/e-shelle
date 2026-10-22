@@ -36,6 +36,8 @@ from .services import AI_PRESETS, WhatsAppService
 from .tasks import lancer_campagne_direct, lancer_campagne_task, recalculer_stats_campagne
 from business.models import BusinessLeadEvent, BusinessProfile
 from business.services import generate_campaign_links, get_audience_for_campaign
+from whatsapp_commerce.models import BusinessWhatsAppConnection
+from whatsapp_commerce.onboarding import MetaOnboardingError
 
 
 def staff_required(view_func):
@@ -44,6 +46,15 @@ def staff_required(view_func):
 
 @staff_required
 def api_templates_meta(request):
+    business_id = request.GET.get("business_id")
+    if business_id:
+        business = get_object_or_404(BusinessProfile, pk=business_id)
+        try:
+            from whatsapp_commerce.campaigns import business_campaign_template_catalog
+
+            return JsonResponse({"templates": business_campaign_template_catalog(business)})
+        except MetaOnboardingError as exc:
+            return JsonResponse({"templates": [], "error": str(exc)}, status=503)
     try:
         return JsonResponse({'templates': approved_templates()})
     except TemplateError as exc:
@@ -53,7 +64,8 @@ def api_templates_meta(request):
 @staff_required
 @require_POST
 def selectionner_modele(request, pk):
-    selection = TemplateSelectionForm(request.POST)
+    campaign = get_object_or_404(Campagne, pk=pk)
+    selection = TemplateSelectionForm(request.POST, business=campaign.business)
     if not selection.is_valid():
         messages.error(request, ' '.join(str(e) for errors in selection.errors.values() for e in errors))
         return redirect('whatsapp_agent:wa_detail', pk=pk)
@@ -134,6 +146,34 @@ def _creer_messages_campagne(campagne):
     variantes = [v.strip() for v in template_brut.split("---VARIATION---") if v.strip()]
     if not variantes:
         variantes = [template_brut]
+
+    if campagne.business_id:
+        contacts = get_audience_for_campaign(
+            campagne.business,
+            campagne.filtre_ville,
+            campagne.audience_interest,
+        )
+        batch = []
+        for idx, contact in enumerate(contacts.iterator()):
+            tpl_choisi = variantes[idx % len(variantes)]
+            first_name = contact.display_name or contact.phone
+            message = tpl_choisi.replace("{{prenom}}", first_name.split()[0])
+            batch.append(
+                MessageEnvoi(
+                    campagne=campagne,
+                    business_contact=contact,
+                    destinataire_nom=first_name,
+                    numero_whatsapp=contact.phone,
+                    message_final=message,
+                )
+            )
+        MessageEnvoi.objects.bulk_create(batch, batch_size=500)
+        campagne.total_destinataires = campagne.messages.filter(
+            business_contact__isnull=False
+        ).count()
+        campagne.save(update_fields=["total_destinataires"])
+        recalculer_stats_campagne(campagne)
+        return
 
     if campagne.destinataires_contacts.exists() or campagne.consent_type == Campagne.CONSENT_SERVICE:
         consent_field = (
@@ -467,37 +507,45 @@ def creer_campagne(request):
     businesses = BusinessProfile.objects.all().order_by("name")
     if request.method == "POST":
         form = CampagneForm(request.POST, business_queryset=businesses)
-        selection = TemplateSelectionForm(request.POST)
         form_valid = form.is_valid()
+        selection = TemplateSelectionForm(
+            request.POST,
+            business=form.cleaned_data.get("business") if form_valid else None,
+        )
         selection_valid = selection.is_valid()
         if form_valid and selection_valid:
             campagne = form.save(commit=False)
             selection.apply(campagne)
             campagne.cree_par = request.user
             action = request.POST.get("action", "draft")
+            business_connection_ready = (
+                not campagne.business_id
+                or (
+                    settings.WHATSAPP_COMMERCE_ENABLED
+                    and BusinessWhatsAppConnection.objects.filter(
+                        business=campagne.business,
+                        status=BusinessWhatsAppConnection.Status.ACTIVE,
+                        phone_registered=True,
+                        webhook_subscribed=True,
+                    ).exists()
+                )
+            )
             campagne.statut = (
                 Campagne.STATUT_VALIDEE
-                if action == "validate" and not campagne.business_id
+                if action == "validate" and business_connection_ready
                 else Campagne.STATUT_BROUILLON
             )
             campagne.save()
-            if campagne.business_id:
-                campagne.total_destinataires = _business_campaign_audience(
-                    campagne.business,
-                    campagne.filtre_ville,
-                    campagne.audience_interest,
-                    user=request.user,
-                )[0]
-                campagne.save(update_fields=["total_destinataires"])
-            else:
-                _creer_messages_campagne(campagne)
+            _creer_messages_campagne(campagne)
             if action == "validate" and not campagne.business_id:
                 messages.success(
                     request,
                     "Campagne validee. Verifie les destinataires puis lance l'envoi quand tu es pret.",
                 )
+            elif campagne.business_id and campagne.statut == Campagne.STATUT_VALIDEE:
+                messages.success(request, "Campagne Business validee avec les contacts consentants du WABA connecte.")
             elif campagne.business_id:
-                messages.success(request, "Brouillon lie au business enregistre. L'envoi Meta sera active apres validation du parcours.")
+                messages.success(request, "Brouillon lie au business enregistre. Active le commerce et connecte son WABA avant validation.")
             else:
                 messages.success(request, "Campagne WhatsApp sauvegardee en brouillon.")
             return redirect("whatsapp_agent:wa_detail", pk=campagne.pk)
@@ -521,8 +569,8 @@ def creer_campagne(request):
     )
 
 
-def _business_campaign_audience(business, city="", interest="", user=None):
-    contacts = get_audience_for_campaign(business, city, interest, user=user)
+def _business_campaign_audience(business, city="", interest=""):
+    contacts = get_audience_for_campaign(business, city, interest)
     return contacts.count(), list(contacts[:5])
 
 
@@ -598,7 +646,6 @@ def api_business_campaign_audience(request):
         business,
         data.get("city", ""),
         data.get("interest", ""),
-        user=request.user,
     )
     return JsonResponse(
         {
@@ -606,12 +653,9 @@ def api_business_campaign_audience(request):
             "business": business.display_name,
             "city": data.get("city", ""),
             "interest": data.get("interest", ""),
-            "global_audience": is_admin_campaign_mode,
+            "global_audience": False,
             "audience_message": (
-                "MODE E-SHELLE ADMIN : Audience globale E-Shelle. Vous pouvez envoyer une campagne resto "
-                "à un contact qui a consenti pour pressing. Consentement E-Shelle."
-                if is_admin_campaign_mode
-                else "L'audience est limitée aux contacts de ce business ayant donné leur accord pour le marketing WhatsApp."
+                "L'audience est limitée aux contacts de ce business ayant donné leur accord pour le marketing WhatsApp."
             ),
             "examples": [{"name": contact.display_name or contact.phone} for contact in examples],
         }
@@ -673,7 +717,6 @@ def detail_campagne(request, pk):
             campagne.business,
             campagne.filtre_ville,
             campagne.audience_interest,
-            user=request.user,
         )
         campagne.save(update_fields=["total_destinataires"])
     messages_qs = campagne.messages.select_related("user", "commercial_prospect").order_by("-mis_a_jour_le")
@@ -690,9 +733,7 @@ def detail_campagne(request, pk):
         {
             "campagne": campagne,
             "audience_contacts": audience_contacts,
-            "audience_is_global": bool(
-                campagne.business_id and (request.user.is_staff or request.user.is_superuser)
-            ),
+            "audience_is_global": False,
             "page_obj": page_obj,
             "progress_envoyes": _percent(campagne.total_envoyes, campagne.total_destinataires),
             "progress_livres": _percent(campagne.total_livres, campagne.total_destinataires),
@@ -718,9 +759,19 @@ def lancer_campagne(request, pk):
     """Declenche la tache Celery d'envoi massif."""
 
     campagne = get_object_or_404(Campagne, pk=pk)
-    if campagne.business_id and not settings.WHATSAPP_COMMERCE_ENABLED:
-        messages.error(request, "Fonction Business en activation, contactez le support.")
-        return redirect("whatsapp_agent:wa_detail", pk=campagne.pk)
+    if campagne.business_id:
+        connection_ready = (
+            settings.WHATSAPP_COMMERCE_ENABLED
+            and BusinessWhatsAppConnection.objects.filter(
+                business=campagne.business,
+                status=BusinessWhatsAppConnection.Status.ACTIVE,
+                phone_registered=True,
+                webhook_subscribed=True,
+            ).exists()
+        )
+        if not connection_ready:
+            messages.error(request, "Fonction Business en activation, contactez le support.")
+            return redirect("whatsapp_agent:wa_detail", pk=campagne.pk)
     confirmation = request.POST.get("confirm_launch") == "on"
     if campagne.statut != Campagne.STATUT_VALIDEE:
         messages.warning(request, "Valide d'abord la campagne avant de lancer l'envoi.")
@@ -728,14 +779,40 @@ def lancer_campagne(request, pk):
     if not confirmation:
         messages.warning(request, "Coche la confirmation finale avant de lancer la campagne.")
         return redirect("whatsapp_agent:wa_detail", pk=campagne.pk)
+    if campagne.business_id:
+        eligible_ids = get_audience_for_campaign(
+            campagne.business,
+            campagne.filtre_ville,
+            campagne.audience_interest,
+        ).values_list("pk", flat=True)
+        campagne.messages.filter(
+            business_contact__isnull=False,
+            statut=MessageEnvoi.STATUT_EN_ATTENTE,
+        ).exclude(business_contact_id__in=eligible_ids).update(
+            statut=MessageEnvoi.STATUT_ECHEC,
+            erreur="Consentement marketing absent ou retiré avant l'envoi.",
+        )
     if campagne.business_id and not campagne.messages.filter(statut=MessageEnvoi.STATUT_EN_ATTENTE).exists():
         messages.error(request, "Aucun destinataire consentant n'est prepare pour cette campagne.")
         return redirect("whatsapp_agent:wa_detail", pk=campagne.pk)
     if campagne.template_meta_name:
         try:
-            validate_selection(campagne.template_meta_name + '|' + campagne.template_meta_language,
-                campagne.template_meta_params, refresh=True)
-        except TemplateError as exc:
+            if campagne.business_id:
+                from whatsapp_commerce.campaigns import validate_business_campaign_template
+
+                validate_business_campaign_template(
+                    campagne.business,
+                    campagne.template_meta_name,
+                    campagne.template_meta_language,
+                    campagne.template_meta_params,
+                )
+            else:
+                validate_selection(
+                    campagne.template_meta_name + "|" + campagne.template_meta_language,
+                    campagne.template_meta_params,
+                    refresh=True,
+                )
+        except (TemplateError, MetaOnboardingError) as exc:
             messages.error(request, str(exc))
             return redirect("whatsapp_agent:wa_detail", pk=campagne.pk)
     # Freeze the configuration before queueing, including the gap before Celery starts.

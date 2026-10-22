@@ -215,6 +215,13 @@ class MessageEnvoi(models.Model):
         on_delete=models.SET_NULL,
         related_name="messages_whatsapp",
     )
+    business_contact = models.ForeignKey(
+        "whatsapp_commerce.BusinessWhatsAppContact",
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="campaign_messages",
+    )
     destinataire_nom = models.CharField(max_length=180, blank=True)
     numero_whatsapp = models.CharField(max_length=20)
     message_final = models.TextField()

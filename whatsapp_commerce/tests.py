@@ -12,6 +12,7 @@ from django.urls import reverse
 from django.utils import timezone
 
 from business.models import BusinessCatalogItem, BusinessProfile
+from whatsapp_agent.models import Campagne, MessageEnvoi
 from .inbox import process_business_whatsapp_webhook, send_business_reply
 from .models import (
 	BusinessWhatsAppAudit,
@@ -24,7 +25,7 @@ from .models import (
 	ScheduledBusinessWhatsAppMessage,
 	WhatsAppDraftOrder,
 )
-from .onboarding import MetaOnboardingError, connect_business
+from .onboarding import MetaOnboardingError, connect_business, get_assigned_applications
 from .services import get_whatsapp_schema_extension, send_abandoned_cart_whatsapp, sync_product_to_whatsapp_catalog
 from .entitlements import whatsapp_entitlements
 from .automations import (
@@ -91,6 +92,108 @@ class BusinessWhatsAppTests(TestCase):
 		self.assertEqual(request.call_args_list[1].kwargs["json"]["pin"], "123456")
 		self.assertTrue(request.call_args_list[2].args[1].endswith("/123456/subscribed_apps"))
 		self.assertEqual(request.call_args_list[2].kwargs["headers"]["Authorization"], "Bearer business-token-secret")
+
+	@patch("whatsapp_commerce.onboarding._request_meta")
+	def test_get_assigned_applications_uses_meta_me_endpoint(self, meta_request):
+		meta_request.return_value = {"data": [{"id": "app-1", "name": "E-Shelle"}]}
+
+		applications = get_assigned_applications("user-access-token")
+
+		self.assertEqual(applications, [{"id": "app-1", "name": "E-Shelle"}])
+		meta_request.assert_called_once_with(
+			"GET",
+			"me/assigned_applications",
+			token="user-access-token",
+			params={"fields": "id,name"},
+		)
+
+	def test_get_assigned_applications_rejects_missing_token(self):
+		with self.assertRaises(MetaOnboardingError):
+			get_assigned_applications("")
+
+	@override_settings(
+		WHATSAPP_COMMERCE_ENABLED=True,
+		WHATSAPP_BUSINESS_AUTOMATIONS_ENABLED=False,
+		WHATSAPP_DRY_RUN=False,
+		WHATSAPP_TECH_PROVIDER_APP_ID="app-id",
+		WHATSAPP_API_URL="https://graph.facebook.com/v25.0/123/messages",
+		WHATSAPP_PHONE_ID="123",
+	)
+	def test_tech_provider_status_is_staff_only_and_exposes_no_secrets(self):
+		response = self.client.get(reverse("tech_provider_status"))
+		self.assertEqual(response.status_code, 302)
+
+		staff = get_user_model().objects.create_user(username="tech-provider-staff", is_staff=True)
+		self.client.force_login(staff)
+		response = self.client.get(reverse("tech_provider_status"))
+
+		self.assertEqual(response.status_code, 200)
+		self.assertEqual(
+			response.json(),
+			{
+				"whatsapp_commerce_enabled": True,
+				"whatsapp_business_automations_enabled": False,
+				"whatsapp_dry_run": False,
+				"tech_provider_app_id_configured": True,
+				"whatsapp_api_url_configured": True,
+			},
+		)
+
+	def test_business_campaign_delivery_status_updates_campaign_message(self):
+		connection = BusinessWhatsAppConnection.objects.create(
+			business=self.business,
+			waba_id="campaign-status-waba",
+			phone_number_id="campaign-status-phone",
+			status=BusinessWhatsAppConnection.Status.ACTIVE,
+		)
+		contact = BusinessWhatsAppContact.objects.create(
+			business=self.business,
+			phone="+237699000010",
+			marketing_opt_in=True,
+			consent_marketing=True,
+		)
+		campaign = Campagne.objects.create(
+			nom="Test livraison",
+			business=self.business,
+			message_template="Promotion",
+		)
+		campaign_message = MessageEnvoi.objects.create(
+			campagne=campaign,
+			business_contact=contact,
+			numero_whatsapp=contact.phone,
+			message_final="Promotion",
+			whatsapp_message_id="wamid-campaign-status",
+			statut=MessageEnvoi.STATUT_ENVOYE,
+		)
+		BusinessWhatsAppMessage.objects.create(
+			contact=contact,
+			wa_message_id="wamid-campaign-status",
+			direction=BusinessWhatsAppMessage.Direction.OUTBOUND,
+			status="sent",
+		)
+
+		process_business_whatsapp_webhook(
+			{
+				"entry": [
+					{
+						"id": connection.waba_id,
+						"changes": [
+							{
+								"value": {
+									"metadata": {"phone_number_id": connection.phone_number_id},
+									"statuses": [{"id": "wamid-campaign-status", "status": "read"}],
+								},
+							}
+						],
+					}
+				]
+			}
+		)
+
+		campaign_message.refresh_from_db()
+		campaign.refresh_from_db()
+		self.assertEqual(campaign_message.statut, MessageEnvoi.STATUT_LU)
+		self.assertEqual(campaign.total_lus, 1)
 
 	def test_webhook_routes_inbound_messages_to_the_matching_business(self):
 		first = BusinessWhatsAppConnection.objects.create(

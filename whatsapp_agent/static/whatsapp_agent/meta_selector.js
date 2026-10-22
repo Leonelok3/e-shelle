@@ -6,6 +6,7 @@
     const variables = root.querySelector('[data-meta-variables]');
     const params = root.querySelector('[data-meta-params]');
     const savedNode = document.getElementById('saved-meta-params');
+    const businessInput = document.querySelector(root.dataset.businessInput || '');
     let saved = savedNode ? JSON.parse(savedNode.textContent) : [];
     let templates = [];
     let selected = root.dataset.selected;
@@ -39,7 +40,10 @@
     async function load() {
       status.textContent = 'Chargement des modeles approuves…';
       try {
-        const response = await fetch(root.dataset.url, {headers: {Accept: 'application/json'}});
+        const url = new URL(root.dataset.url, window.location.href);
+        const businessId = businessInput ? businessInput.value : root.dataset.businessId;
+        if (businessId) url.searchParams.set('business_id', businessId);
+        const response = await fetch(url, {headers: {Accept: 'application/json'}});
         const data = await response.json();
         if (!response.ok) throw new Error(data.error || 'Impossible de charger les modeles.');
         templates = data.templates;
@@ -63,6 +67,11 @@
       }
     }
     root.querySelector('[data-meta-refresh]').addEventListener('click', load);
+    if (businessInput) businessInput.addEventListener('change', () => {
+      selected = '';
+      saved = [];
+      load();
+    });
     load();
   });
 })();

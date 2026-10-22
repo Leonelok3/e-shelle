@@ -44,6 +44,7 @@ from .models import (
     UnmetSearchRequest,
     UnmetSearchResponse,
 )
+from .catalog_import import CatalogImportError, import_catalog_csv
 from .ai_delivery import ensure_english_kit_content, generate_client_ai_kit, kit_summary_for_whatsapp
 from .ai_arsenal import arsenal_agents, arsenal_stats, fidelisation_agent, opportunites_agent
 from .reporting import business_report_context, render_business_report_pdf
@@ -2453,6 +2454,27 @@ def catalog_manage(request, business_id):
             "cloudinary_upload_preset": settings.CLOUDINARY_UPLOAD_PRESET,
         },
     )
+
+
+@login_required
+@require_POST
+def catalog_import_csv(request, business_id):
+    business = get_object_or_404(BusinessProfile, pk=business_id, owner=request.user)
+    upload = request.FILES.get("catalog_csv")
+    if not upload or not upload.name.lower().endswith(".csv"):
+        messages.error(request, "Choisis un fichier CSV valide.")
+        return redirect("business:catalog_manage", business_id=business.pk)
+    try:
+        result = import_catalog_csv(business, upload)
+    except CatalogImportError as exc:
+        messages.error(request, str(exc))
+    else:
+        messages.success(
+            request,
+            f"Import terminé : {result['created']} créé(s), {result['updated']} mis à jour, "
+            f"{result['total']} ligne(s) traitée(s). Les produits absents du fichier sont conservés.",
+        )
+    return redirect("business:catalog_manage", business_id=business.pk)
 
 
 @login_required
