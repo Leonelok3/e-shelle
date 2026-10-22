@@ -16,6 +16,39 @@
       </div>
     </div>
 
+    <form class="catalog-import" method="post" enctype="multipart/form-data" action="{% url 'business:catalog_import_csv' business.id %}">
+      {% csrf_token %}
+      <label for="catalog-csv">{% if LANGUAGE_CODE == 'en' %}Import wholesaler CSV{% else %}Importer le catalogue grossiste (CSV){% endif %}</label>
+      <input id="catalog-csv" type="file" name="catalog_csv" accept=".csv,text/csv" required>
+      <p>sku, nom, prix_detail, prix_gros, stock, categorie. Les lignes absentes du CSV ne sont pas supprimées.</p>
+      <button type="submit">{% if LANGUAGE_CODE == 'en' %}Import CSV{% else %}Importer CSV{% endif %}</button>
+    </form>
+
+    <form id="catalog-photo-import" class="catalog-import" method="post" enctype="multipart/form-data" action="{% url 'business:catalog_photo_upload' %}">
+      {% csrf_token %}
+      <input type="hidden" name="business_id" value="{{ business.id }}">
+      <label for="catalog-product-photo">{% if LANGUAGE_CODE == 'en' %}Photo to product{% else %}Photo → Produit{% endif %}</label>
+      <input id="catalog-product-photo" type="file" name="photo" accept="image/png,image/jpeg,image/webp" required>
+      <button type="submit">📸 {% if LANGUAGE_CODE == 'en' %}Photo → Product{% else %}Photo → Produit{% endif %}</button>
+      <p id="catalog-photo-result" role="status" aria-live="polite"></p>
+    </form>
+    <script>
+      document.getElementById('catalog-photo-import').addEventListener('submit', async function (event) {
+        event.preventDefault();
+        const result = document.getElementById('catalog-photo-result');
+        result.textContent = {% if LANGUAGE_CODE == 'en' %}'Reading photo…'{% else %}'Lecture de la photo…'{% endif %};
+        try {
+          const response = await fetch(this.action, {method: 'POST', body: new FormData(this), headers: {'X-Requested-With': 'XMLHttpRequest'}});
+          const payload = await response.json();
+          if (!response.ok || !payload.ok) throw new Error(payload.error || 'Import failed');
+          result.textContent = payload.product.nom + ' · ' + payload.product.prix_detail + ' FCFA';
+          window.location.reload();
+        } catch (error) {
+          result.textContent = error.message;
+        }
+      });
+    </script>
+
     <div class="catalog-grid">
       <form class="catalog-card" method="post" enctype="multipart/form-data">
         {% csrf_token %}
@@ -157,12 +190,13 @@
           <div>
               <strong>{{ item.display_title }}</strong>
             <p>{% if item.display_description %}{{ item.display_description }}{% elif LANGUAGE_CODE == 'en' %}No description.{% else %}Aucune description.{% endif %}</p>
-            <small>{{ item.display_item_type }} · {{ item.formatted_price }} · {% if LANGUAGE_CODE == 'en' %}order{% else %}ordre{% endif %} {{ item.order }} · {{ item.views_count }} {% if LANGUAGE_CODE == 'en' %}views{% else %}vues{% endif %}</small>
+            <small>{{ item.display_item_type }} · {{ item.formatted_price }} · SKU {{ item.sku|default:"—" }} · {{ item.category|default:"—" }} · Gros {{ item.prix_gros_xaf|default:"—" }} FCFA · Stock {{ item.stock_quantity|default:"—" }} · {% if LANGUAGE_CODE == 'en' %}order{% else %}ordre{% endif %} {{ item.order }} · {{ item.views_count }} {% if LANGUAGE_CODE == 'en' %}views{% else %}vues{% endif %}</small>
             <em class="{% if item.is_active %}status-on{% else %}status-off{% endif %}">
               {% if item.is_active %}Visible sur la fiche publique{% else %}Masque sur la fiche publique{% endif %}
             </em>
           </div>
           <div class="catalog-item-actions">
+            {% if item.stock_quantity > 50 %}<span class="njangi-badge">{% if LANGUAGE_CODE == 'en' %}Lancer en Njangi{% else %}Lancer en Njangi{% endif %}</span>{% endif %}
             <a href="{% url 'business:catalog_item_edit' business.id item.id %}" style="display:inline-flex;align-items:center;justify-content:center;min-height:38px;padding:.55rem .75rem;border-radius:9px;border:1px solid rgba(124,246,108,.25);background:#101c33;color:#fff;font-weight:900;text-decoration:none;cursor:pointer">{% if LANGUAGE_CODE == 'en' %}Edit{% else %}Modifier{% endif %}</a>
             <form method="post" action="{% url 'business:catalog_item_action' business.id item.id %}">
               {% csrf_token %}
@@ -195,6 +229,11 @@
 .catalog-head p{color:#bdebd0;font-size:1.05rem;max-width:720px}
 .catalog-actions a,.catalog-card button,.catalog-item-actions button{display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:.7rem 1rem;border-radius:9px;border:1px solid rgba(124,246,108,.25);background:#12301e;color:#fff;font-weight:900;text-decoration:none;cursor:pointer}
 .catalog-grid{display:grid;grid-template-columns:1.2fr .8fr;gap:1rem}
+.catalog-import{display:grid;grid-template-columns:1fr minmax(220px,1fr) auto;gap:.5rem 1rem;align-items:center;margin:0 0 1rem;padding:1rem;border:1px solid rgba(255,217,31,.25);border-radius:12px;background:#092014}
+.catalog-import label{font-weight:900;color:#ffd91f}
+.catalog-import p{grid-column:1/3;margin:0;color:#c8f7d7;font-size:.85rem}
+.catalog-import input{width:100%;color:#fff}
+.catalog-import button{grid-column:3;grid-row:1/3;min-height:44px;padding:.7rem 1rem;border:0;border-radius:9px;background:#12301e;color:#fff;font-weight:900;cursor:pointer}
 .catalog-card{border:1px solid rgba(124,246,108,.2);background:#092014;border-radius:12px;padding:1rem}
 .catalog-card h2,.catalog-list h2{color:#ffd91f;margin:0 0 1rem;font-family:var(--font-display)}
 .catalog-card label{display:block;margin:.75rem 0 .35rem;color:#c8f7d7;font-weight:850}
@@ -218,10 +257,11 @@
 .catalog-item em.status-on{background:rgba(34,197,94,.14);color:#86efac}
 .catalog-item em.status-off{background:rgba(148,163,184,.14);color:#cbd5e1}
 .catalog-item-actions{display:flex;gap:.5rem;flex-wrap:wrap;justify-content:flex-end}
+.njangi-badge{display:inline-flex;align-items:center;padding:.5rem .7rem;border-radius:999px;background:#ffd91f;color:#102014;font-size:.75rem;font-weight:950}
 .catalog-item-actions button{min-height:38px;padding:.55rem .75rem;background:#172033}
 .catalog-item-actions button.is-on{background:#14532d;color:#86efac}
 .catalog-item-actions button.danger{background:#3b1212;color:#fecaca;border-color:rgba(248,113,113,.28)}
 .catalog-empty{padding:1.4rem;color:#c8f7d7;text-align:center}
-@media(max-width:900px){.catalog-grid,.catalog-item{grid-template-columns:1fr}.catalog-item-actions{justify-content:flex-start}.catalog-row{grid-template-columns:1fr}}
+@media(max-width:900px){.catalog-grid,.catalog-item,.catalog-import{grid-template-columns:1fr}.catalog-item-actions{justify-content:flex-start}.catalog-row{grid-template-columns:1fr}.catalog-import p,.catalog-import button{grid-column:auto;grid-row:auto}}
 </style>
 {% endblock %}

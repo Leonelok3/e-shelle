@@ -4,6 +4,7 @@ import secrets
 import time
 
 from django.apps import apps
+from django.contrib.admin.views.decorators import staff_member_required
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
@@ -40,6 +41,27 @@ from .onboarding import MetaOnboardingError, connect_business, retry_connection_
 from .services import get_whatsapp_order_url, normalize_phone
 
 logger = logging.getLogger(__name__)
+
+
+@staff_member_required
+@require_GET
+def tech_provider_status(request):
+	return JsonResponse(
+		{
+			"whatsapp_commerce_enabled": bool(getattr(settings, "WHATSAPP_COMMERCE_ENABLED", False)),
+			"whatsapp_business_automations_enabled": bool(
+				getattr(settings, "WHATSAPP_BUSINESS_AUTOMATIONS_ENABLED", False)
+			),
+			"whatsapp_dry_run": bool(getattr(settings, "WHATSAPP_DRY_RUN", True)),
+			"tech_provider_app_id_configured": bool(
+				getattr(settings, "WHATSAPP_TECH_PROVIDER_APP_ID", "")
+			),
+			"whatsapp_api_url_configured": bool(
+				getattr(settings, "WHATSAPP_PHONE_ID", "")
+				and getattr(settings, "WHATSAPP_API_URL", "")
+			),
+		}
+	)
 
 
 def _owned_business(request, business_id):

@@ -12,6 +12,7 @@ from django.urls import reverse
 from django.utils import timezone
 
 from business.models import BusinessCatalogItem, BusinessProfile
+from whatsapp_agent.models import Campagne, MessageEnvoi
 from .inbox import process_business_whatsapp_webhook, send_business_reply
 from .models import (
 	BusinessWhatsAppAudit,
@@ -24,7 +25,7 @@ from .models import (
 	ScheduledBusinessWhatsAppMessage,
 	WhatsAppDraftOrder,
 )
-from .onboarding import MetaOnboardingError, connect_business
+from .onboarding import MetaOnboardingError, connect_business, get_assigned_applications
 from .services import get_whatsapp_schema_extension, send_abandoned_cart_whatsapp, sync_product_to_whatsapp_catalog
 from .entitlements import whatsapp_entitlements
 from .automations import (
@@ -37,6 +38,8 @@ from .orchestrator import confirm_draft_order
 from boutique.models import Commande, LigneCommande
 from payments.models import Transaction
 from .orchestrator import can_create_order
+from .campaigns import accept_njangi_invitation, lancer_njangi_achat, send_vocal_campaign
+from njangi.models import NjangiAchatGroupe, NjangiAchatParticipation
 
 
 class BusinessWhatsAppTests(TestCase):
@@ -54,6 +57,111 @@ class BusinessWhatsAppTests(TestCase):
 			module=BusinessProfile.Module.GENERAL,
 			name="Boutique B",
 		)
+
+	@override_settings(WHATSAPP_DRY_RUN=False)
+	@patch("whatsapp_commerce.campaigns._request_meta")
+	@patch("whatsapp_commerce.campaigns._generate_business_vocal")
+	def test_vocal_pidgin_sends_via_business_waba(self, generate_audio, meta_request):
+		connection = BusinessWhatsAppConnection.objects.create(
+			business=self.business,
+			waba_id="vocal-waba",
+			phone_number_id="vocal-phone",
+			status=BusinessWhatsAppConnection.Status.ACTIVE,
+			phone_registered=True,
+			webhook_subscribed=True,
+		)
+		connection.set_access_token("vocal-test-token")
+		connection.save(update_fields=["access_token_encrypted"])
+		self.business.language = BusinessProfile.Language.PIDGIN
+		self.business.save(update_fields=["language", "updated_at"])
+		product = BusinessCatalogItem.objects.create(
+			business=self.business,
+			title="Ciment 32.5",
+			price_label="4850 FCFA",
+			stock_quantity=120,
+		)
+		contact = BusinessWhatsAppContact.objects.create(
+			business=self.business,
+			phone="+237699000041",
+			marketing_opt_in=True,
+			consent_marketing=True,
+		)
+		unconsented = BusinessWhatsAppContact.objects.create(
+			business=self.business,
+			phone="+237699000042",
+			marketing_opt_in=False,
+			consent_marketing=False,
+		)
+		generate_audio.return_value.audio_file.url = "https://cdn.example/vocal.mp3"
+		meta_request.return_value = {"messages": [{"id": "wamid-pidgin-audio"}]}
+
+		result = send_vocal_campaign(self.business, [contact, unconsented], product, "pidgin")
+
+		self.assertEqual(result["sent"], 1)
+		self.assertEqual(result["skipped"], 1)
+		self.assertEqual(meta_request.call_args.args[:2], ("POST", "vocal-phone/messages"))
+		self.assertEqual(meta_request.call_args.kwargs["payload"]["type"], "audio")
+		self.assertEqual(
+			contact.messages.get(wa_message_id="wamid-pidgin-audio").language,
+			"pidgin",
+		)
+		generate_audio.assert_called_once_with(self.business, product, "pidgin")
+
+	@override_settings(WHATSAPP_DRY_RUN=True)
+	def test_njangi_achat_atteint_prix_groupe(self):
+		product = BusinessCatalogItem.objects.create(
+			business=self.business,
+			title="Ciment 32.5",
+			price_label="4700 FCFA",
+			prix_gros_xaf=4000,
+			stock_quantity=1200,
+		)
+		group = NjangiAchatGroupe.objects.create(
+			product=product,
+			quantite_cible=1000,
+			quantite_actuelle=950,
+			prix_njangi="4000.00",
+			prix_normal="4700.00",
+			date_cloture=timezone.now() + timezone.timedelta(days=2),
+		)
+		shop = BusinessProfile.objects.create(
+			owner=self.other_owner,
+			module=BusinessProfile.Module.QUINCAILLERIE,
+			name="Quincaillerie Akwa",
+			city="Douala",
+			district="Akwa",
+		)
+		connection = BusinessWhatsAppConnection.objects.create(
+			business=shop,
+			waba_id="njangi-waba",
+			phone_number_id="njangi-phone",
+			status=BusinessWhatsAppConnection.Status.ACTIVE,
+			phone_registered=True,
+			webhook_subscribed=True,
+		)
+		connection.set_access_token("njangi-test-token")
+		connection.save(update_fields=["access_token_encrypted"])
+		contact = BusinessWhatsAppContact.objects.create(
+			business=shop,
+			phone="+237699000051",
+			marketing_opt_in=True,
+			consent_marketing=True,
+			last_inbound_at=timezone.now(),
+		)
+
+		result = lancer_njangi_achat(group.pk)
+		accepted = accept_njangi_invitation(contact, "OUI")
+
+		group.refresh_from_db()
+		participation = NjangiAchatParticipation.objects.get(achat_groupe=group, business=shop)
+		self.assertEqual(result["sent"], 1)
+		self.assertEqual(participation.status, NjangiAchatParticipation.Status.ACCEPTED)
+		self.assertEqual(group.quantite_actuelle, 1000)
+		self.assertEqual(group.status, NjangiAchatGroupe.Status.REACHED)
+		self.assertEqual(group.progress_pct, 100)
+		self.assertEqual(group.economie_par_boutique(), 35000)
+		self.assertSetEqual(set(group.businesses_participants.all()), {shop})
+		self.assertTrue(accepted["reached"])
 
 	@patch("whatsapp_commerce.onboarding.requests.request")
 	def test_embedded_signup_exchanges_token_registers_and_subscribes(self, request):
@@ -91,6 +199,108 @@ class BusinessWhatsAppTests(TestCase):
 		self.assertEqual(request.call_args_list[1].kwargs["json"]["pin"], "123456")
 		self.assertTrue(request.call_args_list[2].args[1].endswith("/123456/subscribed_apps"))
 		self.assertEqual(request.call_args_list[2].kwargs["headers"]["Authorization"], "Bearer business-token-secret")
+
+	@patch("whatsapp_commerce.onboarding._request_meta")
+	def test_get_assigned_applications_uses_meta_me_endpoint(self, meta_request):
+		meta_request.return_value = {"data": [{"id": "app-1", "name": "E-Shelle"}]}
+
+		applications = get_assigned_applications("user-access-token")
+
+		self.assertEqual(applications, [{"id": "app-1", "name": "E-Shelle"}])
+		meta_request.assert_called_once_with(
+			"GET",
+			"me/assigned_applications",
+			token="user-access-token",
+			params={"fields": "id,name"},
+		)
+
+	def test_get_assigned_applications_rejects_missing_token(self):
+		with self.assertRaises(MetaOnboardingError):
+			get_assigned_applications("")
+
+	@override_settings(
+		WHATSAPP_COMMERCE_ENABLED=True,
+		WHATSAPP_BUSINESS_AUTOMATIONS_ENABLED=False,
+		WHATSAPP_DRY_RUN=False,
+		WHATSAPP_TECH_PROVIDER_APP_ID="app-id",
+		WHATSAPP_API_URL="https://graph.facebook.com/v25.0/123/messages",
+		WHATSAPP_PHONE_ID="123",
+	)
+	def test_tech_provider_status_is_staff_only_and_exposes_no_secrets(self):
+		response = self.client.get(reverse("tech_provider_status"))
+		self.assertEqual(response.status_code, 302)
+
+		staff = get_user_model().objects.create_user(username="tech-provider-staff", is_staff=True)
+		self.client.force_login(staff)
+		response = self.client.get(reverse("tech_provider_status"))
+
+		self.assertEqual(response.status_code, 200)
+		self.assertEqual(
+			response.json(),
+			{
+				"whatsapp_commerce_enabled": True,
+				"whatsapp_business_automations_enabled": False,
+				"whatsapp_dry_run": False,
+				"tech_provider_app_id_configured": True,
+				"whatsapp_api_url_configured": True,
+			},
+		)
+
+	def test_business_campaign_delivery_status_updates_campaign_message(self):
+		connection = BusinessWhatsAppConnection.objects.create(
+			business=self.business,
+			waba_id="campaign-status-waba",
+			phone_number_id="campaign-status-phone",
+			status=BusinessWhatsAppConnection.Status.ACTIVE,
+		)
+		contact = BusinessWhatsAppContact.objects.create(
+			business=self.business,
+			phone="+237699000010",
+			marketing_opt_in=True,
+			consent_marketing=True,
+		)
+		campaign = Campagne.objects.create(
+			nom="Test livraison",
+			business=self.business,
+			message_template="Promotion",
+		)
+		campaign_message = MessageEnvoi.objects.create(
+			campagne=campaign,
+			business_contact=contact,
+			numero_whatsapp=contact.phone,
+			message_final="Promotion",
+			whatsapp_message_id="wamid-campaign-status",
+			statut=MessageEnvoi.STATUT_ENVOYE,
+		)
+		BusinessWhatsAppMessage.objects.create(
+			contact=contact,
+			wa_message_id="wamid-campaign-status",
+			direction=BusinessWhatsAppMessage.Direction.OUTBOUND,
+			status="sent",
+		)
+
+		process_business_whatsapp_webhook(
+			{
+				"entry": [
+					{
+						"id": connection.waba_id,
+						"changes": [
+							{
+								"value": {
+									"metadata": {"phone_number_id": connection.phone_number_id},
+									"statuses": [{"id": "wamid-campaign-status", "status": "read"}],
+								},
+							}
+						],
+					}
+				]
+			}
+		)
+
+		campaign_message.refresh_from_db()
+		campaign.refresh_from_db()
+		self.assertEqual(campaign_message.statut, MessageEnvoi.STATUT_LU)
+		self.assertEqual(campaign.total_lus, 1)
 
 	def test_webhook_routes_inbound_messages_to_the_matching_business(self):
 		first = BusinessWhatsAppConnection.objects.create(

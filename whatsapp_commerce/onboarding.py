@@ -71,6 +71,22 @@ def _exchange_signup_code(code):
     return token
 
 
+def get_assigned_applications(access_token):
+    """Return the Meta applications assigned to the authenticated Tech Provider."""
+    if not isinstance(access_token, str) or not access_token.strip():
+        raise MetaOnboardingError("Un jeton utilisateur Meta est requis.")
+    result = _request_meta(
+        "GET",
+        "me/assigned_applications",
+        token=access_token,
+        params={"fields": "id,name"},
+    )
+    applications = result.get("data", [])
+    if not isinstance(applications, list):
+        raise MetaOnboardingError("Meta a retourné une liste d’applications invalide.")
+    return applications
+
+
 def _finish_connection(connection, pin):
     token = connection.get_access_token()
     if not token:

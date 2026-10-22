@@ -16,6 +16,7 @@ from .models import (
 from .onboarding import MetaOnboardingError, _request_meta
 from .services import normalize_phone
 from .entitlements import require_whatsapp_entitlement
+from whatsapp_agent.models import MessageEnvoi
 
 logger = logging.getLogger(__name__)
 
@@ -260,20 +261,73 @@ def process_business_whatsapp_webhook(payload):
 						_message_datetime(message.get("timestamp")),
 					)
 					if created and contact and saved_message and not contact.opted_out_at:
-						_run_sales_agent(connection, contact, saved_message)
+						from .campaigns import accept_njangi_invitation
+
+						accepted = accept_njangi_invitation(contact, saved_message.body)
+						if accepted:
+							reply = (
+								f"Participation confirmée : {accepted['quantity']} unité(s) à "
+								f"{accepted['group'].prix_njangi}F. Merci pour ta réponse !"
+							)
+							wa_message_id = send_business_reply(contact, reply)
+							BusinessWhatsAppAudit.objects.create(
+								connection=connection,
+								contact=contact,
+								event_type="njangi_group_buy_accepted",
+								action="explicit_oui",
+								details={
+									"group_buy_id": accepted["group"].pk,
+									"quantity": accepted["quantity"],
+									"wa_message_id": wa_message_id,
+								},
+							)
+						else:
+							_run_sales_agent(connection, contact, saved_message)
 
 			for status in value.get("statuses", []):
 				if not isinstance(status, dict) or not status.get("id"):
 					continue
+				wa_status = str(status.get("status", ""))[:24]
 				BusinessWhatsAppMessage.objects.filter(
 					wa_message_id=status["id"],
 					contact__business=connection.business,
 					direction=BusinessWhatsAppMessage.Direction.OUTBOUND,
-				).update(status=str(status.get("status", ""))[:24])
+				).update(status=wa_status)
 				ScheduledBusinessWhatsAppMessage.objects.filter(
 					wa_message_id=status["id"],
 					connection=connection,
-				).update(delivery_status=str(status.get("status", ""))[:24])
+				).update(delivery_status=wa_status)
+
+				campaign_status = {
+					"sent": MessageEnvoi.STATUT_ENVOYE,
+					"delivered": MessageEnvoi.STATUT_LIVRE,
+					"read": MessageEnvoi.STATUT_LU,
+					"failed": MessageEnvoi.STATUT_ECHEC,
+				}.get(wa_status)
+				if campaign_status:
+					campaign_messages = MessageEnvoi.objects.filter(
+						whatsapp_message_id=status["id"],
+						business_contact__business=connection.business,
+					).select_related("campagne")
+					changed_campaigns = set()
+					for campaign_message in campaign_messages:
+						if campaign_message.statut in {
+							MessageEnvoi.STATUT_LU,
+							MessageEnvoi.STATUT_ECHEC,
+						} and campaign_status != MessageEnvoi.STATUT_LU:
+							continue
+						campaign_message.statut = campaign_status
+						if campaign_status == MessageEnvoi.STATUT_ECHEC:
+							campaign_message.erreur = str(status.get("errors", ""))[:2000]
+						campaign_message.save(
+							update_fields=["statut", "erreur", "mis_a_jour_le"]
+						)
+						changed_campaigns.add(campaign_message.campagne)
+					if changed_campaigns:
+						from whatsapp_agent.tasks import recalculer_stats_campagne
+
+						for campaign in changed_campaigns:
+							recalculer_stats_campagne(campaign)
 
 
 def is_business_whatsapp_connection(waba_id, phone_number_id):

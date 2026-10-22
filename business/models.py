@@ -15,6 +15,13 @@ from django.utils.text import slugify
 class BusinessProfile(models.Model):
     """Profil economique global lie a une fiche prestataire d'un module."""
 
+    class Language(models.TextChoices):
+        FRENCH = "fr", "Français"
+        ENGLISH = "en", "English"
+        PIDGIN = "pidgin", "Cameroonian Pidgin"
+        EWONDO = "ewondo", "Ewondo"
+        BASSA = "bassa", "Bassa"
+
     class Module(models.TextChoices):
         RESTO = "resto", "Resto"
         GAZ = "gaz", "Gaz"
@@ -84,6 +91,7 @@ class BusinessProfile(models.Model):
     country = models.CharField(max_length=100, default="Cameroun", blank=True)
     city = models.CharField(max_length=100, blank=True)
     district = models.CharField(max_length=120, blank=True)
+    language = models.CharField(max_length=16, choices=Language.choices, default=Language.FRENCH)
     phone = models.CharField(max_length=40, blank=True)
     whatsapp = models.CharField(max_length=40, blank=True)
     description = models.TextField(blank=True)
@@ -345,10 +353,14 @@ class BusinessCatalogItem(models.Model):
     item_type = models.CharField(max_length=20, choices=ItemType.choices, default=ItemType.PRODUCT)
     title = models.CharField(max_length=140)
     title_en = models.CharField(max_length=140, blank=True, verbose_name="Title (English)")
+    sku = models.CharField(max_length=80, blank=True)
+    category = models.CharField(max_length=120, blank=True)
     description = models.TextField(blank=True)
     description_en = models.TextField(blank=True, verbose_name="Description (English)")
     price_label = models.CharField(max_length=80, blank=True, help_text="Ex: 2 500 FCFA, Prix a discuter.")
     price_label_en = models.CharField(max_length=80, blank=True, verbose_name="Price label (English)")
+    prix_gros_xaf = models.PositiveIntegerField(null=True, blank=True)
+    stock_quantity = models.PositiveIntegerField(null=True, blank=True, help_text="Quantite en stock (laisser vide si non suivi).")
     image = models.ImageField(upload_to="business/catalogue/", blank=True, null=True)
     video_url = models.URLField(max_length=2048, blank=True, null=True, help_text="Lien de la vidéo (Cloudinary, YouTube, TikTok...)")
 
@@ -362,6 +374,13 @@ class BusinessCatalogItem(models.Model):
         ordering = ["order", "-created_at"]
         indexes = [
             models.Index(fields=["business", "is_active", "order"]),
+        ]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["business", "sku"],
+                condition=~models.Q(sku=""),
+                name="business_catalog_sku_uniq",
+            ),
         ]
         verbose_name = "Produit/service business"
         verbose_name_plural = "Produits/services business"
@@ -1434,5 +1453,4 @@ class PartnerLogo(models.Model):
 
     def __str__(self):
         return self.name
-
 

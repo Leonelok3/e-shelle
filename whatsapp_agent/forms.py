@@ -4,20 +4,41 @@ from business.models import BusinessProfile
 
 from .models import Campagne
 from .meta_templates import TemplateError, validate_selection
+from whatsapp_commerce.campaigns import validate_business_campaign_template
+from whatsapp_commerce.onboarding import MetaOnboardingError
 
 
 class TemplateSelectionForm(forms.Form):
     meta_template = forms.CharField(required=False, max_length=540)
     meta_params = forms.JSONField(required=False)
 
+    def __init__(self, *args, business=None, **kwargs):
+        self.business = business
+        super().__init__(*args, **kwargs)
+
     def clean(self):
         data = super().clean()
         key = data.get('meta_template', '')
         if key and 'meta_params' not in self.errors:
-            try:
-                data['selected'] = validate_selection(key, data.get('meta_params') or [])
-            except TemplateError as exc:
-                raise forms.ValidationError(str(exc))
+            if self.business:
+                name, separator, language = key.partition("|")
+                if not separator:
+                    raise forms.ValidationError("Selectionne un modele et une langue valides.")
+                try:
+                    _connection, template = validate_business_campaign_template(
+                        self.business,
+                        name,
+                        language,
+                        data.get("meta_params") or [],
+                    )
+                    data["selected"] = template
+                except MetaOnboardingError as exc:
+                    raise forms.ValidationError(str(exc))
+            else:
+                try:
+                    data['selected'] = validate_selection(key, data.get('meta_params') or [])
+                except TemplateError as exc:
+                    raise forms.ValidationError(str(exc))
         return data
 
     def apply(self, campaign):

@@ -269,17 +269,16 @@ def iter_campaign_contacts(business, city="", interest=""):
         yield contact
 
 
-def get_audience_for_campaign(business, city="", interest="", user=None):
-    """Return the filtered consented audience for staff or business-owner campaigns."""
+def get_audience_for_campaign(business, city="", interest=""):
+    """Return only the selected business's filtered, consented audience."""
     from whatsapp_commerce.models import BusinessWhatsAppContact
 
     contacts = BusinessWhatsAppContact.objects.filter(
+        business=business,
         marketing_opt_in=True,
         consent_marketing=True,
         opted_out_at__isnull=True,
     ).order_by("-last_activity_at")
-    if not (user and (user.is_staff or user.is_superuser)):
-        contacts = contacts.filter(business=business)
 
     city = (city or "").strip().casefold()
     interest = (interest or "").strip().casefold()
@@ -319,7 +318,6 @@ def generate_campaign_links(campaign):
         campaign.business,
         campaign.filtre_ville,
         campaign.audience_interest,
-        user=campaign.cree_par,
     ):
         existing = CampaignLinkClick.objects.filter(campaign=campaign, contact=contact).first()
         if existing is None:

@@ -10,6 +10,7 @@ from business import views as business_views
 from billing import views_affiliate
 from seo_agent import views as seo_views
 from whatsapp_agent import views as whatsapp_agent_views
+from whatsapp_commerce import views as whatsapp_commerce_views
 import urllib.parse
 
 
@@ -893,6 +894,7 @@ urlpatterns = [
         name="business_whatsapp_campaign_audience",
     ),
     path("business/", include("business.urls", namespace="business")),
+    path("api/tech-provider/status", whatsapp_commerce_views.tech_provider_status, name="tech_provider_status"),
     path("b/<slug:public_slug>/", business_views.public_profile, name="business_public_short"),
     path("ref/<str:ref_code>/", views_affiliate.ref_redirect, name="public_ref_redirect"),
 

@@ -6,6 +6,7 @@ from .notification import Notification, Document
 from .wallet import MonthlyGroupInterest, MemberMonthlyStatement
 from .subscription import SubscriptionRequest
 from .audit import AuditLog
+from .group_buying import NjangiAchatGroupe, NjangiAchatParticipation
 
 __all__ = [
     "Group", "Membership",
@@ -16,4 +17,5 @@ __all__ = [
     "MonthlyGroupInterest", "MemberMonthlyStatement",
     "SubscriptionRequest",
     "AuditLog",
+    "NjangiAchatGroupe", "NjangiAchatParticipation",
 ]
