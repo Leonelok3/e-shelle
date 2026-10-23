@@ -2,9 +2,8 @@
 <nav class="canada-navigation" aria-label="{% trans 'Modules Canada' %}">
   <div class="canada-primary">
     {% for item in canada_menu.primary_links %}
-    <a href="{{ item.url }}" {% if item.active %}aria-current="{% if item.exact %}page{% else %}true{% endif %}"{% endif %}>{{ item.label }}</a>
+    <a href="{{ item.url }}" {% if item.active %}aria-current="{% if item.exact %}page{% else %}true{% endif %}"{% endif %}>{% if item.label_en and LANGUAGE_CODE == 'en' %}{{ item.label_en }}{% else %}{{ item.label }}{% endif %}</a>
     {% endfor %}
-    <a href="{% url 'canada_landing' %}" {% if canada_menu.home %}aria-current="page"{% endif %}>{% trans "Accueil Canada" %}</a>
   </div>
   {% if not canada_menu.home %}
   <p class="canada-location"><a href="{% url 'canada_landing' %}">{% trans "Accueil Canada" %}</a> <span aria-hidden="true">/</span> <strong>{{ canada_menu.current }}</strong></p>

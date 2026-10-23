@@ -49,6 +49,7 @@ PRIMARY_LINKS = (
     ('jobs:canada_jobs', _('Offres d’emploi')),
     ('jobs:canada_scholarships', _('Bourses d’études')),
     ('canada_resume:program_ee', _('Entrée express')),
+    ('canada_resume:dashboard', _('CV canadien')),
 )
 
 
@@ -93,6 +94,7 @@ def canada_navigation(context):
         groups.append({'key': key, 'label': label, 'items': items,
                         'active': selected, 'url': items[0]['url']})
     primary_links = [{'url': reverse(route), 'label': label,
+                      'label_en': 'Canadian CV' if route == 'canada_resume:dashboard' else '',
                       'active': route == active, 'exact': route == name}
                      for route, label in PRIMARY_LINKS]
     return {'enabled': True, 'groups': groups, 'primary_links': primary_links,
