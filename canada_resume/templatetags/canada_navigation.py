@@ -42,6 +42,15 @@ GROUPS = (
     )),
 )
 
+# Put the most frequently requested Canada services directly in the main bar.
+# The full module directory below still exposes every other route.
+PRIMARY_LINKS = (
+    ('preparation_tests:tcf_hub', _('TCF Canada')),
+    ('jobs:canada_jobs', _('Offres d’emploi')),
+    ('jobs:canada_scholarships', _('Bourses d’études')),
+    ('canada_resume:program_ee', _('Entrée express')),
+)
+
 
 @register.simple_tag(takes_context=True)
 def canada_navigation(context):
@@ -62,7 +71,9 @@ def canada_navigation(context):
         active = 'preparation_tests:tcf_hub'
     elif namespace == 'canada_resume':
         leaf = getattr(match, 'url_name', '')
-        if leaf.startswith('program_') and leaf not in ('program_study', 'program_visit'):
+        if leaf == 'program_ee':
+            active = 'canada_resume:program_ee'
+        elif leaf.startswith('program_') and leaf not in ('program_study', 'program_visit'):
             active = 'canada_resume:programs_hub'
         elif leaf in ('edit_profile', 'manage_experiences', 'manage_education',
                       'manage_languages', 'generate', 'generate_for_offer', 'view_resume'):
@@ -81,5 +92,9 @@ def canada_navigation(context):
             current = next(item['label'] for item in items if item['active'])
         groups.append({'key': key, 'label': label, 'items': items,
                         'active': selected, 'url': items[0]['url']})
-    return {'enabled': True, 'groups': groups, 'current': current,
+    primary_links = [{'url': reverse(route), 'label': label,
+                      'active': route == active, 'exact': route == name}
+                     for route, label in PRIMARY_LINKS]
+    return {'enabled': True, 'groups': groups, 'primary_links': primary_links,
+            'current': current,
             'home': name == 'canada_landing'}
