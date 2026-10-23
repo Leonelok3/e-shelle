@@ -4,7 +4,7 @@ from django.http import HttpResponse, HttpResponseNotFound, HttpResponseRedirect
 
 IMMIGRATION_HOSTS = frozenset({'immigration97.com', 'www.immigration97.com'})
 CANADA_PREFIXES = ('/canada/', '/prep/', '/jobs/canada/')
-SHARED_PREFIXES = ('/accounts/', '/billing/', '/payments/', '/static/', '/media/')
+SHARED_PREFIXES = ('/accounts/', '/billing/', '/payments/', '/static/', '/media/', '/i18n/')
 SHARED_PAGES = frozenset({'/cgu/', '/terms/', '/tarifs/'})
 
 

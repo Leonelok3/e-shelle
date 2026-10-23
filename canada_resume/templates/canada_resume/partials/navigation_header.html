@@ -1,7 +1,14 @@
 {% load static %}
 <header class="canada-header">
   <div class="canada-header-inner">
-    <a class="canada-brand" href="{% url 'canada_landing' %}"><img class="canada-brand-logo" src="{% static 'img/immigration97-logo.png' %}" alt="Immigration97 — Préparer, apprendre, s’installer" width="2170" height="725"></a>
-    <a class="canada-account" href="{% if user.is_authenticated %}{% url 'immigration97:dashboard' %}{% else %}/accounts/login/?next={{ request.path|urlencode }}{% endif %}">{% if user.is_authenticated %}Mon parcours{% else %}Connexion{% endif %}</a>
+    <a class="canada-brand" href="{% url 'canada_landing' %}"><img class="canada-brand-logo" src="{% static 'img/immigration97-logo.png' %}" alt="{% if LANGUAGE_CODE == 'en' %}Immigration97 — Prepare, learn, settle{% else %}Immigration97 — Préparer, apprendre, s’installer{% endif %}" width="2170" height="725"></a>
+    <div class="canada-header-actions">
+      <form action="{% url 'set_language' %}" method="post" class="canada-language-switch" aria-label="{% if LANGUAGE_CODE == 'en' %}Choose language{% else %}Choisir la langue{% endif %}">
+        {% csrf_token %}<input type="hidden" name="next" value="{{ request.get_full_path }}">
+        <button type="submit" name="language" value="fr" aria-pressed="{% if LANGUAGE_CODE == 'fr' %}true{% else %}false{% endif %}" lang="fr">FR</button>
+        <button type="submit" name="language" value="en" aria-pressed="{% if LANGUAGE_CODE == 'en' %}true{% else %}false{% endif %}" lang="en">EN</button>
+      </form>
+      <a class="canada-account" href="{% if user.is_authenticated %}{% url 'immigration97:dashboard' %}{% else %}/accounts/login/?next={{ request.path|urlencode }}{% endif %}">{% if user.is_authenticated %}{% if LANGUAGE_CODE == 'en' %}My Journey{% else %}Mon parcours{% endif %}{% else %}{% if LANGUAGE_CODE == 'en' %}Sign in{% else %}Connexion{% endif %}{% endif %}</a>
+    </div>
   </div>
 </header>
