@@ -167,6 +167,11 @@ app.conf.beat_schedule = {
         "task": "facebook_agent.tasks.update_daily_stats",
         "schedule": crontab(minute=30),
     },
+    # Prépare le résumé quotidien en attente d'approbation humaine à 18h.
+    "fb-daily-summary-draft": {
+        "task": "facebook_agent.tasks.create_daily_summary_draft",
+        "schedule": crontab(hour=17, minute=45),
+    },
 
     # ── Njangi Digital — Tontine & Fond commun ──────────────────────────────
 

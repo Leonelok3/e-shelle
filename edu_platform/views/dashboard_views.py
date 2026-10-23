@@ -5,8 +5,9 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.shortcuts import render, redirect
 from django.views import View
 from django.utils import timezone
+from django.db.models import Q
 
-from edu_platform.models import Subject, AccessCode, VideoLesson
+from edu_platform.models import Subject, AccessCode, VideoLesson, DailyChallenge
 
 
 class EduLoginRequiredMixin(LoginRequiredMixin):
@@ -47,6 +48,9 @@ class StudentDashboardView(EduLoginRequiredMixin, View):
             'subjects': subjects,
             'recent_videos': recent_videos,
             'subjects_by_level': self._get_subjects_by_level(),
+            'active_challenges': DailyChallenge.objects.filter(
+                status=DailyChallenge.Status.PUBLISHED, starts_at__lte=timezone.now()
+            ).filter(Q(ends_at__isnull=True) | Q(ends_at__gte=timezone.now())).order_by('-starts_at')[:5],
         }
         return render(request, self.template_name, context)
 

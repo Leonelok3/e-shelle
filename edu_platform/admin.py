@@ -8,7 +8,81 @@ from edu_platform.models import (
     EduProfile, SubscriptionPlan, AccessCode,
     DeviceBinding, Subject, ExamDocument, VideoLesson,
     AudioResource, PaymentTransaction,
+    DailyChallenge, ChallengeSubmission, SubmissionFile,
 )
+
+
+@admin.register(DailyChallenge)
+class DailyChallengeAdmin(admin.ModelAdmin):
+    list_display = ("title", "subject", "level", "status", "starts_at", "ends_at", "submission_count", "challenge_link")
+    list_filter = ("status", "level", "subject")
+    search_fields = ("title", "instructions", "answer_key")
+    readonly_fields = ("public_token", "created_by", "created_at", "challenge_link", "qr_preview")
+    autocomplete_fields = ("subject",)
+    fieldsets = (
+        ("Challenge", {"fields": ("title", "instructions", "subject", "level", "exercise_file", "status", "starts_at", "ends_at")} ),
+        ("Correction IA", {"fields": ("answer_key", "rubric", "total_points")} ),
+        ("Partage", {"fields": ("public_token", "challenge_link", "qr_preview", "leaderboard_enabled")} ),
+        ("Création", {"fields": ("created_by", "created_at")} ),
+    )
+
+    def save_model(self, request, obj, form, change):
+        if not obj.created_by_id:
+            obj.created_by = request.user
+        super().save_model(request, obj, form, change)
+
+    def submission_count(self, obj):
+        return obj.submissions.count()
+    submission_count.short_description = "Copies"
+
+    def challenge_link(self, obj):
+        if not obj.pk:
+            return "Enregistre le challenge pour créer le lien."
+        from django.urls import reverse
+        return format_html('<a href="{}" target="_blank">Ouvrir le formulaire élève</a>', reverse("edu:challenge_public", args=[obj.public_token]))
+    challenge_link.short_description = "Lien élève"
+
+    def qr_preview(self, obj):
+        if not obj.pk:
+            return ""
+        from django.urls import reverse
+        return format_html('<img src="{}" width="180" height="180" alt="QR code"><br><a href="{}" download>Enregistrer le QR code</a>', reverse("edu:challenge_qr", args=[obj.public_token]), reverse("edu:challenge_qr", args=[obj.public_token]))
+    qr_preview.short_description = "QR code"
+
+
+class SubmissionFileInline(admin.TabularInline):
+    model = SubmissionFile
+    extra = 0
+    can_delete = False
+    fields = ("original_name", "mime_type", "size_bytes", "secure_download")
+    readonly_fields = fields
+
+    def secure_download(self, obj):
+        if not obj.pk:
+            return ""
+        from django.urls import reverse
+        url = reverse("edu:challenge_submission_file", args=[obj.submission_id, obj.pk])
+        return format_html('<a href="{}">Télécharger la copie</a>', url)
+    secure_download.short_description = "Fichier"
+
+
+@admin.register(ChallengeSubmission)
+class ChallengeSubmissionAdmin(admin.ModelAdmin):
+    list_display = ("student_name", "challenge", "student_class", "score", "status", "submitted_at")
+    list_filter = ("status", "challenge", "submitted_at")
+    search_fields = ("student_name", "student_class", "challenge__title")
+    readonly_fields = ("access_token", "submitted_at", "graded_at", "student")
+    fields = ("challenge", "student", "student_name", "student_class", "score", "status", "feedback", "error_message", "show_name_on_leaderboard", "access_token", "submitted_at", "graded_at", "reviewed_by", "reviewed_at")
+    inlines = (SubmissionFileInline,)
+
+    def save_model(self, request, obj, form, change):
+        if obj.status == ChallengeSubmission.Status.REVIEWED:
+            obj.reviewed_by = request.user
+            from django.utils import timezone
+            obj.reviewed_at = timezone.now()
+            if obj.feedback:
+                obj.feedback = {**obj.feedback, "provisional": False}
+        super().save_model(request, obj, form, change)
 
 
 # ──────────────────────────────────────────────────────────────────────────────

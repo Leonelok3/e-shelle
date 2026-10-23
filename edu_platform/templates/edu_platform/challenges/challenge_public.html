@@ -1,0 +1,32 @@
+{% extends 'edu_platform/base.html' %}
+{% block title %}{{ challenge.title }} — Mapex{% endblock %}
+{% block content %}
+<section class="container py-5" style="max-width:900px">
+  <div class="row g-4">
+    <div class="col-lg-8">
+      <div class="card border-0 shadow-sm p-4 p-md-5">
+        <span class="badge text-bg-warning align-self-start mb-3">CHALLENGE MAPEX</span>
+        <h1 class="h2">{{ challenge.title }}</h1>
+        <p class="text-muted">{% if challenge.subject %}{{ challenge.subject.get_subject_type_display }} · {% endif %}{{ challenge.level }}{% if challenge.ends_at %} · Date limite : {{ challenge.ends_at|date:'d/m/Y H:i' }}{% endif %}</p>
+        {% if challenge.instructions %}<div class="my-3">{{ challenge.instructions|linebreaks }}</div>{% endif %}
+        {% if challenge.exercise_file %}<a class="btn btn-outline-success mb-4" href="{% url 'edu:challenge_exercise_file' challenge.public_token %}">📄 Ouvrir l’exercice</a>{% endif %}
+        {% if challenge.is_open %}
+          <h2 class="h5 mt-2">Envoyer ta copie</h2>
+          <p class="small text-muted">Prends des photos nettes, bien éclairées et dans l’ordre. Tu peux joindre jusqu’à 5 photos ou un PDF (20 Mo au total).</p>
+          <form method="post" enctype="multipart/form-data" class="vstack gap-3">
+            {% csrf_token %}
+            {% if form.non_field_errors %}<div class="alert alert-danger">{{ form.non_field_errors }}</div>{% endif %}
+            <div><label class="form-label" for="id_student_name">Nom et prénom</label>{{ form.student_name }}{{ form.student_name.errors }}</div>
+            <div><label class="form-label" for="id_student_class">Classe (facultatif)</label>{{ form.student_class }}{{ form.student_class.errors }}</div>
+            <div><label class="form-label" for="id_files">Photos ou PDF</label>{{ form.files }}{{ form.files.errors }}</div>
+            <div class="form-check">{{ form.show_name_on_leaderboard }}<label class="form-check-label" for="id_show_name_on_leaderboard">J’accepte que mon nom apparaisse au classement</label></div>
+            <button class="btn btn-success btn-lg" type="submit">Envoyer ma copie pour correction</button>
+          </form>
+        {% else %}<div class="alert alert-secondary">Ce challenge n’accepte pas de nouvelles copies actuellement.</div>{% endif %}
+        {% if challenge.leaderboard_enabled %}<a class="btn btn-link mt-3 px-0" href="{% url 'edu:challenge_leaderboard' challenge.public_token %}">Voir le classement</a>{% endif %}
+      </div>
+    </div>
+    <aside class="col-lg-4"><div class="card border-0 shadow-sm p-4 text-center"><h2 class="h6">Partager le challenge</h2><img class="img-fluid mx-auto" style="max-width:230px" src="{% url 'edu:challenge_qr' challenge.public_token %}" alt="QR code pour ouvrir le challenge"><p class="small text-muted mb-0">Scanne ce code avec ton téléphone pour ouvrir le formulaire.</p></div></aside>
+  </div>
+</section>
+{% endblock %}

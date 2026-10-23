@@ -84,6 +84,7 @@
             <th>Statut</th>
             <th>IA</th>
             <th>Approbation</th>
+            <th>Action</th>
             <th>Tentatives</th>
           </tr>
         </thead>
@@ -110,6 +111,14 @@
             </td>
             <td>{% if post.ai_generated %}🤖{% else %}✏️{% endif %}</td>
             <td>{% if post.requires_approval %}⚠️ Oui{% else %}Auto{% endif %}</td>
+            <td>
+              {% if post.status == 'en_attente' and post.requires_approval %}
+                <form method="post" action="{% url 'facebook_agent:approve_draft' post.id %}">
+                  {% csrf_token %}
+                  <button type="submit" class="btn-sm" onclick="return confirm('Approuver et programmer cette publication Facebook ?')">Approuver</button>
+                </form>
+              {% else %}—{% endif %}
+            </td>
             <td>{{ post.retry_count }}/3</td>
           </tr>
           {% endfor %}

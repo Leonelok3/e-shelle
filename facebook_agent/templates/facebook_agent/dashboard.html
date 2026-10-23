@@ -218,11 +218,7 @@
           {% if page_config %}&nbsp;— <strong>{{ page_config.page_name }}</strong>{% endif %}
         </p>
       </div>
-      {% if page_config and page_config.is_token_valid %}
-        <span class="badge badge-success">● Token valide</span>
-      {% elif page_config %}
-        <span class="badge badge-error">● Token expiré !</span>
-      {% endif %}
+      {% if page_config %}<span class="badge badge-warning">Connexion à vérifier auprès de Meta</span>{% endif %}
     </div>
 
     {# Messages Django #}
@@ -235,6 +231,23 @@
     {% endfor %}
 
     {# ── Stats ──────────────────────────────────────────────────── #}
+    <div class="card">
+      <p class="section-title">Connexion Meta · {{ page_config.page_name|default:"Non configurée" }}</p>
+      {% if page_config %}
+        <p style="font-size:.85rem;color:var(--text-secondary)">Page ID : {{ page_config.page_id }} · La vérification contacte Meta uniquement après clic.</p>
+        <button class="publish-btn" id="meta-verify-btn" onclick="verifyMetaConnection()">Vérifier Page, jeton et permissions</button>
+        <a href="https://developers.facebook.com/apps/" target="_blank" rel="noopener" style="margin-left:.75rem">Paramètres de l'application Meta</a>
+        <a href="https://developers.facebook.com/tools/explorer/" target="_blank" rel="noopener" style="margin-left:.75rem">Graph API Explorer</a>
+        <a href="/admin/facebook_agent/facebookpageconfig/" style="margin-left:.75rem">Gérer la Page configurée</a>
+      {% else %}
+        <p>Aucune Page Facebook n'est encore enregistrée dans Django.</p>
+        <a href="https://developers.facebook.com/apps/" target="_blank" rel="noopener">Ouvrir Meta for Developers</a>
+        <a href="https://developers.facebook.com/tools/explorer/" target="_blank" rel="noopener" style="margin-left:.75rem">Graph API Explorer</a>
+        <a href="/admin/facebook_agent/facebookpageconfig/add/" style="margin-left:.75rem">Ajouter une configuration de Page</a>
+      {% endif %}
+      <div id="meta-verify-result" style="font-size:.85rem;margin-top:.6rem" aria-live="polite"></div>
+    </div>
+
     <div class="stats-row">
       <div class="stat-card">
         <div class="icon">📰</div>
@@ -268,6 +281,21 @@
         <div class="label">Abonnés Facebook</div>
       </div>
       {% endif %}
+    </div>
+
+    <div class="card">
+      <p class="section-title">Résultats attribués aux campagnes Facebook · 7 derniers jours</p>
+      <div class="stats-row" style="margin-bottom:0">
+        <div><strong>{{ campaign_stats.views }}</strong><div class="label">Visites de fiches</div></div>
+        <div><strong>{{ campaign_stats.whatsapp }}</strong><div class="label">Clics WhatsApp</div></div>
+        <div><strong>{{ campaign_stats.orders }}</strong><div class="label">Demandes/commandes suivies</div></div>
+      </div>
+      <p style="font-size:.78rem;color:var(--text-secondary);margin:.75rem 0 0">Le suivi commence avec les nouveaux liens de campagne créés par l'agent.</p>
+    </div>
+    <div class="card" style="font-size:.88rem">
+      Publication automatique récurrente : <strong>{% if auto_publish_enabled %}Activée{% else %}Désactivée{% endif %}</strong>
+      · Plafond configuré : <strong>{{ daily_post_limit }} publications par jour</strong>.
+      Les brouillons soumis dans l'interface restent soumis à approbation humaine.
     </div>
 
     {# ── Publication manuelle + Aperçu IA ───────────────────────── #}
@@ -323,6 +351,35 @@
         <div class="preview-box" id="preview-output">Le texte généré par l'IA apparaîtra ici…</div>
         <div style="font-size:.78rem;color:var(--text-secondary);margin-top:.5rem" id="preview-tokens"></div>
       </div>
+    </div>
+
+    <div class="card">
+      <p class="section-title">Contenus marketing E-Shelle</p>
+      <p style="color:var(--text-secondary);font-size:.85rem">Génère un aperçu, relis-le, puis enregistre-le en attente d'approbation. Aucun envoi automatique lors de la génération.</p>
+      <div style="display:flex;gap:.75rem;align-items:center;flex-wrap:wrap;margin-bottom:.75rem">
+        <select class="section-select" id="marketing-draft-type" onchange="updateDraftObjectSelect()">
+          <option value="business">Nouvelle fiche business</option>
+          <option value="product">Produit</option>
+          <option value="njangi">Njangi actif</option>
+          <option value="daily_summary">Résumé du jour</option>
+        </select>
+        <select class="section-select" id="marketing-draft-object">
+          <option value="">Choisir une fiche active</option>
+          {% for business in business_profiles %}<option data-type="business" value="{{ business.id }}">{{ business.name }}{% if business.city %} — {{ business.city }}{% endif %}</option>{% endfor %}
+          {% for product in catalog_products %}<option data-type="product" value="{{ product.id }}">{{ product.title }} — {{ product.business.name }}</option>{% endfor %}
+          {% for group in njangi_groups %}<option data-type="njangi" value="{{ group.id }}">{{ group.product.title }} — {{ group.product.business.name }}</option>{% endfor %}
+        </select>
+        <button class="publish-btn" id="marketing-preview-btn" onclick="previewMarketingDraft()">Générer un aperçu</button>
+      </div>
+      <textarea class="preview-box" id="marketing-draft-text" rows="5" style="width:100%;color:var(--text-primary)" placeholder="Le texte généré apparaîtra ici. Vous pourrez le relire et le modifier."></textarea>
+      <div class="preview-box" id="marketing-draft-comment" style="margin-top:.5rem;display:none"></div>
+      <div id="marketing-draft-warnings" style="font-size:.82rem;color:#fbbf24;margin-top:.5rem"></div>
+      <div style="display:flex;gap:.75rem;align-items:center;flex-wrap:wrap;margin-top:.75rem">
+        <label for="marketing-scheduled-at">Date/heure prévue :</label>
+        <input id="marketing-scheduled-at" type="datetime-local" class="section-select">
+        <button class="publish-btn" id="marketing-save-btn" onclick="saveMarketingDraft()">Enregistrer en attente d'approbation</button>
+      </div>
+      <div id="marketing-save-result" style="font-size:.85rem;margin-top:.5rem" aria-live="polite"></div>
     </div>
 
     {# ── Stats par section ───────────────────────────────────────── #}
@@ -506,5 +563,111 @@ async function previewContent() {
     btn.textContent = 'Générer aperçu';
   }
 }
+
+async function verifyMetaConnection() {
+  const btn = document.getElementById('meta-verify-btn');
+  const out = document.getElementById('meta-verify-result');
+  btn.disabled = true;
+  out.textContent = 'Vérification auprès de Meta…';
+  try {
+    const resp = await fetch("{% url 'facebook_agent:api_verify_meta' %}", {
+      method: 'POST', headers: {'X-CSRFToken': '{{ csrf_token }}'},
+    });
+    const data = await resp.json();
+    if (data.token_valid) {
+      out.textContent = `Jeton valide · Page ${data.page_name} (${data.page_id}) · ` +
+        (!data.app_matches ? 'Le jeton appartient à une autre application Meta. ' : '') +
+        (!data.page_matches ? 'La Page ne correspond pas à la configuration. ' : '') +
+        (data.missing_permissions.length ? `Permissions à ajouter : ${data.missing_permissions.join(', ')}` : 'Permissions requises présentes.');
+      out.style.color = data.status === 'success' ? '#7dec6c' : '#fbbf24';
+    } else {
+      out.textContent = data.message || 'La vérification Meta a échoué.';
+      out.style.color = '#f87171';
+    }
+  } catch (error) {
+    out.textContent = `Erreur réseau : ${error.message}`;
+    out.style.color = '#f87171';
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+function updateDraftObjectSelect() {
+  const type = document.getElementById('marketing-draft-type').value;
+  const select = document.getElementById('marketing-draft-object');
+  let available = false;
+  for (const option of select.options) {
+    if (!option.value) continue;
+    option.hidden = option.dataset.type !== type;
+    if (!option.hidden) available = true;
+  }
+  select.value = '';
+  select.disabled = type === 'daily_summary' || !available;
+}
+
+async function previewMarketingDraft() {
+  const btn = document.getElementById('marketing-preview-btn');
+  const type = document.getElementById('marketing-draft-type').value;
+  const objectId = document.getElementById('marketing-draft-object').value;
+  const out = document.getElementById('marketing-draft-text');
+  const comment = document.getElementById('marketing-draft-comment');
+  const warnings = document.getElementById('marketing-draft-warnings');
+  if (type !== 'daily_summary' && !objectId) {
+    warnings.textContent = 'Choisissez une fiche, un produit ou un Njangi.';
+    return;
+  }
+  btn.disabled = true;
+  out.value = '';
+  out.placeholder = 'Génération du brouillon…';
+  comment.style.display = 'none';
+  warnings.textContent = '';
+  try {
+    const resp = await fetch("{% url 'facebook_agent:api_preview_marketing' %}", {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json', 'X-CSRFToken': '{{ csrf_token }}'},
+      body: JSON.stringify({type, object_id: objectId}),
+    });
+    const data = await resp.json();
+    if (!resp.ok || data.status !== 'success') throw new Error(data.message || 'Génération impossible.');
+    out.value = data.text;
+    comment.textContent = `Lien à mettre en premier commentaire : ${data.first_comment || ''}`;
+    comment.style.display = 'block';
+    warnings.textContent = (data.warnings || []).join(' ');
+    window.marketingDraftUrl = data.first_comment || '';
+  } catch (error) {
+    warnings.textContent = `Erreur : ${error.message}`;
+  } finally {
+    out.placeholder = 'Le texte généré apparaîtra ici. Vous pourrez le relire et le modifier.';
+    btn.disabled = false;
+  }
+}
+
+async function saveMarketingDraft() {
+  const type = document.getElementById('marketing-draft-type').value;
+  const objectId = document.getElementById('marketing-draft-object').value;
+  const content = document.getElementById('marketing-draft-text').value.trim();
+  const scheduledAt = document.getElementById('marketing-scheduled-at').value;
+  const result = document.getElementById('marketing-save-result');
+  if (!content || !scheduledAt) {
+    result.textContent = 'Générez ou saisissez un texte et choisissez une date/heure.';
+    return;
+  }
+  try {
+    const resp = await fetch("{% url 'facebook_agent:api_save_draft' %}", {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json', 'X-CSRFToken': '{{ csrf_token }}'},
+      body: JSON.stringify({type, object_id: objectId, content, scheduled_at: scheduledAt}),
+    });
+    const data = await resp.json();
+    if (!resp.ok || data.status !== 'success') throw new Error(data.message || 'Enregistrement impossible.');
+    result.textContent = data.message;
+    result.style.color = '#7dec6c';
+  } catch (error) {
+    result.textContent = `Erreur : ${error.message}`;
+    result.style.color = '#f87171';
+  }
+}
+
+updateDraftObjectSelect();
 </script>
 {% endblock %}

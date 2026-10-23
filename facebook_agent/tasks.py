@@ -18,7 +18,7 @@ logger = logging.getLogger("facebook_agent")
 # ------------------------------------------------------------------ #
 
 @shared_task(bind=True, max_retries=3, default_retry_delay=300)
-def generate_and_publish_post(self, section: str, page_config_id: int = None):
+def generate_and_publish_post(self, section: str, page_config_id: int = None, approved_manual: bool = False):
     """
     Génère un post IA pour une section et le publie sur Facebook.
     Retry automatique 3 fois en cas d'échec.
@@ -31,6 +31,10 @@ def generate_and_publish_post(self, section: str, page_config_id: int = None):
 
     start_time = time.time()
     log_details = {"section": section, "page_config_id": page_config_id}
+
+    from django.conf import settings
+    if not approved_manual and not getattr(settings, "FACEBOOK_AGENT_AUTO_PUBLISH_ENABLED", False):
+        return {"status": "disabled", "message": "La publication Facebook automatique est désactivée."}
 
     try:
         # Récupérer la config de la page
@@ -85,6 +89,11 @@ def generate_and_publish_post(self, section: str, page_config_id: int = None):
             )
             return {"status": "error", "message": "No content generated"}
 
+        max_daily_posts = max(1, int(getattr(settings, "FACEBOOK_AGENT_MAX_POSTS_PER_DAY", 3)))
+        published_today = PublishedPost.objects.filter(published_at__date=timezone.localdate()).count()
+        if published_today >= max_daily_posts:
+            return {"status": "daily_limit", "message": "Limite quotidienne de publications atteinte."}
+
         content = result["content"]
         image_url = result.get("image_url", "")
         link_url = result.get("link_url", "")
@@ -95,7 +104,7 @@ def generate_and_publish_post(self, section: str, page_config_id: int = None):
         rule = ContentRule.objects.filter(section=section, is_active=True).first()
 
         # Publier sur Facebook
-        fb_client = FacebookAPIClient(config.page_access_token, config.page_id)
+        fb_client = FacebookAPIClient(config.page_access_token, config.page_id, config.app_id, config.app_secret)
 
         logger.info(f"[Task] Publication sur Facebook page '{config.page_name}'")
         fb_result = fb_client.publish_post(
@@ -182,7 +191,7 @@ def publish_scheduled_post(self, scheduled_post_id: str):
     """Publie un post qui était planifié (ScheduledPost)."""
     from facebook_agent.models import ScheduledPost, PublishedPost, AgentLog
     from facebook_agent.facebook_api import FacebookAPIClient, FacebookAPIError
-
+    from django.conf import settings
     try:
         post = ScheduledPost.objects.get(id=scheduled_post_id)
 
@@ -193,16 +202,32 @@ def publish_scheduled_post(self, scheduled_post_id: str):
             logger.info(f"[Task] Post {scheduled_post_id} en attente d'approbation")
             return {"status": "pending_approval"}
 
+        max_daily_posts = max(1, int(getattr(settings, "FACEBOOK_AGENT_MAX_POSTS_PER_DAY", 3)))
+        if PublishedPost.objects.filter(published_at__date=timezone.localdate()).count() >= max_daily_posts:
+            post.error_message = "Limite quotidienne de publications atteinte."
+            post.save(update_fields=["error_message", "updated_at"])
+            return {"status": "daily_limit"}
+
         config = post.page_config
-        fb_client = FacebookAPIClient(config.page_access_token, config.page_id)
+        fb_client = FacebookAPIClient(config.page_access_token, config.page_id, config.app_id, config.app_secret)
 
         fb_result = fb_client.publish_post(
             message=post.content,
             image_url=post.image_url,
-            link_url=post.link_url,
+            link_url="" if post.source_object_type == "facebook_first_comment" else post.link_url,
         )
 
         facebook_post_id = fb_result.get("id", "")
+
+        if post.source_object_type == "facebook_first_comment" and post.link_url:
+            try:
+                fb_client.publish_comment(facebook_post_id, post.link_url)
+            except FacebookAPIError as comment_error:
+                AgentLog.objects.create(
+                    section=post.section, action="publish_post", level="warning",
+                    message=f"Post publié, mais premier commentaire non publié: {comment_error}",
+                    details={"scheduled_post_id": str(scheduled_post_id), "facebook_post_id": facebook_post_id},
+                )
 
         PublishedPost.objects.create(
             scheduled_post=post,
@@ -250,10 +275,13 @@ def publish_scheduled_post(self, scheduled_post_id: str):
 def process_pending_scheduled_posts():
     """Vérifie les posts planifiés et les publie si l'heure est venue."""
     from facebook_agent.models import ScheduledPost
+    from django.conf import settings
 
+    auto_enabled = getattr(settings, "FACEBOOK_AGENT_AUTO_PUBLISH_ENABLED", False)
+    allowed_statuses = ("en_attente", "approuve") if auto_enabled else ("approuve",)
     now = timezone.now()
     pending = ScheduledPost.objects.filter(
-        status__in=("en_attente", "approuve"),
+        status__in=allowed_statuses,
         scheduled_at__lte=now,
         retry_count__lt=3,
     )
@@ -265,6 +293,45 @@ def process_pending_scheduled_posts():
             publish_scheduled_post.delay(str(post.id))
 
     return {"processed": count}
+
+
+@shared_task
+def create_daily_summary_draft():
+    """Create one daily summary draft for review; never publish from this task."""
+    from facebook_agent.models import FacebookPageConfig, ScheduledPost, PublishedPost
+    from facebook_agent.prompts import generate_daily_summary_draft
+
+    today = timezone.localdate()
+    source_id = f"daily:{today.isoformat()}"
+    if not FacebookPageConfig.objects.filter(is_active=True).exists():
+        return {"status": "no_active_page"}
+    if ScheduledPost.objects.filter(source_object_type="facebook_first_comment", source_object_id=source_id).exists():
+        return {"status": "already_created"}
+
+    from django.conf import settings
+    max_daily = max(1, int(getattr(settings, "FACEBOOK_AGENT_MAX_POSTS_PER_DAY", 3)))
+    occupied = ScheduledPost.objects.filter(scheduled_at__date=today).filter(
+        status__in=("en_attente", "approuve", "publie")
+    ).count()
+    occupied += PublishedPost.objects.filter(published_at__date=today).exclude(
+        scheduled_post__isnull=False
+    ).count()
+    if occupied >= max_daily:
+        return {"status": "daily_limit"}
+
+    draft = generate_daily_summary_draft()
+    scheduled_at = timezone.localtime().replace(hour=18, minute=0, second=0, microsecond=0)
+    if scheduled_at <= timezone.now():
+        scheduled_at += timedelta(days=1)
+    config = FacebookPageConfig.objects.filter(is_active=True).first()
+    post = ScheduledPost.objects.create(
+        page_config=config, section="general", title=f"Résumé E-Shelle du {today:%d/%m/%Y}",
+        content=draft["text"], link_url=draft.get("first_comment", "https://e-shelle.com/"),
+        scheduled_at=scheduled_at, status="en_attente", requires_approval=True,
+        ai_generated=True, source_object_id=source_id,
+        source_object_type="facebook_first_comment",
+    )
+    return {"status": "created", "draft_id": str(post.id)}
 
 
 # ------------------------------------------------------------------ #
@@ -289,7 +356,7 @@ def sync_post_stats(published_post_id: str = None):
     if not config:
         return {"updated": 0}
 
-    fb_client = FacebookAPIClient(config.page_access_token, config.page_id)
+    fb_client = FacebookAPIClient(config.page_access_token, config.page_id, config.app_id, config.app_secret)
 
     for post in posts:
         try:
@@ -374,7 +441,7 @@ def check_token_validity():
     configs = FacebookPageConfig.objects.filter(is_active=True)
 
     for config in configs:
-        fb_client = FacebookAPIClient(config.page_access_token, config.page_id)
+        fb_client = FacebookAPIClient(config.page_access_token, config.page_id, config.app_id, config.app_secret)
         token_info = fb_client.verify_token()
 
         if not token_info.get("is_valid"):

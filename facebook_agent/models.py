@@ -26,8 +26,9 @@ class FacebookPageConfig(models.Model):
         return f"{self.page_name} ({self.page_id})"
 
     def is_token_valid(self):
+        """Check stored expiry only; call FacebookAPIClient.verify_token for Meta validity."""
         if not self.token_expires_at:
-            return True  # Token permanent supposé valide
+            return True  # No local expiry recorded; this does not prove Meta validity.
         return timezone.now() < self.token_expires_at
 
 
@@ -151,7 +152,7 @@ class ScheduledPost(models.Model):
     title = models.CharField(max_length=255, verbose_name="Titre interne")
     content = models.TextField(verbose_name="Contenu du post")
     image_url = models.URLField(blank=True, verbose_name="URL de l'image")
-    link_url = models.URLField(blank=True, verbose_name="URL du lien")
+    link_url = models.URLField(max_length=500, blank=True, verbose_name="URL du lien")
     scheduled_at = models.DateTimeField(verbose_name="Heure de publication planifiée")
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default="en_attente")
     requires_approval = models.BooleanField(default=False, verbose_name="Requiert une approbation")
@@ -200,7 +201,7 @@ class PublishedPost(models.Model):
     facebook_post_id = models.CharField(max_length=100, unique=True, verbose_name="ID du post Facebook")
     content = models.TextField(verbose_name="Contenu publié")
     image_url = models.URLField(blank=True)
-    link_url = models.URLField(blank=True)
+    link_url = models.URLField(max_length=500, blank=True)
     published_at = models.DateTimeField(auto_now_add=True, verbose_name="Publié le")
 
     # Statistiques (mis à jour par la tâche de sync)

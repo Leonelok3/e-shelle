@@ -4,6 +4,7 @@ Accessible uniquement aux administrateurs et superadmins.
 """
 
 import json
+import re
 from datetime import timedelta
 
 from django.contrib.admin.views.decorators import staff_member_required
@@ -36,6 +37,12 @@ def staff_required(view_func):
 @staff_required
 def dashboard(request):
     """Vue principale du dashboard de l'agent Facebook."""
+    from django.conf import settings
+    from business.models import BusinessProfile
+    from business.models import BusinessCatalogItem
+    from business.models import BusinessLeadEvent
+    from njangi.models import NjangiAchatGroupe
+
     now = timezone.now()
     today = now.date()
     week_ago = now - timedelta(days=7)
@@ -85,13 +92,28 @@ def dashboard(request):
         .annotate(count=Count("id"))
         .order_by("-count")
     )
+    campaign_stats = {
+        "views": BusinessLeadEvent.objects.filter(
+            source="facebook", event_type=BusinessLeadEvent.EventType.VIEW,
+            created_at__gte=week_ago,
+        ).count(),
+        "whatsapp": BusinessLeadEvent.objects.filter(
+            source="facebook", event_type=BusinessLeadEvent.EventType.WHATSAPP,
+            created_at__gte=week_ago,
+        ).count(),
+        "orders": BusinessLeadEvent.objects.filter(
+            source="facebook", event_type=BusinessLeadEvent.EventType.ORDER,
+            created_at__gte=week_ago,
+        ).count(),
+    }
 
     # Page insights
     page_insights = {}
     if page_config:
         try:
             from .facebook_api import FacebookAPIClient
-            client = FacebookAPIClient(page_config.page_access_token, page_config.page_id)
+            client = FacebookAPIClient(page_config.page_access_token, page_config.page_id,
+                                       page_config.app_id, page_config.app_secret)
             page_insights = client.get_page_insights()
         except Exception:
             pass
@@ -113,6 +135,17 @@ def dashboard(request):
         "upcoming_posts": upcoming_posts,
         "section_stats": section_stats,
         "content_rules": ContentRule.objects.all().order_by("section"),
+        "business_profiles": BusinessProfile.objects.filter(is_active=True).order_by("name")[:100],
+        "catalog_products": BusinessCatalogItem.objects.filter(
+            is_active=True, item_type=BusinessCatalogItem.ItemType.PRODUCT,
+            business__is_active=True,
+        ).select_related("business").order_by("-created_at")[:100],
+        "njangi_groups": NjangiAchatGroupe.objects.filter(
+            status=NjangiAchatGroupe.Status.OPEN,
+        ).select_related("product", "product__business").order_by("date_cloture")[:100],
+        "campaign_stats": campaign_stats,
+        "auto_publish_enabled": getattr(settings, "FACEBOOK_AGENT_AUTO_PUBLISH_ENABLED", False),
+        "daily_post_limit": getattr(settings, "FACEBOOK_AGENT_MAX_POSTS_PER_DAY", 3),
     }
     return render(request, "facebook_agent/dashboard.html", context)
 
@@ -133,6 +166,7 @@ def publish_now(request):
         task = generate_and_publish_post.delay(
             section=section,
             page_config_id=int(page_config_id) if page_config_id else None,
+            approved_manual=True,
         )
         messages.success(
             request,
@@ -161,6 +195,7 @@ def publish_now_ajax(request):
         task = generate_and_publish_post.delay(
             section=section,
             page_config_id=int(page_config_id) if page_config_id else None,
+            approved_manual=True,
         )
         return JsonResponse({
             "status": "success",
@@ -299,6 +334,194 @@ def preview_ai_content(request):
         return JsonResponse({"status": "error", "message": str(e)}, status=500)
 
 
+@staff_required
+@require_POST
+def preview_business_created(request):
+    """Prepare a new-business post draft without publishing or saving it."""
+    try:
+        data = json.loads(request.body)
+        business_id = data.get("business_id")
+        if not business_id:
+            return JsonResponse({"status": "error", "message": "Choisissez une fiche business."}, status=400)
+
+        from business.models import BusinessProfile
+        business = get_object_or_404(
+            BusinessProfile.objects.filter(is_active=True), pk=business_id
+        )
+        from .prompts import generate_business_created_draft
+        draft = generate_business_created_draft(business)
+        return JsonResponse({"status": "success", **draft})
+    except Exception as e:
+        return JsonResponse({"status": "error", "message": str(e)}, status=500)
+
+
+@staff_required
+@require_POST
+def preview_marketing_draft(request):
+    """Preview product, group-buying Njangi, or daily-summary content."""
+    try:
+        data = json.loads(request.body)
+        draft_type = data.get("type")
+        from . import prompts
+        if draft_type == "business":
+            from business.models import BusinessProfile
+            obj = get_object_or_404(BusinessProfile.objects.filter(is_active=True), pk=data.get("object_id"))
+            draft = prompts.generate_business_created_draft(obj)
+        elif draft_type == "product":
+            from business.models import BusinessCatalogItem
+            obj = get_object_or_404(
+                BusinessCatalogItem.objects.filter(is_active=True, business__is_active=True),
+                pk=data.get("object_id"), item_type=BusinessCatalogItem.ItemType.PRODUCT,
+            )
+            draft = prompts.generate_product_draft(obj)
+        elif draft_type == "njangi":
+            from njangi.models import NjangiAchatGroupe
+            obj = get_object_or_404(
+                NjangiAchatGroupe.objects.filter(status=NjangiAchatGroupe.Status.OPEN)
+                .select_related("product", "product__business"), pk=data.get("object_id")
+            )
+            draft = prompts.generate_njangi_draft(obj)
+        elif draft_type == "daily_summary":
+            draft = prompts.generate_daily_summary_draft()
+        else:
+            return JsonResponse({"status": "error", "message": "Type de brouillon inconnu."}, status=400)
+        return JsonResponse({"status": "success", "type": draft_type, **draft})
+    except Exception as e:
+        return JsonResponse({"status": "error", "message": str(e)}, status=500)
+
+
+@staff_required
+@require_POST
+def verify_meta_connection(request):
+    """Explicitly verify the configured Page token and required permissions."""
+    config = FacebookPageConfig.objects.filter(is_active=True).first()
+    if not config:
+        return JsonResponse({"status": "error", "message": "Aucune Page active configurée."}, status=409)
+    from django.conf import settings
+    from .facebook_api import FacebookAPIClient
+    client = FacebookAPIClient(config.page_access_token, config.page_id, config.app_id, config.app_secret)
+    result = client.verify_token()
+    if not result.get("is_valid"):
+        return JsonResponse({"status": "error", "message": result.get("error", "Jeton invalide ou expiré."),
+                             "page_name": config.page_name, "page_id": config.page_id,
+                             "token_valid": False}, status=400)
+    scopes = set(result.get("scopes", []))
+    required = {"pages_manage_posts", "pages_read_engagement", "pages_manage_engagement"}
+    page_info = client.get_page_insights()
+    page_matches = bool(page_info) and str(page_info.get("id", "")) == str(config.page_id)
+    expected_app_id = config.app_id or getattr(settings, "FACEBOOK_APP_ID", "")
+    app_matches = not expected_app_id or str(result.get("app_id", "")) == str(expected_app_id)
+    missing = sorted(required - scopes)
+    return JsonResponse({
+        "status": "success" if page_matches and app_matches and not missing else "warning",
+        "page_name": page_info.get("name", config.page_name), "page_id": config.page_id,
+        "token_valid": True, "page_matches": page_matches, "app_matches": app_matches,
+        "permissions": sorted(scopes), "missing_permissions": missing,
+        "expires_at": result.get("expires_at"),
+    })
+
+
+@staff_required
+@require_POST
+def save_approved_draft(request):
+    """Save an edited draft for human approval; this endpoint never publishes."""
+    try:
+        data = json.loads(request.body)
+        content = (data.get("content") or "").strip()
+        draft_type = data.get("type", "business")
+        object_id = data.get("object_id")
+        char_limit = 600 if draft_type == "daily_summary" else 300
+        if not content or len(content) > char_limit:
+            return JsonResponse({"status": "error", "message": f"Le texte doit contenir entre 1 et {char_limit} caractères."}, status=400)
+        if len(re.findall(r"(?<!\w)#[\wÀ-ÿ]+", content)) > 3:
+            return JsonResponse({"status": "error", "message": "Utilisez trois hashtags au maximum."}, status=400)
+
+        from django.utils.dateparse import parse_datetime
+        scheduled_at = parse_datetime(data.get("scheduled_at", ""))
+        if not scheduled_at:
+            return JsonResponse({"status": "error", "message": "Choisissez une date de publication."}, status=400)
+        if timezone.is_naive(scheduled_at):
+            scheduled_at = timezone.make_aware(scheduled_at)
+        if scheduled_at < timezone.now():
+            return JsonResponse({"status": "error", "message": "La date doit être dans le futur."}, status=400)
+
+        from business.models import BusinessProfile, BusinessCatalogItem
+        from njangi.models import NjangiAchatGroupe
+        url = "https://e-shelle.com/"
+        from .prompts import facebook_campaign_url
+        section = "business"
+        title = "Brouillon Facebook E-Shelle"
+        if draft_type == "business":
+            obj = get_object_or_404(BusinessProfile.objects.filter(is_active=True), pk=object_id)
+            url = facebook_campaign_url(f"https://e-shelle.com/b/{obj.public_slug or obj.slug}/", f"business_{obj.pk}")
+            title = f"Fiche business : {obj.name}"
+        elif draft_type == "product":
+            obj = get_object_or_404(BusinessCatalogItem.objects.filter(is_active=True, business__is_active=True), pk=object_id)
+            url = facebook_campaign_url(f"https://e-shelle.com/b/{obj.business.public_slug or obj.business.slug}/", f"product_{obj.pk}")
+            title = f"Produit : {obj.title}"
+        elif draft_type == "njangi":
+            obj = get_object_or_404(NjangiAchatGroupe.objects.select_related("product__business"), pk=object_id)
+            url = facebook_campaign_url(f"https://e-shelle.com/b/{obj.product.business.public_slug or obj.product.business.slug}/", f"njangi_{obj.pk}")
+            title = f"Njangi : {obj.product.title}"
+            section = "njangi"
+        elif draft_type != "daily_summary":
+            return JsonResponse({"status": "error", "message": "Type de brouillon inconnu."}, status=400)
+
+        if draft_type == "daily_summary":
+            url = facebook_campaign_url(url, f"daily_{scheduled_at.date().isoformat()}")
+
+        config = FacebookPageConfig.objects.filter(is_active=True).first()
+        if not config:
+            return JsonResponse({"status": "error", "message": "Aucune Page Facebook active n'est configurée."}, status=409)
+        from django.conf import settings
+        max_daily = max(1, int(getattr(settings, "FACEBOOK_AGENT_MAX_POSTS_PER_DAY", 3)))
+        from django.db.models import Q
+        day_posts = ScheduledPost.objects.filter(scheduled_at__date=scheduled_at.date()).filter(
+            Q(status__in=("en_attente", "approuve")) | Q(status="publie")
+        ).count()
+        day_posts += PublishedPost.objects.filter(published_at__date=scheduled_at.date()).exclude(
+            scheduled_post__isnull=False
+        ).count()
+        if day_posts >= max_daily:
+            return JsonResponse({"status": "error", "message": f"Le plafond de {max_daily} publications pour cette date est atteint."}, status=409)
+
+        source_id = f"{draft_type}:{object_id or scheduled_at.date().isoformat()}"
+        cooldown_days = 7 if draft_type == "product" else 1
+        duplicate_cutoff = timezone.now() - timedelta(days=cooldown_days)
+        if ScheduledPost.objects.filter(
+            source_object_id=source_id,
+            source_object_type="facebook_first_comment",
+            created_at__gte=duplicate_cutoff,
+        ).exclude(status="annule").exists():
+            return JsonResponse({"status": "error", "message": "Un brouillon récent existe déjà pour cet élément."}, status=409)
+        post = ScheduledPost.objects.create(
+            page_config=config, section=section, title=title,
+            content=content, link_url=url, scheduled_at=scheduled_at,
+            status="en_attente", requires_approval=True, ai_generated=True,
+            source_object_id=source_id,
+            source_object_type="facebook_first_comment",
+        )
+        return JsonResponse({"status": "success", "message": "Brouillon enregistré en attente d'approbation.", "draft_id": str(post.id)})
+    except Exception as e:
+        return JsonResponse({"status": "error", "message": str(e)}, status=500)
+
+
+@staff_required
+@require_POST
+def approve_scheduled_draft(request, scheduled_post_id):
+    """Explicit staff approval schedules a draft for its selected publication time."""
+    post = get_object_or_404(ScheduledPost, pk=scheduled_post_id)
+    if post.status != "en_attente" or not post.requires_approval:
+        messages.error(request, "Ce brouillon n'est plus en attente d'approbation.")
+        return redirect("facebook_agent:scheduled_posts")
+    if post.scheduled_at <= timezone.now():
+        post.scheduled_at = timezone.now() + timedelta(minutes=5)
+    post.status = "approuve"
+    post.save(update_fields=["status", "scheduled_at", "updated_at"])
+    messages.success(request, "Brouillon approuvé et programmé. Une date déjà passée est reportée de cinq minutes.")
+    return redirect("facebook_agent:scheduled_posts")
+
+
 # ------------------------------------------------------------------ #
 # Logs de l'agent                                                     #
 # ------------------------------------------------------------------ #
@@ -351,7 +574,8 @@ def api_status(request):
     data = {
         "page_active": config is not None,
         "page_name": config.page_name if config else None,
-        "token_valid": config.is_token_valid() if config else False,
+        "token_valid": None,
+        "token_checked_by_meta": False,
         "published_today": PublishedPost.objects.filter(published_at__date=today).count(),
         "pending_posts": ScheduledPost.objects.filter(status__in=("en_attente", "approuve")).count(),
         "errors_today": AgentLog.objects.filter(created_at__date=today, level="error").count(),

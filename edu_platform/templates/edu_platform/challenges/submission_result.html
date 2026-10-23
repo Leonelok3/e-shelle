@@ -1,0 +1,18 @@
+{% extends 'edu_platform/base.html' %}
+{% block title %}Résultat du challenge — Mapex{% endblock %}
+{% block content %}
+{% if submission.status == 'pending' or submission.status == 'processing' %}<meta http-equiv="refresh" content="12">{% endif %}
+<section class="container py-5" style="max-width:820px"><div class="card border-0 shadow-sm p-4 p-md-5">
+  <span class="badge text-bg-success align-self-start mb-3">MAPEX · CHALLENGE</span><h1 class="h3">Copie reçue, {{ submission.student_name }}</h1><p class="text-muted">{{ submission.challenge.title }}</p>
+  {% if submission.status == 'pending' or submission.status == 'processing' %}<div class="alert alert-info">Ta copie est en cours de traitement. Cette page se mettra à jour automatiquement.</div>
+  {% elif submission.status == 'failed' %}<div class="alert alert-warning">{{ submission.error_message }} Un enseignant pourra la corriger ou relancer l’analyse.</div>
+  {% else %}
+    <div class="rounded-3 p-4 my-3" style="background:#eaf6ef"><div class="small text-muted">NOTE {% if submission.status == 'graded' %}PROVISOIRE — IA{% else %}VÉRIFIÉE PAR UN ENSEIGNANT{% endif %}</div><div class="display-5 fw-bold">{{ submission.score }} / {{ submission.challenge.total_points }}</div>
+      {% if submission.feedback.confidence == 'low' %}<p class="mb-0 text-warning-emphasis">Certaines parties peuvent être difficiles à lire. Demande une vérification à ton enseignant.</p>{% endif %}</div>
+    <h2 class="h5 mt-4">Correction et conseils</h2><p>{{ submission.feedback.overall_feedback|default:'La correction détaillée est disponible.'|linebreaks }}</p>
+    {% for item in submission.feedback.questions %}<article class="border rounded-3 p-3 mb-3"><strong>{{ item.question }} — {{ item.score }} / {{ item.points }}</strong><p class="mb-1 mt-2">{{ item.feedback }}</p><div class="small"><b>Correction :</b> {{ item.correction }}</div></article>{% endfor %}
+    {% if submission.feedback.suggestions %}<h3 class="h6 mt-4">Pour progresser</h3><ul>{% for suggestion in submission.feedback.suggestions %}<li>{{ suggestion }}</li>{% endfor %}</ul>{% endif %}
+  {% endif %}
+  <a href="{% url 'edu:challenge_public' submission.challenge.public_token %}" class="btn btn-outline-success mt-3">Retour au challenge</a>
+</div></section>
+{% endblock %}

@@ -1,0 +1,7 @@
+{% extends 'edu_platform/base.html' %}
+{% block title %}Classement — {{ challenge.title }}{% endblock %}
+{% block content %}
+<section class="container py-5" style="max-width:850px"><div class="card border-0 shadow-sm p-4 p-md-5"><span class="badge text-bg-warning align-self-start mb-3">CLASSEMENT MAPEX</span><h1 class="h3">{{ challenge.title }}</h1><p class="text-muted">Les notes IA sont provisoires jusqu’à vérification par un enseignant.</p>
+{% if rows %}<div class="table-responsive"><table class="table align-middle"><thead><tr><th>Rang</th><th>Élève</th><th>Classement</th><th>Note</th></tr></thead><tbody>{% for row in rows %}<tr><td>{% if forloop.counter == 1 %}🥇{% elif forloop.counter == 2 %}🥈{% elif forloop.counter == 3 %}🥉{% else %}{{ forloop.counter }}{% endif %}</td><td>{% if row.show_name_on_leaderboard %}{{ row.student_name }}{% else %}Élève participant{% endif %}</td><td>{% if row.status == 'reviewed' %}Vérifiée{% else %}Provisoire{% endif %}</td><td><strong>{{ row.score }} / {{ challenge.total_points }}</strong></td></tr>{% endfor %}</tbody></table></div>{% else %}<p>Le classement sera disponible après les premières corrections.</p>{% endif %}
+<a href="{% url 'edu:challenge_public' challenge.public_token %}" class="btn btn-outline-success mt-3">Voir le challenge</a></div></section>
+{% endblock %}

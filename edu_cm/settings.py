@@ -619,6 +619,8 @@ RESTO_FREE_TRIAL_DAYS = 30
 # ── Facebook Agent IA ─────────────────────────────────────────────
 FACEBOOK_APP_ID     = os.getenv("FACEBOOK_APP_ID", "")
 FACEBOOK_APP_SECRET = os.getenv("FACEBOOK_APP_SECRET", "")
+FACEBOOK_AGENT_AUTO_PUBLISH_ENABLED = os.getenv("FACEBOOK_AGENT_AUTO_PUBLISH_ENABLED", "false").lower() in ("1", "true", "yes")
+FACEBOOK_AGENT_MAX_POSTS_PER_DAY = max(1, int(os.getenv("FACEBOOK_AGENT_MAX_POSTS_PER_DAY", "3")))
 
 # ── WhatsApp Agent IA — Meta WhatsApp Business API ────────────────
 WHATSAPP_TOKEN = os.getenv("WHATSAPP_TOKEN", "")

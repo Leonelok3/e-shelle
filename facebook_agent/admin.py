@@ -42,15 +42,19 @@ class FacebookPageConfigAdmin(admin.ModelAdmin):
     actions = ["verify_token_action", "test_publish_action"]
 
     def token_status(self, obj):
+        if not obj.page_access_token:
+            return format_html('<span style="color:#dc3545;font-weight:bold">Manquant</span>')
+        if not obj.token_expires_at:
+            return format_html('<span style="color:#b7791f;font-weight:bold">Non vérifié auprès de Meta</span>')
         if obj.is_token_valid():
-            return format_html('<span style="color:green;font-weight:bold">✓ Valide</span>')
-        return format_html('<span style="color:red;font-weight:bold">✗ Expiré</span>')
+            return format_html('<span style="color:#b7791f;font-weight:bold">Date d’expiration future · vérifier auprès de Meta</span>')
+        return format_html('<span style="color:#dc3545;font-weight:bold">Expiré</span>')
     token_status.short_description = "Statut Token"
 
     def verify_token_action(self, request, queryset):
         from .facebook_api import FacebookAPIClient
         for config in queryset:
-            client = FacebookAPIClient(config.page_access_token, config.page_id)
+            client = FacebookAPIClient(config.page_access_token, config.page_id, config.app_id, config.app_secret)
             info = client.verify_token()
             if info.get("is_valid"):
                 self.message_user(request, f"✓ Token valide pour {config.page_name}", messages.SUCCESS)
@@ -62,7 +66,7 @@ class FacebookPageConfigAdmin(admin.ModelAdmin):
         from .facebook_api import FacebookAPIClient, FacebookAPIError
         for config in queryset:
             try:
-                client = FacebookAPIClient(config.page_access_token, config.page_id)
+                client = FacebookAPIClient(config.page_access_token, config.page_id, config.app_id, config.app_secret)
                 result = client.publish_text_post(
                     "🤖 Test de publication automatique E-Shelle Auto-Post. "
                     "Ce post confirme que l'intégration Facebook fonctionne correctement."

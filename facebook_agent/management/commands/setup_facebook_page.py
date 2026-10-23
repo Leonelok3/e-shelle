@@ -57,7 +57,7 @@ class Command(BaseCommand):
                 raise CommandError("Aucune configuration active. Crée-en une avec --page-id, --page-name, --token")
 
             self.stdout.write(f"\nVérification du token pour '{config.page_name}'...")
-            client = FacebookAPIClient(config.page_access_token, config.page_id)
+            client = FacebookAPIClient(config.page_access_token, config.page_id, config.app_id, config.app_secret)
             info = client.verify_token()
 
             if info.get("is_valid"):
@@ -69,7 +69,7 @@ class Command(BaseCommand):
                     self.stdout.write(f"  Permissions : {', '.join(scopes)}")
 
                 # Vérifier les permissions requises
-                required = {"pages_manage_posts", "pages_read_engagement"}
+                required = {"pages_manage_posts", "pages_read_engagement", "pages_manage_engagement"}
                 missing = required - set(scopes)
                 if missing:
                     self.stdout.write(self.style.WARNING(
@@ -88,7 +88,7 @@ class Command(BaseCommand):
                 raise CommandError("Aucune configuration active.")
 
             self.stdout.write(f"\nPublication d'un post de test sur '{config.page_name}'...")
-            client = FacebookAPIClient(config.page_access_token, config.page_id)
+            client = FacebookAPIClient(config.page_access_token, config.page_id, config.app_id, config.app_secret)
             try:
                 result = client.publish_text_post(
                     "🤖 Test de publication automatique — E-Shelle Agent IA Facebook.\n"
@@ -145,7 +145,7 @@ class Command(BaseCommand):
         # Vérification automatique du token si App ID + Secret fournis
         if config.app_id and config.app_secret:
             self.stdout.write("\nVérification automatique du token...")
-            client = FacebookAPIClient(config.page_access_token, config.page_id)
+            client = FacebookAPIClient(config.page_access_token, config.page_id, config.app_id, config.app_secret)
             info = client.verify_token()
             if info.get("is_valid"):
                 self.stdout.write(self.style.SUCCESS("  ✓ Token valide"))

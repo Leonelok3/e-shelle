@@ -26,6 +26,7 @@ from edu_platform.views.api_views import (
     PaymentStatusAPIView, DeviceCheckAPIView,
     OrangeMoneyWebhookView, MTNMoMoWebhookView,
 )
+from edu_platform.views import challenge_views
 
 app_name = 'edu'
 
@@ -73,6 +74,16 @@ urlpatterns = [
     # ── API INTERNES ─────────────────────────────────────────────────
     path('api/payment-status/<uuid:tx_id>/', PaymentStatusAPIView.as_view(), name='api_payment_status'),
     path('api/device-check/', DeviceCheckAPIView.as_view(), name='api_device_check'),
+
+    # ── CHALLENGES MAPEX ─────────────────────────────────────────────
+    path('challenges/<uuid:token>/', challenge_views.challenge_public, name='challenge_public'),
+    path('challenges/<uuid:token>/exercise/', challenge_views.challenge_exercise_file, name='challenge_exercise_file'),
+    path('challenges/<uuid:token>/qr.png', challenge_views.challenge_qr, name='challenge_qr'),
+    path('challenges/<uuid:token>/leaderboard/', challenge_views.challenge_leaderboard, name='challenge_leaderboard'),
+    path('challenge-results/<uuid:token>/', challenge_views.challenge_result, name='challenge_result'),
+    path('admin/challenges/', challenge_views.challenge_manager, name='challenge_manager'),
+    path('admin/challenges/<int:challenge_id>/submissions/', challenge_views.challenge_submissions, name='challenge_submissions'),
+    path('admin/challenges/submissions/<int:submission_id>/files/<int:file_id>/', challenge_views.submission_file, name='challenge_submission_file'),
 
     # ── WEBHOOKS (CSRF-exempt, sécurisés par HMAC) ──────────────────
     path('webhooks/orange-money/', OrangeMoneyWebhookView.as_view(), name='webhook_orange'),

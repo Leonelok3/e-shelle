@@ -27,9 +27,11 @@ class FacebookAPIClient:
     Supporte: publication texte, photo, lien, stats, token refresh.
     """
 
-    def __init__(self, page_access_token: str, page_id: str):
+    def __init__(self, page_access_token: str, page_id: str, app_id: str = "", app_secret: str = ""):
         self.token = page_access_token
         self.page_id = page_id
+        self.app_id = app_id
+        self.app_secret = app_secret
         self.session = requests.Session()
         self.session.headers.update({"User-Agent": "E-Shelle-AutoPost/1.0"})
 
@@ -97,6 +99,31 @@ class FacebookAPIClient:
         )
         return result
 
+    def publish_comment(self, post_id: str, message: str) -> Dict[str, Any]:
+        """Publish a first comment under a Page post (requires Page permissions)."""
+        if not post_id or not message:
+            raise ValueError("Un ID de publication et un commentaire sont requis.")
+        try:
+            response = self.session.post(
+                f"{GRAPH_API_BASE}/{post_id}/comments",
+                data={"message": message, "access_token": self.token},
+                timeout=30,
+            )
+            result = response.json()
+            if "error" in result:
+                error = result["error"]
+                raise FacebookAPIError(
+                    message=error.get("message", "Erreur inconnue"),
+                    code=error.get("code", 0), fb_error=error,
+                )
+            return result
+        except requests.exceptions.Timeout as exc:
+            raise FacebookAPIError("Timeout pendant la publication du commentaire") from exc
+        except requests.exceptions.ConnectionError as exc:
+            raise FacebookAPIError("Erreur de connexion pendant la publication du commentaire") from exc
+        except requests.exceptions.JSONDecodeError as exc:
+            raise FacebookAPIError("Réponse invalide de Meta pendant la publication du commentaire") from exc
+
     def publish_photo_post(self, message: str, image_url: str) -> Dict[str, Any]:
         """Publie un post avec une image depuis une URL."""
         logger.info(f"[FacebookAPI] Publication photo sur page {self.page_id}")
@@ -162,7 +189,7 @@ class FacebookAPIClient:
             result = self._request(
                 "GET",
                 f"{self.page_id}",
-                params={"fields": "fan_count,followers_count,name,category"},
+                params={"fields": "id,fan_count,followers_count,name,category"},
             )
             return result
         except FacebookAPIError as e:
@@ -191,12 +218,12 @@ class FacebookAPIClient:
 
     def verify_token(self) -> Dict[str, Any]:
         """Vérifie la validité et les détails du token actuel."""
-        app_id = getattr(settings, "FACEBOOK_APP_ID", "")
-        app_secret = getattr(settings, "FACEBOOK_APP_SECRET", "")
+        app_id = self.app_id or getattr(settings, "FACEBOOK_APP_ID", "")
+        app_secret = self.app_secret or getattr(settings, "FACEBOOK_APP_SECRET", "")
 
         if not app_id or not app_secret:
             logger.warning("[FacebookAPI] APP_ID ou APP_SECRET manquant pour vérifier le token")
-            return {"is_valid": True, "expires_at": None}
+            return {"is_valid": False, "expires_at": None, "error": "Meta App ID/Secret non configurés"}
 
         try:
             response = requests.get(

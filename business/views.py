@@ -602,7 +602,19 @@ def go_business(request, business_id, event_type):
     target_url = _business_public_target(request, business, event_kind)
     if event_kind != BusinessLeadEvent.EventType.VIEW:
         BusinessProfile.objects.filter(pk=business.pk).update(views_count=F("views_count") + 1)
-    event = create_tracking_event(business, event_kind, target_url, source="home")
+    session_campaign = request.session.get("facebook_campaign", {})
+    if not isinstance(session_campaign, dict):
+        session_campaign = {}
+    campaign = request.GET.get("utm_campaign", "")[:120]
+    if not campaign and timezone.now().timestamp() - float(session_campaign.get("at", 0)) < 7 * 86400:
+        campaign = str(session_campaign.get("name", ""))[:120]
+    source = "facebook" if campaign else request.GET.get("source", "home")
+    if source not in {"facebook", "profile", "home"}:
+        source = "home"
+    event = create_tracking_event(
+        business, event_kind, target_url, source=source,
+        metadata={"campaign": campaign, "medium": "social"} if campaign else {},
+    )
     return redirect(record_event_hit(event, request=request))
 
 
@@ -657,6 +669,13 @@ def public_profile(request, public_slug):
     """Vitrine publique centrale d'une activite E-Shelle."""
     business = get_object_or_404(BusinessProfile, public_slug=public_slug, is_active=True)
     BusinessProfile.objects.filter(pk=business.pk).update(views_count=F("views_count") + 1)
+    if request.GET.get("utm_source", "").lower() == "facebook":
+        campaign = request.GET.get("utm_campaign", "")[:120]
+        request.session["facebook_campaign"] = {"name": campaign, "at": timezone.now().timestamp()}
+        create_tracking_event(
+            business, BusinessLeadEvent.EventType.VIEW, request.build_absolute_uri(),
+            source="facebook", metadata={"campaign": campaign, "medium": "social"},
+        )
     source_object = business.content_object
     source_url = ""
     if source_object and hasattr(source_object, "get_absolute_url"):
@@ -669,7 +688,9 @@ def public_profile(request, public_slug):
         share_text = f"Discover {business.display_name} on E-Shelle: {public_url}"
     else:
         share_text = f"Decouvrez {business.display_name} sur E-Shelle: {public_url}"
-    whatsapp_url = _public_profile_whatsapp_url(request, business, public_url)
+    whatsapp_url = reverse(
+        "business:go_business", kwargs={"business_id": business.pk, "event_type": "whatsapp"}
+    ) + "?source=profile"
     is_owner = request.user.is_authenticated and business.owner == request.user
     reviews = business.reviews.all() if is_owner else business.approved_reviews
     return render(
