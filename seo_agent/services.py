@@ -3,6 +3,7 @@ from dataclasses import dataclass
 from pathlib import Path
 
 from django.conf import settings
+from django.template.loader import get_template
 from django.urls import reverse
 from django.utils.text import slugify
 
@@ -52,20 +53,26 @@ class SEOAuditAgent:
         files = self._template_files()
         issues = []
         pages_ok = 0
+        core_signal_pages = 0
         for path in files[:limit]:
             text = path.read_text(encoding="utf-8", errors="ignore")
             rel = str(path.relative_to(self.base_dir))
-            found = self._inspect_template(text, rel)
+            parent_text = self._parent_sources(text)
+            found = self._inspect_template(text, rel, parent_text)
             issues.extend(found)
             if not found:
                 pages_ok += 1
+            if self._has_local_title(text) and self._has_local_description(text) and re.search(r"<h1[\s>]", text, re.I):
+                core_signal_pages += 1
         critical = sum(1 for item in issues if item.level == "danger")
         warning = sum(1 for item in issues if item.level == "warning")
-        score = max(0, 100 - critical * 4 - warning * 2)
+        scanned = min(len(files), limit)
+        score = round(100 * core_signal_pages / scanned) if scanned else 0
         return {
             "score": score,
-            "files_scanned": min(len(files), limit),
+            "files_scanned": scanned,
             "pages_ok": pages_ok,
+            "core_signal_pages": core_signal_pages,
             "critical": critical,
             "warning": warning,
             "issues": issues[:80],
@@ -76,17 +83,68 @@ class SEOAuditAgent:
         for root in [self.base_dir / "templates", *self.base_dir.glob("*/templates"), *self.base_dir.glob("apps/*/templates")]:
             if root.exists():
                 candidates.extend(root.rglob("*.html"))
-        return sorted(set(candidates))
+        non_pages = {"admin", "dashboard", "partials", "partial", "components", "component", "includes", "include", "widgets", "emails", "staff"}
+        pages = set()
+        for path in candidates:
+            parts = {part.lower() for part in path.parts}
+            if parts.intersection(non_pages) or path.stem.startswith("_") or path.stem.lower() == "base":
+                continue
+            text = path.read_text(encoding="utf-8", errors="ignore")
+            if "<html" not in text.lower() and not re.search(r"{%\s*extends\s+['\"]", text, re.I):
+                continue
+            pages.add(path)
+        return sorted(pages)
 
-    def _inspect_template(self, text, rel):
+    def _parent_sources(self, text):
+        sources = []
+        seen = set()
+        current = text
+        for _ in range(5):
+            match = re.search(r"{%\s*extends\s+['\"]([^'\"]+)['\"]\s*%}", current)
+            if not match or match.group(1) in seen:
+                break
+            name = match.group(1)
+            seen.add(name)
+            try:
+                current = get_template(name).template.source
+            except Exception:
+                break
+            sources.append(current)
+        return "\n".join(sources)
+
+    @staticmethod
+    def _has_title(text, parent_text=""):
+        return any(token in (text + "\n" + parent_text).lower() for token in ("{% block title", "<title"))
+
+    @staticmethod
+    def _has_description(text, parent_text=""):
+        combined = (text + "\n" + parent_text).lower()
+        return "meta_description" in combined or 'name="description"' in combined
+
+    @staticmethod
+    def _has_local_title(text):
+        return "{% block title" in text.lower() or bool(re.search(r"<title[\s>]", text, re.I))
+
+    @staticmethod
+    def _has_local_description(text):
+        lower = text.lower()
+        return "meta_description" in lower or 'name="description"' in lower
+
+    def _inspect_template(self, text, rel, parent_text=""):
         issues = []
         lower = text.lower()
-        public_like = not any(part in rel.lower() for part in ["admin", "dashboard", "mon_compte", "accounts/login"])
+        parts = {part.lower() for part in Path(rel).parts}
+        private_parts = {"accounts", "dashboard", "admin", "mon_compte", "checkout", "commandes", "moderation"}
+        public_like = not parts.intersection(private_parts)
 
-        if public_like and "{% block title" not in lower and "<title" not in lower:
+        if public_like and not self._has_title(text, parent_text):
             issues.append(SEOIssue("danger", "Titre SEO absent", "Ajouter un block title ou une balise title claire.", rel))
-        if public_like and "meta_description" not in lower and 'name="description"' not in lower:
+        elif public_like and not self._has_local_title(text):
+            issues.append(SEOIssue("warning", "Titre hérité non personnalisé", "Définir un titre unique pour cette page.", rel))
+        if public_like and not self._has_description(text, parent_text):
             issues.append(SEOIssue("warning", "Meta description absente", "Ajouter une description persuasive entre 120 et 155 caracteres.", rel))
+        elif public_like and not self._has_local_description(text):
+            issues.append(SEOIssue("warning", "Meta description héritée", "Personnaliser la description pour cette page.", rel))
         if public_like and not re.search(r"<h1[\s>]", lower):
             issues.append(SEOIssue("warning", "H1 non detecte", "Chaque page indexable doit avoir un seul H1 utile.", rel))
 
@@ -94,8 +152,6 @@ class SEOAuditAgent:
         missing_alt = [tag for tag in image_tags if " alt=" not in tag.lower()]
         if public_like and missing_alt:
             issues.append(SEOIssue("warning", "Images sans alt", f"{len(missing_alt)} image(s) sans texte alternatif.", rel))
-        if public_like and "schema.org" not in lower and "application/ld+json" not in lower:
-            issues.append(SEOIssue("warning", "Schema.org absent", "Ajouter JSON-LD: LocalBusiness, Product, Service, FAQ ou Breadcrumb.", rel))
         if public_like and all(token not in lower for token in ["whatsapp", "demander", "commander", "reserver", "contacter", "s'inscrire"]):
             issues.append(SEOIssue("warning", "CTA faible", "Ajouter un appel a l'action clair vers WhatsApp, devis ou inscription.", rel))
         return issues
@@ -301,7 +357,7 @@ class SEOCorrectionAgent:
 
 
 def build_sitemap_entries(request):
-    base = f"{request.scheme}://{request.get_host()}"
+    base = settings.SITE_URL.rstrip("/")
     entries = [{"loc": f"{base}{url}", "label": label, "kind": kind} for url, label, kind in PUBLIC_URLS]
     from rencontres.seo_content import public_routes
     love_origin = getattr(settings, 'RENCONTRES_PUBLIC_ORIGIN', 'https://e-shelle.com').rstrip('/')
@@ -309,8 +365,8 @@ def build_sitemap_entries(request):
         entries.append({'loc': love_origin + reverse('rencontres:' + route),
                         'label': 'E-Shelle Love', 'kind': 'Rencontres locales et internationales',
                         'lastmod': '2026-10-03'})
-    for page in LocalSEOAgent().prioritized_pages(request=request, limit=100):
-        entries.append({"loc": page["url"], "label": page["title"], "kind": "GEO rentable"})
+    for page in LocalSEOAgent().prioritized_pages(limit=100):
+        entries.append({"loc": base + page["path"], "label": page["title"], "kind": "GEO rentable"})
 
     # Individual Business Profiles
     try:

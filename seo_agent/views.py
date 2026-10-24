@@ -1,4 +1,5 @@
 from django.contrib.admin.views.decorators import staff_member_required
+from django.conf import settings
 from django.http import HttpResponse
 from django.shortcuts import render
 from django.utils import timezone
@@ -75,6 +76,7 @@ def robots_txt(request):
         "Disallow: /admin/",
         "Disallow: /accounts/",
         "Disallow: /dashboard/",
+        "Disallow: /seo/",
         "Disallow: /whatsapp/",
         "Disallow: /commercial-agent/",
         "Disallow: /phone-ocr/",
@@ -89,8 +91,14 @@ def robots_txt(request):
     
     lines = []
     
-    # Explicity allow major AI and LLM Search Bots
-    ai_bots = ["GPTBot", "ClaudeBot", "Google-Extended", "PerplexityBot"]
+    # Search/retrieval bots are distinct from model-training crawlers.
+    # Keep the currently allowed training agents unchanged and explicitly
+    # include the search agents used for answers with web citations.
+    ai_bots = [
+        "OAI-SearchBot", "GPTBot", "ChatGPT-User",
+        "Claude-SearchBot", "Claude-User", "ClaudeBot",
+        "Google-Extended", "PerplexityBot",
+    ]
     for bot in ai_bots:
         lines.append(f"User-agent: {bot}")
         lines.append("Allow: /")
@@ -104,7 +112,7 @@ def robots_txt(request):
     lines.append("")
     
     # Reference sitemap dynamically
-    lines.append(f"Sitemap: {request.scheme}://{request.get_host()}/sitemap.xml")
+    lines.append(f"Sitemap: {settings.SITE_URL.rstrip('/')}/sitemap.xml")
     
     return HttpResponse("\n".join(lines), content_type="text/plain; charset=utf-8")
 
