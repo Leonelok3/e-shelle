@@ -179,6 +179,7 @@ def geo_landing(request, city_slug, service_slug):
     )
     premium_businesses = qs.filter(plan__in=[BusinessProfile.Plan.BUSINESS, BusinessProfile.Plan.PREMIUM])
     related_pages = _related_pages(city_slug, service_slug)
+    has_businesses = qs.exists()
 
     title = f"{service['plural'].capitalize()} à {city_name} - E-Shelle"
     description = (
@@ -196,6 +197,7 @@ def geo_landing(request, city_slug, service_slug):
             "service_slug": service_slug,
             "service": service,
             "businesses": qs[:24],
+            "has_businesses": has_businesses,
             "districts": districts,
             "premium_count": premium_businesses.count(),
             "related_pages": related_pages,
