@@ -194,3 +194,21 @@ if Bien:
                 "description": instance.description,
             },
         )
+
+
+BusinessProfile = _model("business", "BusinessProfile")
+if BusinessProfile:
+    @receiver(post_save, sender=BusinessProfile, dispatch_uid="auto_share_premium_facebook")
+    def auto_share_premium(sender, instance, created, **kwargs):
+        """Partage automatique sur la page Facebook officielle lors de l'activation Premium."""
+        update_fields = kwargs.get("update_fields")
+        if update_fields and set(update_fields) <= {"facebook_shared_at", "last_facebook_post_id"}:
+            return
+
+        is_premium = getattr(instance, "is_premium", instance.plan == BusinessProfile.Plan.PREMIUM)
+        is_published = getattr(instance, "is_published", bool(instance.is_active and instance.activation_status == BusinessProfile.ActivationStatus.ACTIVE))
+
+        if is_premium and is_published:
+            from core.services.facebook_auto_share import should_share, trigger_async_share_premium
+            if should_share(instance):
+                trigger_async_share_premium(instance.pk)

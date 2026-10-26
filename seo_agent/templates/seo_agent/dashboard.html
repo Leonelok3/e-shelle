@@ -36,8 +36,9 @@
         <p class="seo-sub">Centre de controle du referencement naturel E-Shelle : audit technique, GEO local, schema.org, CTA, contenu, sitemap et Google Business.</p>
       </div>
       <div class="seo-actions">
-        <a class="seo-btn ghost" href="/sitemap.xml">Sitemap</a>
-        <a class="seo-btn ghost" href="/robots.txt">Robots</a>
+        <a class="seo-btn ghost" href="/sitemap.xml" target="_blank">Sitemap</a>
+        <a class="seo-btn ghost" href="/robots.txt" target="_blank">Robots</a>
+        <a class="seo-btn ghost" href="/llms.txt" target="_blank">llms.txt</a>
         <a class="seo-btn gold" href="{% url 'seo_agent:article_marche_numerique' %}">Article pilier</a>
       </div>
     </div>
@@ -47,6 +48,38 @@
       <div class="seo-card"><span>Templates analyses</span><strong>{{ audit.files_scanned }}</strong></div>
       <div class="seo-card"><span>Pages GEO proposees</span><strong>{{ geo_total }}</strong></div>
       <div class="seo-card"><span>Issues critiques</span><strong>{{ audit.critical }}</strong></div>
+    </section>
+
+    <section class="seo-panel" style="margin-bottom:18px;background:linear-gradient(135deg,rgba(16,41,28,0.9),rgba(7,18,13,0.9));border:1px solid #2f6b47;">
+      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;margin-bottom:12px;">
+        <h2 style="margin:0;color:#86efac;font-size:1.1rem;display:flex;align-items:center;gap:8px;">
+          <span>🤖 Signalétique IA & Moteurs Génératifs (GEO / AEO)</span>
+        </h2>
+        <span class="seo-badge" style="background:#16a34a;color:#fff;">Production Active</span>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;">
+        <div class="seo-item">
+          <strong>Robots IA autorisés</strong>
+          <p class="seo-muted" style="margin:4px 0 0;font-size:0.8rem;">{{ ai_search_status.ai_crawlers|join:", " }}</p>
+        </div>
+        <div class="seo-item">
+          <strong>Sitemap & Indexation</strong>
+          <p class="seo-muted" style="margin:4px 0 0;font-size:0.8rem;"><a href="{{ ai_search_status.canonical_sitemap }}" target="_blank" style="color:#facc15;text-decoration:none;">sitemap.xml (120+ URLs)</a></p>
+        </div>
+        <div class="seo-item">
+          <strong>Fichier llms.txt</strong>
+          <p class="seo-muted" style="margin:4px 0 0;font-size:0.8rem;"><a href="{{ ai_search_status.llms_txt }}" target="_blank" style="color:#facc15;text-decoration:none;">Bilingue & Référentiel public</a></p>
+        </div>
+        <div class="seo-item">
+          <strong>Anti-cannibalisation GEO</strong>
+          <p class="seo-muted" style="margin:4px 0 0;font-size:0.8rem;">{{ ai_search_status.geo_alias_redirect }} · {{ ai_search_status.geo_empty_guard }}</p>
+        </div>
+        <div class="seo-item" style="grid-column: 1 / -1; margin-top: 4px; padding-top: 8px; border-top: 1px solid rgba(255,255,255,0.08);">
+          <p class="seo-muted" style="margin:0;font-size:0.85rem;color:#e2e8f0;">
+            Partage Facebook Premium: {{ facebook_shares_today }}/3 aujourd'hui{% if last_facebook_share %} - Dernier: {{ last_facebook_share.business.nom|default:last_facebook_share.business.name }} il y a {{ last_facebook_share.shared_at|timesince }}{% endif %}
+          </p>
+        </div>
+      </div>
     </section>
 
     <div class="seo-layout">

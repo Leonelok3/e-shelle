@@ -1,4 +1,4 @@
-{% load i18n canada_navigation %}{% canada_navigation as canada_menu %}
+{% load i18n static canada_navigation %}{% canada_navigation as canada_menu %}
 <!DOCTYPE html>
 <html lang="{{ LANGUAGE_CODE|default:'fr' }}" data-theme="dark">
 
@@ -27,16 +27,23 @@
   <meta name="description"
     content="{% block meta_description %}{% if request.is_immigration97 %}{% if LANGUAGE_CODE == 'en' %}Improve your French and prepare your Canada plans with Immigration97.{% else %}Préparez votre français et votre projet Canada avec Immigration97.{% endif %}{% else %}{% if LANGUAGE_CODE == 'en' %}E-Shelle, an all-in-one African platform for online learning, digital commerce, AI web services and automation. Made in Cameroon.{% else %}E-Shelle, plateforme SaaS africaine tout-en-un : formation en ligne, boutique digitale, création web IA, automatisation. Made in Cameroun.{% endif %}{% endif %}{% endblock %}">
 
-  {# Open Graph #}
+  {# Indexation & Canonical #}
+  <link rel="canonical" href="{% block canonical_url %}{% if request.is_immigration97 %}https://immigration97.com{{ request.path }}{% else %}https://e-shelle.com{{ request.path }}{% endif %}{% endblock %}">
+  <meta name="robots" content="{% block meta_robots %}index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1{% endblock %}">
+
+  {# Open Graph & Social Cards #}
+  <meta property="og:site_name" content="{{ request.site_brand|default:'E-Shelle' }}">
   <meta property="og:title" content="{% block og_title %}{{ request.site_brand|default:'E-Shelle' }}{% endblock %}">
   <meta property="og:description"
     content="{% block og_description %}{% if request.is_immigration97 %}Préparation TCF et TEF, apprentissage et parcours Canada.{% else %}Plateforme SaaS africaine tout-en-un{% endif %}{% endblock %}">
   <meta property="og:type" content="website">
-  <meta property="og:url" content="{{ request.build_absolute_uri }}">
-  <meta property="og:locale" content="fr_FR">
-  {% block og_image %}{% endblock %}
+  <meta property="og:url" content="{% block og_url %}{% if request.is_immigration97 %}https://immigration97.com{{ request.path }}{% else %}https://e-shelle.com{{ request.path }}{% endif %}{% endblock %}">
+  <meta property="og:locale" content="{% if LANGUAGE_CODE == 'en' %}en_US{% else %}fr_FR{% endif %}">
+  {% block og_image %}<meta property="og:image" content="https://e-shelle.com{% static 'img/logo.png' %}">{% endblock %}
   <meta name="twitter:card" content="summary_large_image">
-  {% block twitter_image %}{% endblock %}
+  <meta name="twitter:title" content="{% block twitter_title %}{{ request.site_brand|default:'E-Shelle' }}{% endblock %}">
+  <meta name="twitter:description" content="{% block twitter_description %}{% if request.is_immigration97 %}Préparation TCF et TEF, apprentissage et parcours Canada.{% else %}Plateforme SaaS africaine tout-en-un{% endif %}{% endblock %}">
+  {% block twitter_image %}<meta name="twitter:image" content="https://e-shelle.com{% static 'img/logo.png' %}">{% endblock %}
 
   {# Google Fonts : Syne + Inter + JetBrains Mono #}
   <link rel="preconnect" href="https://fonts.googleapis.com">

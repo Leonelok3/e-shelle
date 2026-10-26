@@ -616,11 +616,15 @@ REST_FRAMEWORK = {
 # ── E-Shelle Resto ────────────────────────────────────────────────
 RESTO_FREE_TRIAL_DAYS = 30
 
-# ── Facebook Agent IA ─────────────────────────────────────────────
+# ── Facebook Agent IA & Auto-Share Page ───────────────────────────
 FACEBOOK_APP_ID     = os.getenv("FACEBOOK_APP_ID", "")
 FACEBOOK_APP_SECRET = os.getenv("FACEBOOK_APP_SECRET", "")
+FACEBOOK_PAGE_ID    = os.getenv("FACEBOOK_PAGE_ID", "1316700031522892")
+FACEBOOK_PAGE_ACCESS_TOKEN = os.getenv("FACEBOOK_PAGE_ACCESS_TOKEN", "")
+FACEBOOK_MAX_POSTS_PER_DAY = max(1, int(os.getenv("FACEBOOK_MAX_POSTS_PER_DAY", "3")))
 FACEBOOK_AGENT_AUTO_PUBLISH_ENABLED = os.getenv("FACEBOOK_AGENT_AUTO_PUBLISH_ENABLED", "false").lower() in ("1", "true", "yes")
-FACEBOOK_AGENT_MAX_POSTS_PER_DAY = max(1, int(os.getenv("FACEBOOK_AGENT_MAX_POSTS_PER_DAY", "3")))
+FACEBOOK_AGENT_MAX_POSTS_PER_DAY = FACEBOOK_MAX_POSTS_PER_DAY
+FACEBOOK_AUTO_SHARE_ENABLED = os.getenv("FACEBOOK_AUTO_SHARE_ENABLED", "true").lower() in ("1", "true", "yes")
 
 # ── WhatsApp Agent IA — Meta WhatsApp Business API ────────────────
 WHATSAPP_TOKEN = os.getenv("WHATSAPP_TOKEN", "")

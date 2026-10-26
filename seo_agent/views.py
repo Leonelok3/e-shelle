@@ -26,6 +26,35 @@ def dashboard(request):
     local_agent = LocalSEOAgent()
     geo_ideas = local_agent.ideas()
     geo_priorities = local_agent.prioritized_pages(request=request)
+    ai_search_status = {
+        "canonical_sitemap": f"{settings.SITE_URL.rstrip('/')}/sitemap.xml",
+        "llms_txt": f"{settings.SITE_URL.rstrip('/')}/llms.txt",
+        "robots_txt": f"{settings.SITE_URL.rstrip('/')}/robots.txt",
+        "ai_crawlers": [
+            "OAI-SearchBot", "GPTBot", "ChatGPT-User",
+            "Claude-SearchBot", "Claude-User", "ClaudeBot",
+            "PerplexityBot", "Google-Extended",
+        ],
+        "geo_empty_guard": "noindex, follow (Actif)",
+        "geo_alias_redirect": "301 Permanent Redirect (Actif)",
+        "json_ld_schemas": ["Organization", "WebSite", "CollectionPage", "BreadcrumbList", "ItemList", "LocalBusiness", "FAQPage"],
+    }
+
+    # Partage Facebook Premium (AEO)
+    try:
+        from business.models import FacebookShareLog
+        today = timezone.localdate()
+        facebook_shares_today = FacebookShareLog.objects.filter(status="success", shared_at__date=today).count()
+        last_facebook_share = (
+            FacebookShareLog.objects.filter(status="success")
+            .select_related("business")
+            .order_by("-shared_at")
+            .first()
+        )
+    except Exception:
+        facebook_shares_today = 0
+        last_facebook_share = None
+
     return render(
         request,
         "seo_agent/dashboard.html",
@@ -39,6 +68,9 @@ def dashboard(request):
             "content_briefs": ContentSEOAgent().briefs(),
             "gbp_drafts": GoogleBusinessAgent().drafts(),
             "sitemap_entries": build_sitemap_entries(request),
+            "ai_search_status": ai_search_status,
+            "facebook_shares_today": facebook_shares_today,
+            "last_facebook_share": last_facebook_share,
         },
     )
 

@@ -151,6 +151,20 @@ class BusinessProfile(models.Model):
     detail_clicks = models.PositiveIntegerField(default=0)
     leads_count = models.PositiveIntegerField(default=0)
 
+    facebook_shared_at = models.DateTimeField(
+        null=True,
+        blank=True,
+        verbose_name="Dernier partage Facebook",
+        help_text="Date et heure de la dernière publication sur la Page Facebook E-Shelle.",
+    )
+    last_facebook_post_id = models.CharField(
+        max_length=100,
+        null=True,
+        blank=True,
+        verbose_name="ID dernier post Facebook",
+        help_text="Identifiant Meta Graph de la dernière publication Facebook.",
+    )
+
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -224,6 +238,18 @@ class BusinessProfile(models.Model):
     @property
     def boost_active(self):
         return bool(self.boost_expires_at and self.boost_expires_at > timezone.now())
+
+    @property
+    def is_premium(self):
+        return self.plan == self.Plan.PREMIUM
+
+    @property
+    def is_published(self):
+        return bool(self.is_active and self.activation_status == self.ActivationStatus.ACTIVE)
+
+    @property
+    def nom(self):
+        return self.name
 
     @property
     def catalog_item_limit(self):
@@ -1453,4 +1479,27 @@ class PartnerLogo(models.Model):
 
     def __str__(self):
         return self.name
+
+
+class FacebookShareLog(models.Model):
+    """Journal des partages automatiques des offres Premium sur la Page Facebook E-Shelle."""
+
+    business = models.ForeignKey(
+        BusinessProfile,
+        on_delete=models.CASCADE,
+        related_name="facebook_share_logs",
+        verbose_name="Profil Business",
+    )
+    post_id = models.CharField(max_length=100, blank=True, verbose_name="ID du post Facebook")
+    shared_at = models.DateTimeField(auto_now_add=True, verbose_name="Date de partage")
+    status = models.CharField(max_length=20, default="success", verbose_name="Statut")  # success / failed
+    message = models.TextField(blank=True, verbose_name="Message / Détails")
+
+    class Meta:
+        ordering = ["-shared_at"]
+        verbose_name = "Log Partage Facebook"
+        verbose_name_plural = "Logs Partages Facebook"
+
+    def __str__(self):
+        return f"Partage FB #{self.id} — {self.business.name} ({self.status})"
 

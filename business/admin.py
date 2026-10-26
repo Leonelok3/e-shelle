@@ -28,6 +28,7 @@ from .models import (
     UnmetSearchRequest,
     UnmetSearchResponse,
     PartnerLogo,
+    FacebookShareLog,
 )
 
 
@@ -62,7 +63,7 @@ class BusinessProfileAdmin(admin.ModelAdmin):
             "fields": (
                 "plan", "subscription_expires_at", "boost_expires_at", "ai_credits",
                 "views_count", "whatsapp_clicks", "phone_clicks", "detail_clicks",
-                "leads_count", "economic_score",
+                "leads_count", "economic_score", "facebook_shared_at", "last_facebook_post_id",
             )
         }),
         ("Lien technique", {
@@ -72,7 +73,7 @@ class BusinessProfileAdmin(admin.ModelAdmin):
     )
     readonly_fields = (
         "views_count", "whatsapp_clicks", "phone_clicks", "detail_clicks",
-        "leads_count", "economic_score", "created_at", "updated_at",
+        "leads_count", "economic_score", "facebook_shared_at", "last_facebook_post_id", "created_at", "updated_at",
     )
     actions = ("activate_pro_30_days", "activate_business_30_days", "activate_premium_30_days", "boost_7_days")
 
@@ -492,3 +493,9 @@ class PartnerLogoAdmin(admin.ModelAdmin):
             return "-"
 
 
+@admin.register(FacebookShareLog)
+class FacebookShareLogAdmin(admin.ModelAdmin):
+    list_display = ("id", "business", "status", "post_id", "shared_at")
+    list_filter = ("status", "shared_at")
+    search_fields = ("business__name", "post_id", "message")
+    readonly_fields = ("business", "post_id", "shared_at", "status", "message")
