@@ -667,6 +667,14 @@ def _public_profile_whatsapp_url(request, business, public_url):
 
 def public_profile(request, public_slug):
     """Vitrine publique centrale d'une activite E-Shelle."""
+    # Redirection 301 permanente de l'ancien alias /business/@slug/ vers l'URL canonique /b/slug/
+    if request.path.startswith("/business/@"):
+        canonical_short_url = reverse("business_public_short", kwargs={"public_slug": public_slug})
+        query_string = request.META.get("QUERY_STRING", "")
+        if query_string:
+            canonical_short_url = f"{canonical_short_url}?{query_string}"
+        return redirect(canonical_short_url, permanent=True)
+
     business = get_object_or_404(BusinessProfile, public_slug=public_slug, is_active=True)
     BusinessProfile.objects.filter(pk=business.pk).update(views_count=F("views_count") + 1)
     if request.GET.get("utm_source", "").lower() == "facebook":

@@ -37,3 +37,34 @@ def eshelle_public_urls(request):
         "GOOGLE_SITE_VERIFICATION": getattr(settings, "GOOGLE_SITE_VERIFICATION", ""),
         "GOOGLE_ANALYTICS_ID": getattr(settings, "GOOGLE_ANALYTICS_ID", ""),
     }
+
+
+def seo_canonical_context(request):
+    """
+    Expose les variables canoniques et signaux d'indexation pour le SEO :
+    - clean_canonical_url : URL absolue canonique sans aucun query string (?produit=, etc.)
+    - is_product_modal_url : True si ?produit est présent (pour noindex, follow)
+    """
+    if not request:
+        return {}
+
+    path = request.path
+    if path.startswith("/business/@"):
+        path = "/b/" + path[len("/business/@"):]
+
+    host = request.get_host()
+    if getattr(request, "is_immigration97", False) or host.startswith("immigration97"):
+        domain = "https://immigration97.com"
+    elif host in ("localhost", "127.0.0.1") or host.startswith("localhost:"):
+        scheme = request.scheme or "http"
+        domain = f"{scheme}://{host}"
+    else:
+        domain = getattr(settings, "SITE_URL", "https://e-shelle.com").rstrip("/")
+
+    canonical_url = f"{domain}{path}"
+    has_produit_param = bool(request.GET.get("produit"))
+
+    return {
+        "clean_canonical_url": canonical_url,
+        "is_product_modal_url": has_produit_param,
+    }

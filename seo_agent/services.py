@@ -17,29 +17,41 @@ class SEOIssue:
 
 
 PUBLIC_URLS = [
-    ("/", "Accueil E-Shelle", "Page mere de conversion"),
-    ("/business/local/", "GEO Local Business", "Pages ville + service deja amorcees"),
+    ("/", "Accueil E-Shelle", "Page mère de conversion"),
+    ("/business/local/", "GEO Local Business", "Pages ville + service déjà amorcées"),
     ("/resto/", "Restaurants", "Module restaurants"),
     ("/gaz/", "Gaz", "Livraison gaz"),
     ("/pressing/", "Pressing", "Pressing et blanchisserie"),
     ("/immobilier/", "Immobilier", "Biens immobiliers"),
     ("/auto/", "Auto", "Vente auto"),
+    ("/annonces/", "Annonces & Marketplace", "Petites annonces et boutiques"),
     ("/agro/", "Agro", "Marketplace agro"),
-    ("/sante/", "Sante", "Produits et professionnels sante"),
+    ("/sante/", "Santé", "Produits et professionnels santé"),
+    ("/pharma/", "Pharmacies", "Annuaire pharmacies"),
+    ("/salons/", "Salons de coiffure", "Gestion et réservation beauté"),
+    ("/transport/", "Transport", "Trajets interurbains et covoiturage"),
     ("/jobs/", "Jobs", "Emplois et missions"),
-    ("/seo/articles/marche-numerique-afrique-2025/", "Article marche numerique", "Contenu pilier SEO"),
+    ("/presentation/", "Présentation", "Mission et écosystème E-Shelle"),
+    ("/tarifs/", "Tarifs", "Abonnements et plans marchands"),
+    ("/cgu/", "Mentions légales", "Conditions générales et mentions légales"),
+    ("/seo/articles/marche-numerique-afrique-2025/", "Article marché numérique", "Contenu pilier SEO"),
 ]
 
 
 GEO_CITIES = ["Douala", "Yaounde", "Bafoussam", "Garoua", "Bamenda", "Kribi", "Limbe"]
 GEO_SERVICES = [
     ("restaurants", "restaurants proches, menus et commandes WhatsApp"),
+    ("livraison-gaz", "livraison de gaz domestique"),
     ("pressing", "pressing, lavage, repassage et livraison"),
-    ("gaz", "livraison de gaz domestique"),
+    ("pharmacies", "pharmacies, produits santé et professionnels"),
     ("immobilier", "appartements, studios, terrains et villas"),
     ("auto", "voitures d'occasion et annonces auto"),
-    ("sante", "pharmacies, produits sante et professionnels"),
     ("agro", "produits agricoles, grossistes et producteurs"),
+    ("boutiques", "boutiques et commerces de proximité"),
+    ("salons-coiffure", "salons de coiffure, esthétique et beauté"),
+    ("emplois", "offres d'emploi, stages et missions"),
+    ("artisans", "artisans, techniciens et dépannage"),
+    ("transport", "agences de transport et covoiturage"),
 ]
 
 
@@ -83,11 +95,24 @@ class SEOAuditAgent:
         for root in [self.base_dir / "templates", *self.base_dir.glob("*/templates"), *self.base_dir.glob("apps/*/templates")]:
             if root.exists():
                 candidates.extend(root.rglob("*.html"))
-        non_pages = {"admin", "dashboard", "partials", "partial", "components", "component", "includes", "include", "widgets", "emails", "staff"}
+        non_pages = {
+            "admin", "dashboard", "partials", "partial", "components", "component",
+            "includes", "include", "widgets", "emails", "staff", "bureau", "member",
+            "admin_custom", "inbox", "student", "teacher", "parent", "auth",
+            "checkout", "commandes", "moderation", "messages", "ajax",
+        }
         pages = set()
         for path in candidates:
             parts = {part.lower() for part in path.parts}
-            if parts.intersection(non_pages) or path.stem.startswith("_") or path.stem.lower() == "base":
+            stem = path.stem.lower()
+            if (
+                parts.intersection(non_pages)
+                or stem.startswith("_")
+                or stem == "base"
+                or stem.startswith("base_")
+                or stem.endswith("_base")
+                or "videostory_local_ai" in path.parts
+            ):
                 continue
             text = path.read_text(encoding="utf-8", errors="ignore")
             if "<html" not in text.lower() and not re.search(r"{%\s*extends\s+['\"]", text, re.I):
@@ -134,7 +159,11 @@ class SEOAuditAgent:
         issues = []
         lower = text.lower()
         parts = {part.lower() for part in Path(rel).parts}
-        private_parts = {"accounts", "dashboard", "admin", "mon_compte", "checkout", "commandes", "moderation"}
+        private_parts = {
+            "accounts", "dashboard", "admin", "mon_compte", "checkout", "commandes",
+            "moderation", "bureau", "member", "inbox", "admin_custom", "student",
+            "teacher", "parent",
+        }
         public_like = not parts.intersection(private_parts)
 
         if public_like and not self._has_title(text, parent_text):
@@ -368,14 +397,31 @@ def build_sitemap_entries(request):
     for page in LocalSEOAgent().prioritized_pages(limit=100):
         entries.append({"loc": base + page["path"], "label": page["title"], "kind": "GEO rentable"})
 
-    # Individual Business Profiles
+    # Individual Business Profiles (/b/<slug>/)
     try:
         from business.models import BusinessProfile
         for biz in BusinessProfile.objects.filter(is_active=True).exclude(public_slug=None).exclude(public_slug=""):
-            path = reverse("business:public_profile", kwargs={"public_slug": biz.public_slug})
+            try:
+                path = reverse("business_public_short", kwargs={"public_slug": biz.public_slug})
+            except Exception:
+                path = biz.get_absolute_url()
             url = f"{base}{path}"
             entries.append({"loc": url, "label": biz.name, "kind": "Fiche client"})
     except Exception:
         pass
 
-    return entries
+    # Garantir que sitemap.xml ne liste jamais ?produit= ni /business/@ et dédoublonner
+    cleaned_entries = []
+    seen_locs = set()
+    for entry in entries:
+        loc = entry.get("loc", "")
+        if "produit=" in loc or "?" in loc:
+            continue
+        if "/business/@" in loc:
+            loc = loc.replace("/business/@", "/b/")
+            entry["loc"] = loc
+        if loc and loc not in seen_locs:
+            seen_locs.add(loc)
+            cleaned_entries.append(entry)
+
+    return cleaned_entries

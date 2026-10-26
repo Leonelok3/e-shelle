@@ -28,8 +28,12 @@
     content="{% block meta_description %}{% if request.is_immigration97 %}{% if LANGUAGE_CODE == 'en' %}Improve your French and prepare your Canada plans with Immigration97.{% else %}Préparez votre français et votre projet Canada avec Immigration97.{% endif %}{% else %}{% if LANGUAGE_CODE == 'en' %}E-Shelle, an all-in-one African platform for online learning, digital commerce, AI web services and automation. Made in Cameroon.{% else %}E-Shelle, plateforme SaaS africaine tout-en-un : formation en ligne, boutique digitale, création web IA, automatisation. Made in Cameroun.{% endif %}{% endif %}{% endblock %}">
 
   {# Indexation & Canonical #}
-  <link rel="canonical" href="{% block canonical_url %}{% if request.is_immigration97 %}https://immigration97.com{{ request.path }}{% else %}https://e-shelle.com{{ request.path }}{% endif %}{% endblock %}">
+  <link rel="canonical" href="{% block canonical_url %}{% if clean_canonical_url %}{{ clean_canonical_url }}{% elif request %}{{ request.scheme }}://{{ request.get_host }}{{ request.path }}{% else %}https://e-shelle.com/{% endif %}{% endblock %}">
+  {% if is_product_modal_url or request.GET.produit %}
+  <meta name="robots" content="noindex, follow">
+  {% else %}
   <meta name="robots" content="{% block meta_robots %}index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1{% endblock %}">
+  {% endif %}
 
   {# Open Graph & Social Cards #}
   <meta property="og:site_name" content="{{ request.site_brand|default:'E-Shelle' }}">

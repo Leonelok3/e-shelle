@@ -268,6 +268,7 @@ TEMPLATES = [
                 "django.template.context_processors.media",
                 "django.contrib.messages.context_processors.messages",
                 "core.context_processors.eshelle_public_urls",
+                "core.context_processors.seo_canonical_context",
                 # ── E-Shelle Resto ────────────────────────────────────
                 "resto.context_processors.resto_globals",
                 # ── Abonnements globaux (injecte user_subs dans tous les templates)
