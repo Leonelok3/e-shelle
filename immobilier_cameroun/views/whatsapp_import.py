@@ -329,3 +329,135 @@ def modifier_draft_view(request, draft_uuid):
         return redirect("immobilier:whatsapp_drafts")
 
     return render(request, "immobilier_cameroun/admin/modifier_draft.html", {"draft": draft})
+
+
+# ─────────────────────────────────────────────────────────────────
+# API INTERNE D'INGESTION AUTOMATIQUE (WORKER NODE.JS / BAILEYS)
+# ─────────────────────────────────────────────────────────────────
+
+from django.views.decorators.csrf import csrf_exempt
+import base64
+from django.core.files.base import ContentFile
+
+@csrf_exempt
+@require_POST
+def internal_whatsapp_ingest(request):
+    """
+    Endpoint API interne appelé par le worker Node.js / Baileys dès qu'un message
+    avec texte ou photos arrive dans le groupe WhatsApp E-Shelle Immobilier.
+    Sécurisé par un secret token interne.
+    Accepte :
+    - multipart/form-data avec fichiers 'photos'
+    - ou JSON avec images en base64
+    """
+    # 1. Vérification du token de sécurité interne
+    expected_secret = getattr(settings, "INTERNAL_WHATSAPP_SECRET", "eshelle_immo_listener_secret_2026")
+    provided_secret = (
+        request.headers.get("X-Internal-Secret")
+        or request.POST.get("secret")
+        or request.GET.get("secret")
+    )
+    if not provided_secret or provided_secret != expected_secret:
+        return JsonResponse({"status": "error", "message": "Accès non autorisé."}, status=403)
+
+    raw_text = ""
+    source_name = "Démarcheur WhatsApp"
+    source_phone = ""
+    group_name = "E-Shelle Immobilier"
+    uploaded_files = []
+
+    # 2. Extraction des données
+    if request.content_type and "application/json" in request.content_type:
+        import json
+        try:
+            data = json.loads(request.body.decode("utf-8"))
+            raw_text = data.get("raw_text", "").strip()
+            source_name = data.get("source_name", "").strip() or source_name
+            source_phone = data.get("source_phone", "").strip()
+            group_name = data.get("whatsapp_group_name", "").strip() or group_name
+            # Traiter images base64 si fournies
+            for idx, b64_str in enumerate(data.get("images_base64", [])[:9]):
+                if "," in b64_str:
+                    b64_str = b64_str.split(",", 1)[1]
+                file_bytes = base64.b64decode(b64_str)
+                uploaded_files.append(ContentFile(file_bytes, name=f"photo_{idx+1}.jpg"))
+        except Exception as e:
+            return JsonResponse({"status": "error", "message": f"JSON invalide: {e}"}, status=400)
+    else:
+        raw_text = request.POST.get("raw_text", "").strip()
+        source_name = request.POST.get("source_name", "").strip() or source_name
+        source_phone = request.POST.get("source_phone", "").strip()
+        group_name = request.POST.get("whatsapp_group_name", "").strip() or group_name
+        uploaded_files = request.FILES.getlist("photos")
+
+    if not raw_text and not uploaded_files:
+        return JsonResponse({"status": "error", "message": "Contenu vide."}, status=400)
+
+    # 3. Parsing intelligent du message
+    parsed = parse_immo_text(raw_text)
+    if not source_phone and parsed.get("telephone"):
+        source_phone = parsed["telephone"]
+
+    # 4. Enregistrement et scoring des photos
+    draft_uuid = uuid.uuid4()
+    saved_rel_paths = _save_uploaded_photos(str(draft_uuid), uploaded_files)
+    abs_paths = [os.path.join(settings.MEDIA_ROOT, p.replace("/", os.sep)) for p in saved_rel_paths]
+    selected_eval = select_best_photos(abs_paths, max_photos=5)
+
+    ai_selected_photos = []
+    for s in selected_eval:
+        orig_idx = s["original_index"]
+        if orig_idx < len(saved_rel_paths):
+            ai_selected_photos.append(saved_rel_paths[orig_idx])
+
+    if not ai_selected_photos and saved_rel_paths:
+        ai_selected_photos = saved_rel_paths[:5]
+
+    # 5. Enrichissement SEO et calcul score
+    ai_desc = improve_description(raw_text, parsed)
+    quality_score = parsed.get("quality_score", 50.0)
+    if len(saved_rel_paths) >= 5:
+        quality_score = min(quality_score + 15.0, 100.0)
+    elif len(saved_rel_paths) >= 2:
+        quality_score = min(quality_score + 8.0, 100.0)
+
+    # Admin par défaut
+    admin_user = _get_admin_owner(None)
+
+    # 6. Création du brouillon
+    draft = WhatsappImmoDraft.objects.create(
+        uuid=draft_uuid,
+        raw_text=raw_text or "(Annonce avec photos sans texte)",
+        raw_images_json=saved_rel_paths,
+        source_name=source_name,
+        source_phone=source_phone,
+        whatsapp_group_name=group_name,
+        parsed_titre=parsed.get("titre", "Bien immobilier WhatsApp"),
+        parsed_type_bien=parsed.get("type_bien", "STUDIO"),
+        parsed_type_transaction=parsed.get("type_transaction", "LOCATION"),
+        parsed_prix=parsed.get("prix"),
+        parsed_conditions=parsed.get("conditions", ""),
+        parsed_ville=parsed.get("ville", "Yaoundé"),
+        parsed_quartier=parsed.get("quartier", ""),
+        parsed_description=parsed.get("description", raw_text),
+        ai_improved_description=ai_desc,
+        ai_selected_photos_json=ai_selected_photos,
+        ai_quality_score=quality_score,
+        status=WhatsappImmoDraft.Status.PENDING,
+        created_by=admin_user,
+    )
+
+    logger.info(f"[internal_whatsapp_ingest] Brouillon créé automatiquement via API: {draft.uuid} (Score: {quality_score})")
+
+    return JsonResponse({
+        "status": "ok",
+        "draft_uuid": str(draft.uuid),
+        "titre": draft.parsed_titre,
+        "prix": float(draft.parsed_prix) if draft.parsed_prix else None,
+        "quartier": draft.parsed_quartier,
+        "ville": draft.parsed_ville,
+        "quality_score": draft.ai_quality_score,
+        "photos_count": len(saved_rel_paths),
+        "selected_photos_count": len(ai_selected_photos),
+    })
+

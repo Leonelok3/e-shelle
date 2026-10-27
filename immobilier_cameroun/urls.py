@@ -49,4 +49,9 @@ urlpatterns = [
     path("admin/whatsapp-drafts/<uuid:draft_uuid>/modifier/",
          views.modifier_draft_view,
          name="modifier_whatsapp_draft"),
+
+    # ── Webhook / Ingestion API interne pour le listener WhatsApp ──
+    path("api/internal-ingest/",
+         views.internal_whatsapp_ingest,
+         name="internal_whatsapp_ingest"),
 ]

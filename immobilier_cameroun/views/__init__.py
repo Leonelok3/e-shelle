@@ -25,4 +25,5 @@ from .whatsapp_import import (
     rejeter_draft_view,
     modifier_draft_view,
     execute_draft_validation,
+    internal_whatsapp_ingest,
 )
