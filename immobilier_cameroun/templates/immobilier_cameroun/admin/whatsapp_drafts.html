@@ -1,0 +1,321 @@
+{% extends "immobilier_cameroun/base_immobilier.html" %}
+{% load static %}
+
+{% block breadcrumb_items %}
+  <li class="breadcrumb-item active" aria-current="page">Brouillons WhatsApp</li>
+{% endblock %}
+
+{% block immo_extra_css %}
+<style>
+  .drafts-container {
+    max-width: 1200px;
+    margin: 2rem auto;
+  }
+  .draft-card {
+    background: #ffffff;
+    border-radius: 18px;
+    border: 1px solid rgba(27, 67, 50, 0.1);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    overflow: hidden;
+    margin-bottom: 2rem;
+  }
+  .draft-card:hover {
+    box-shadow: 0 14px 40px rgba(27, 67, 50, 0.12);
+  }
+  .draft-header {
+    background: #FAF6F0;
+    padding: 1rem 1.5rem;
+    border-bottom: 1px solid #ECE6DC;
+  }
+  .photos-strip {
+    display: flex;
+    gap: 10px;
+    overflow-x: auto;
+    padding: 1rem 1.5rem;
+    background: #fdfdfd;
+  }
+  .photo-item {
+    position: relative;
+    width: 120px;
+    height: 100px;
+    flex-shrink: 0;
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 3px 8px rgba(0,0,0,0.1);
+  }
+  .photo-item img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  .ribbon-main {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: rgba(27, 67, 50, 0.85);
+    color: #fff;
+    font-size: 0.65rem;
+    font-weight: 700;
+    text-align: center;
+    padding: 2px 0;
+  }
+  .score-badge {
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-weight: 700;
+    font-size: 0.8rem;
+  }
+  .score-high {
+    background: #e8f5e9;
+    color: #1b5e20;
+  }
+  .score-med {
+    background: #fff3e0;
+    color: #e65100;
+  }
+  .price-highlight {
+    color: #1B4332;
+    font-size: 1.4rem;
+    font-weight: 800;
+  }
+  .badge-condition {
+    background: #f1f3f5;
+    color: #495057;
+    border-radius: 6px;
+    padding: 3px 8px;
+    font-size: 0.82rem;
+    font-weight: 600;
+  }
+  .nav-pills .nav-link.active {
+    background-color: #1B4332;
+    color: #fff;
+  }
+  .nav-pills .nav-link {
+    color: #495057;
+    font-weight: 600;
+    border-radius: 50px;
+    padding: 8px 20px;
+  }
+</style>
+{% endblock %}
+
+{% block immo_content %}
+<div class="container drafts-container">
+
+  <!-- Header & Navigation -->
+  <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
+    <div>
+      <h1 class="h2 fw-bold text-dark mb-1">
+        <i class="fa-brands fa-whatsapp text-success me-2"></i> Brouillons WhatsApp Immo
+      </h1>
+      <p class="text-muted mb-0">Validez les annonces capturées en 1 clic pour publication automatique sur E-Shelle et Facebook.</p>
+    </div>
+    <div>
+      <a href="{% url 'immobilier:import_whatsapp' %}" class="btn btn-success rounded-pill px-4 fw-bold shadow-sm" style="background:#1B4332;border-color:#1B4332;">
+        <i class="fa-solid fa-plus me-1"></i> Importer un message WhatsApp
+      </a>
+    </div>
+  </div>
+
+  <!-- Onglets de statut -->
+  <ul class="nav nav-pills mb-4 bg-white p-2 rounded-pill shadow-sm d-inline-flex flex-wrap">
+    <li class="nav-item">
+      <a class="nav-link {% if current_statut == 'PENDING' %}active{% endif %}" href="?statut=PENDING">
+        ⏳ En attente <span class="badge rounded-pill bg-warning text-dark ms-1">{{ counts.pending }}</span>
+      </a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link {% if current_statut == 'APPROVED' %}active{% endif %}" href="?statut=APPROVED">
+        ✅ Validés & Publiés <span class="badge rounded-pill bg-success ms-1">{{ counts.approved }}</span>
+      </a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link {% if current_statut == 'REJECTED' %}active{% endif %}" href="?statut=REJECTED">
+        ❌ Rejetés <span class="badge rounded-pill bg-danger ms-1">{{ counts.rejected }}</span>
+      </a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link {% if current_statut == 'ALL' %}active{% endif %}" href="?statut=ALL">
+        📋 Tous <span class="badge rounded-pill bg-secondary ms-1">{{ counts.total }}</span>
+      </a>
+    </li>
+  </ul>
+
+  <!-- Liste des brouillons -->
+  {% if drafts %}
+    {% for draft in drafts %}
+      <div class="draft-card">
+
+        <!-- Entête de la carte -->
+        <div class="draft-header d-flex justify-content-between align-items-center flex-wrap gap-2">
+          <div class="d-flex align-items-center gap-2">
+            {% if draft.status == 'PENDING' %}
+              <span class="badge bg-warning text-dark fw-bold px-3 py-2 rounded-pill">⏳ En attente de validation</span>
+            {% elif draft.status == 'APPROVED' %}
+              <span class="badge bg-success fw-bold px-3 py-2 rounded-pill">✅ Validé & Publié</span>
+            {% else %}
+              <span class="badge bg-danger fw-bold px-3 py-2 rounded-pill">❌ Rejeté</span>
+            {% endif %}
+
+            <span class="score-badge {% if draft.ai_quality_score >= 70 %}score-high{% else %}score-med{% endif %}">
+              ✨ Score IA : {{ draft.ai_quality_score|floatformat:0 }}/100
+            </span>
+          </div>
+
+          <div class="text-muted small">
+            <i class="fa-solid fa-users me-1"></i> {{ draft.whatsapp_group_name }} &bull;
+            <i class="fa-solid fa-clock me-1"></i> {{ draft.created_at|date:"d/m/Y H:i" }}
+          </div>
+        </div>
+
+        <!-- Galerie des photos sélectionnées par Pillow -->
+        {% if draft.ai_selected_photos_json %}
+          <div class="photos-strip">
+            {% for img_rel in draft.ai_selected_photos_json %}
+              <div class="photo-item">
+                <img src="/media/{{ img_rel }}" alt="Photo retenue">
+                {% if forloop.first %}
+                  <div class="ribbon-main">★ Principale</div>
+                {% else %}
+                  <div class="ribbon-main" style="background:rgba(0,0,0,0.5);">#{{ forloop.counter }}</div>
+                {% endif %}
+              </div>
+            {% endfor %}
+            {% if draft.total_images_count > draft.selected_images_count %}
+              <div class="photo-item d-flex align-items-center justify-content-center bg-light text-muted fw-bold">
+                +{{ draft.total_images_count|add:"-5" }} autres
+              </div>
+            {% endif %}
+          </div>
+        {% endif %}
+
+        <!-- Corps de l'annonce -->
+        <div class="p-4">
+          <div class="row g-3">
+            <div class="col-md-8">
+              <h4 class="fw-bold mb-2 text-dark">{{ draft.parsed_titre|default:"Annonce sans titre" }}</h4>
+              
+              <div class="mb-3">
+                <span class="badge bg-dark rounded-pill me-1">{{ draft.get_parsed_type_bien_display }}</span>
+                <span class="badge bg-secondary rounded-pill me-1">{{ draft.get_parsed_type_transaction_display }}</span>
+                <span class="badge bg-info text-dark rounded-pill me-1">📍 {{ draft.parsed_quartier|default:"Quartier non précisé" }}, {{ draft.parsed_ville }}</span>
+              </div>
+
+              <!-- Loyer & Conditions -->
+              <div class="mb-3 d-flex align-items-baseline gap-2 flex-wrap">
+                <span class="price-highlight">
+                  {% if draft.parsed_prix %}
+                    {{ draft.parsed_prix|floatformat:0 }} XAF
+                  {% else %}
+                    Prix à définir
+                  {% endif %}
+                </span>
+                {% if draft.parsed_conditions %}
+                  <span class="badge-condition">
+                    <i class="fa-solid fa-file-contract text-primary me-1"></i> {{ draft.parsed_conditions }}
+                  </span>
+                {% endif %}
+              </div>
+
+              <!-- Description optimisée -->
+              <div class="accordion mb-3" id="acc-{{ draft.uuid }}">
+                <div class="accordion-item border rounded-3">
+                  <h2 class="accordion-header">
+                    <button class="accordion-button collapsed py-2" type="button" data-bs-dismiss="collapse" data-bs-target="#desc-{{ draft.uuid }}">
+                      <i class="fa-solid fa-wand-magic-sparkles text-success me-2"></i> Voir la description optimisée IA & SEO
+                    </button>
+                  </h2>
+                  <div id="desc-{{ draft.uuid }}" class="accordion-collapse collapse" data-bs-parent="#acc-{{ draft.uuid }}">
+                    <div class="accordion-body bg-light small" style="white-space: pre-line;">
+                      {{ draft.ai_improved_description|default:draft.raw_text }}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+
+            <!-- Colonne Source / Démarcheur -->
+            <div class="col-md-4 border-start ps-md-4">
+              <h6 class="fw-bold text-muted text-uppercase mb-2" style="font-size:0.75rem;">Source Démarcheur</h6>
+              <div class="d-flex align-items-center gap-2 mb-2">
+                <div class="bg-success text-white rounded-circle d-flex align-items-center justify-content-center" style="width:36px;height:36px;">
+                  <i class="fa-solid fa-user"></i>
+                </div>
+                <div>
+                  <div class="fw-bold">{{ draft.source_name|default:"Démarcheur" }}</div>
+                  <div class="text-muted small">{{ draft.source_phone|default:"Numéro non renseigné" }}</div>
+                </div>
+              </div>
+
+              {% if draft.source_phone %}
+                <a href="https://wa.me/{{ draft.source_phone|cut:' '|cut:'+' }}" target="_blank" rel="noopener" class="btn btn-sm btn-outline-success rounded-pill w-100 mb-2">
+                  <i class="fa-brands fa-whatsapp me-1"></i> Tester lien WhatsApp
+                </a>
+              {% endif %}
+
+              {% if draft.created_bien %}
+                <div class="alert alert-success py-2 px-3 small rounded-3 mb-2">
+                  <i class="fa-solid fa-check-circle me-1"></i> Bien publié sur le site :<br>
+                  <a href="{{ draft.created_bien.get_absolute_url }}" target="_blank" class="fw-bold text-success">
+                    Voir la fiche publique &rarr;
+                  </a>
+                </div>
+              {% endif %}
+
+              {% if draft.facebook_post_id %}
+                <div class="badge bg-primary w-100 py-2 rounded-pill">
+                  <i class="fa-brands fa-facebook me-1"></i> Post Facebook actif
+                </div>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+
+        <!-- Footer Actions en 1 clic -->
+        <div class="bg-light p-3 border-top d-flex justify-content-end align-items-center gap-2 flex-wrap">
+          {% if draft.status == 'PENDING' %}
+            <!-- Bouton Modifier -->
+            <a href="{% url 'immobilier:modifier_whatsapp_draft' draft_uuid=draft.uuid %}" class="btn btn-outline-secondary rounded-pill px-3">
+              <i class="fa-solid fa-pen-to-square me-1"></i> Modifier
+            </a>
+
+            <!-- Formulaire Rejeter -->
+            <form method="post" action="{% url 'immobilier:rejeter_whatsapp_draft' draft_uuid=draft.uuid %}" class="d-inline" onsubmit="return confirm('Êtes-vous sûr de vouloir rejeter ce brouillon ?');">
+              {% csrf_token %}
+              <button type="submit" class="btn btn-outline-danger rounded-pill px-3">
+                <i class="fa-solid fa-xmark me-1"></i> Rejeter
+              </button>
+            </form>
+
+            <!-- Formulaire Validation 1-Clic -->
+            <form method="post" action="{% url 'immobilier:valider_whatsapp_draft' draft_uuid=draft.uuid %}" class="d-inline">
+              {% csrf_token %}
+              <button type="submit" class="btn btn-success rounded-pill px-4 fw-bold shadow-sm" style="background:#1B4332;border-color:#1B4332;">
+                <i class="fa-solid fa-check-double me-1"></i> Valider & Publier (+ Facebook)
+              </button>
+            </form>
+          {% elif draft.status == 'APPROVED' %}
+            <a href="{{ draft.created_bien.get_absolute_url }}" target="_blank" class="btn btn-sm btn-success rounded-pill px-4">
+              <i class="fa-solid fa-arrow-up-right-from-square me-1"></i> Voir sur E-Shelle
+            </a>
+          {% endif %}
+        </div>
+
+      </div>
+    {% endfor %}
+  {% else %}
+    <div class="text-center py-5 glass-card">
+      <i class="fa-solid fa-folder-open fa-3x text-muted mb-3"></i>
+      <h4 class="fw-bold text-dark">Aucun brouillon dans cette catégorie</h4>
+      <p class="text-muted">Utilisez le bouton d'importation pour capturer des annonces depuis vos groupes WhatsApp.</p>
+      <a href="{% url 'immobilier:import_whatsapp' %}" class="btn btn-success rounded-pill px-4 mt-2" style="background:#1B4332;">
+        Importer une annonce maintenant
+      </a>
+    </div>
+  {% endif %}
+
+</div>
+{% endblock %}

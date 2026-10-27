@@ -104,8 +104,11 @@ def generer_lien_whatsapp(bien, numero=None):
     """
     try:
         if numero is None:
-            profil = bien.proprietaire.profil_immo
-            numero = profil.whatsapp or profil.telephone
+            if hasattr(bien, "whatsapp_source_phone") and bien.whatsapp_source_phone:
+                numero = bien.whatsapp_source_phone
+            else:
+                profil = bien.proprietaire.profil_immo
+                numero = profil.whatsapp or profil.telephone
     except Exception:
         numero = getattr(settings, "IMMO_WHATSAPP_CONTACT", "")
 

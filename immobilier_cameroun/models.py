@@ -332,9 +332,23 @@ class Bien(models.Model):
             domain = "e-shelle.com"
         return f"https://{domain}{self.get_absolute_url()}"
 
+    @property
+    def whatsapp_source_phone(self):
+        """Numéro WhatsApp de la source / démarcheur (si le bien provient d'un import WhatsApp)."""
+        draft = self.whatsapp_drafts.filter(source_phone__gt="").first()
+        return draft.source_phone if draft else None
+
     def get_whatsapp_url(self):
         from .utils import generer_lien_whatsapp
         return generer_lien_whatsapp(self)
+
+    def get_whatsapp_source_url(self):
+        """Lien direct wa.me vers le numéro source démarcheur."""
+        phone = self.whatsapp_source_phone
+        if phone:
+            from .utils import generer_lien_whatsapp
+            return generer_lien_whatsapp(self, numero=phone)
+        return self.get_whatsapp_url()
 
     def get_partage_facebook_url(self):
         import urllib.parse
@@ -515,3 +529,9 @@ class DemandeSoumissionBien(models.Model):
 
     def __str__(self):
         return f"Soumission — {self.nom_complet} | {self.get_type_bien_display()} à {self.ville}"
+
+
+# ─────────────────────────────────────────────────────────────────
+# BROUILLONS WHATSAPP
+# ─────────────────────────────────────────────────────────────────
+from .models_whatsapp_draft import WhatsappImmoDraft

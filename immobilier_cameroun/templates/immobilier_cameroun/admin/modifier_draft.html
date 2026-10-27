@@ -1,0 +1,74 @@
+{% extends "immobilier_cameroun/base_immobilier.html" %}
+{% load static %}
+
+{% block breadcrumb_items %}
+  <li class="breadcrumb-item"><a href="{% url 'immobilier:whatsapp_drafts' %}">Brouillons WhatsApp</a></li>
+  <li class="breadcrumb-item active" aria-current="page">Modifier le brouillon</li>
+{% endblock %}
+
+{% block immo_content %}
+<div class="container my-5" style="max-width: 800px;">
+  <div class="card shadow-sm border-0 rounded-4 p-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+      <h2 class="h4 fw-bold mb-0">Modifier le brouillon avant publication</h2>
+      <a href="{% url 'immobilier:whatsapp_drafts' %}" class="btn btn-sm btn-outline-secondary rounded-pill">
+        &larr; Retour aux brouillons
+      </a>
+    </div>
+
+    <form method="post">
+      {% csrf_token %}
+
+      <div class="mb-3">
+        <label for="titre" class="form-label fw-bold">Titre de l'annonce</label>
+        <input type="text" name="titre" id="titre" class="form-control rounded-3" value="{{ draft.parsed_titre }}" required>
+      </div>
+
+      <div class="row g-3 mb-3">
+        <div class="col-md-6">
+          <label for="quartier" class="form-label fw-bold">Quartier</label>
+          <input type="text" name="quartier" id="quartier" class="form-control rounded-3" value="{{ draft.parsed_quartier }}">
+        </div>
+        <div class="col-md-6">
+          <label for="ville" class="form-label fw-bold">Ville</label>
+          <input type="text" name="ville" id="ville" class="form-control rounded-3" value="{{ draft.parsed_ville }}">
+        </div>
+      </div>
+
+      <div class="row g-3 mb-3">
+        <div class="col-md-6">
+          <label for="prix" class="form-label fw-bold">Prix / Loyer (XAF)</label>
+          <input type="number" name="prix" id="prix" class="form-control rounded-3" value="{{ draft.parsed_prix|default:'' }}">
+        </div>
+        <div class="col-md-6">
+          <label for="conditions" class="form-label fw-bold">Conditions (Avance / Caution)</label>
+          <input type="text" name="conditions" id="conditions" class="form-control rounded-3" value="{{ draft.parsed_conditions }}">
+        </div>
+      </div>
+
+      <div class="row g-3 mb-3">
+        <div class="col-md-6">
+          <label for="source_name" class="form-label fw-bold">Nom démarcheur / contact</label>
+          <input type="text" name="source_name" id="source_name" class="form-control rounded-3" value="{{ draft.source_name }}">
+        </div>
+        <div class="col-md-6">
+          <label for="source_phone" class="form-label fw-bold">Téléphone WhatsApp démarcheur</label>
+          <input type="text" name="source_phone" id="source_phone" class="form-control rounded-3" value="{{ draft.source_phone }}">
+        </div>
+      </div>
+
+      <div class="mb-4">
+        <label for="description" class="form-label fw-bold">Description de l'annonce</label>
+        <textarea name="description" id="description" rows="8" class="form-control rounded-3">{{ draft.ai_improved_description|default:draft.raw_text }}</textarea>
+      </div>
+
+      <div class="d-flex justify-content-end gap-2">
+        <a href="{% url 'immobilier:whatsapp_drafts' %}" class="btn btn-outline-secondary rounded-pill px-4">Annuler</a>
+        <button type="submit" class="btn btn-success rounded-pill px-4 fw-bold" style="background:#1B4332;border-color:#1B4332;">
+          <i class="fa-solid fa-save me-1"></i> Enregistrer les modifications
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

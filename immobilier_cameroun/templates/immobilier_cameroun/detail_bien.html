@@ -219,11 +219,21 @@
         <!-- Boutons actions rapides -->
         <div class="immo-detail__actions">
 
-          <!-- WhatsApp -->
+          <!-- WhatsApp Démarcheur Source -->
+          {% if bien.whatsapp_source_phone %}
+            <a href="{{ bien.get_whatsapp_source_url }}" target="_blank" rel="noopener"
+               class="immo-btn immo-btn--whatsapp immo-btn--full mb-2"
+               style="background: linear-gradient(135deg, #25D366, #128C7E); color: #fff; font-weight: 700; box-shadow: 0 4px 14px rgba(37,211,102,0.35);">
+              <i class="fa-brands fa-whatsapp fa-lg me-1"></i> Contacter Démarcheur ({{ bien.whatsapp_source_phone }})
+            </a>
+          {% endif %}
+
+          <!-- WhatsApp E-Shelle -->
           <a href="{{ bien.get_whatsapp_url }}" target="_blank" rel="noopener"
-             class="immo-btn immo-btn--whatsapp immo-btn--full">
-            <i class="fa-brands fa-whatsapp"></i> Contacter sur WhatsApp
+             class="immo-btn {% if bien.whatsapp_source_phone %}immo-btn--outline{% else %}immo-btn--whatsapp{% endif %} immo-btn--full">
+            <i class="fa-brands fa-whatsapp"></i> {% if bien.whatsapp_source_phone %}Contacter l'équipe E-Shelle{% else %}Contacter sur WhatsApp{% endif %}
           </a>
+
 
           <!-- Favori -->
           {% if user.is_authenticated %}

@@ -32,4 +32,21 @@ urlpatterns = [
     path("demande-visite/<slug:slug>/", views.demande_visite, name="demande_visite"),
     path("soumettre-bien/",             views.soumettre_bien, name="soumettre_bien"),
     path("signaler/<int:bien_id>/",     views.signaler_bien,  name="signaler_bien"),
+
+    # ── Administration WhatsApp Immo ──────────────────────────────
+    path("admin/import-whatsapp/",
+         views.import_whatsapp_view,
+         name="import_whatsapp"),
+    path("admin/whatsapp-drafts/",
+         views.whatsapp_drafts_view,
+         name="whatsapp_drafts"),
+    path("admin/whatsapp-drafts/<uuid:draft_uuid>/valider/",
+         views.valider_draft_view,
+         name="valider_whatsapp_draft"),
+    path("admin/whatsapp-drafts/<uuid:draft_uuid>/rejeter/",
+         views.rejeter_draft_view,
+         name="rejeter_whatsapp_draft"),
+    path("admin/whatsapp-drafts/<uuid:draft_uuid>/modifier/",
+         views.modifier_draft_view,
+         name="modifier_whatsapp_draft"),
 ]

@@ -307,3 +307,73 @@ class FavorisBienAdmin(admin.ModelAdmin):
     list_display = ["user", "bien", "created_at"]
     readonly_fields = ["user", "bien", "created_at"]
     list_filter = ["created_at"]
+
+
+# ─────────────────────────────────────────────────────────────────
+# BROUILLONS WHATSAPP ADMIN
+# ─────────────────────────────────────────────────────────────────
+
+from .models_whatsapp_draft import WhatsappImmoDraft
+
+@admin.register(WhatsappImmoDraft)
+class WhatsappImmoDraftAdmin(admin.ModelAdmin):
+    list_display = [
+        "parsed_titre", "status_badge", "parsed_prix_display",
+        "parsed_quartier", "parsed_ville", "source_name", "source_phone",
+        "photos_count_display", "ai_quality_badge", "created_at"
+    ]
+    list_filter = ["status", "parsed_ville", "parsed_type_bien", "whatsapp_group_name"]
+    search_fields = ["parsed_titre", "parsed_quartier", "source_name", "source_phone", "raw_text"]
+    readonly_fields = [
+        "uuid", "created_at", "updated_at", "ai_quality_score",
+        "facebook_post_id", "created_bien"
+    ]
+    actions = ["action_valider_et_publier", "action_rejeter"]
+
+    STATUS_COLORS = {
+        "PENDING":  ("#F4A261", "#ffffff"),
+        "APPROVED": ("#2D6A4F", "#ffffff"),
+        "REJECTED": ("#E63946", "#ffffff"),
+    }
+
+    def status_badge(self, obj):
+        bg, fg = self.STATUS_COLORS.get(obj.status, ("#adb5bd", "#ffffff"))
+        return format_html(
+            '<span style="background:{};color:{};padding:3px 10px;border-radius:12px;font-size:12px;font-weight:700;">{}</span>',
+            bg, fg, obj.get_status_display()
+        )
+    status_badge.short_description = "Statut"
+
+    def parsed_prix_display(self, obj):
+        if obj.parsed_prix:
+            return f"{int(obj.parsed_prix):,} XAF".replace(",", " ")
+        return "—"
+    parsed_prix_display.short_description = "Prix"
+
+    def photos_count_display(self, obj):
+        return format_html("📸 <strong>{}</strong> (5 retenues)", obj.total_images_count)
+    photos_count_display.short_description = "Photos"
+
+    def ai_quality_badge(self, obj):
+        color = "#2D6A4F" if obj.ai_quality_score >= 70 else "#E76F51"
+        return format_html(
+            '<span style="color:{};font-weight:700;">{:.0f}/100</span>',
+            color, obj.ai_quality_score
+        )
+    ai_quality_badge.short_description = "Score IA"
+
+    @admin.action(description="🚀 Valider et publier le bien sélectionné (+ Facebook)")
+    def action_valider_et_publier(self, request, queryset):
+        from .views.whatsapp_import import execute_draft_validation
+        count = 0
+        for draft in queryset.filter(status=WhatsappImmoDraft.Status.PENDING):
+            bien = execute_draft_validation(draft, user=request.user)
+            if bien:
+                count += 1
+        self.message_user(request, f"{count} bien(s) validé(s) et publié(s) avec succès sur E-Shelle & Facebook.")
+
+    @admin.action(description="❌ Rejeter les brouillons sélectionnés")
+    def action_rejeter(self, request, queryset):
+        updated = queryset.update(status=WhatsappImmoDraft.Status.REJECTED)
+        self.message_user(request, f"{updated} brouillon(s) rejeté(s).")
+

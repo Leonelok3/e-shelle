@@ -1,0 +1,295 @@
+{% extends "immobilier_cameroun/base_immobilier.html" %}
+{% load static %}
+
+{% block breadcrumb_items %}
+  <li class="breadcrumb-item"><a href="{% url 'immobilier:whatsapp_drafts' %}">Brouillons WhatsApp</a></li>
+  <li class="breadcrumb-item active" aria-current="page">Importer depuis WhatsApp</li>
+{% endblock %}
+
+{% block immo_extra_css %}
+<style>
+  .whatsapp-import-container {
+    max-width: 960px;
+    margin: 2rem auto;
+  }
+  .glass-card {
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(27, 67, 50, 0.12);
+    border-radius: 20px;
+    box-shadow: 0 15px 35px rgba(27, 67, 50, 0.08);
+    padding: 2.2rem;
+  }
+  .whatsapp-header-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: #e8f5e9;
+    color: #1b5e20;
+    padding: 6px 14px;
+    border-radius: 50px;
+    font-weight: 700;
+    font-size: 0.85rem;
+    margin-bottom: 1rem;
+  }
+  .dropzone-box {
+    border: 2px dashed #40916c;
+    border-radius: 16px;
+    background: #fdfaf6;
+    padding: 2.5rem 1.5rem;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.25s ease;
+  }
+  .dropzone-box:hover, .dropzone-box.dragover {
+    background: #e8f5e9;
+    border-color: #1b4332;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(45, 106, 79, 0.12);
+  }
+  .preview-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+    gap: 12px;
+    margin-top: 1.2rem;
+  }
+  .preview-thumb {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 1;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    background: #eee;
+  }
+  .preview-thumb img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  .preview-thumb .badge-pill-num {
+    position: absolute;
+    top: 5px;
+    left: 5px;
+    background: rgba(0,0,0,0.65);
+    color: #fff;
+    border-radius: 50px;
+    padding: 2px 7px;
+    font-size: 0.72rem;
+    font-weight: 700;
+  }
+  .pill-badge {
+    background: #fff;
+    border: 1px solid #ddd;
+    color: #444;
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 0.78rem;
+    margin-right: 6px;
+    display: inline-block;
+    margin-bottom: 5px;
+  }
+</style>
+{% endblock %}
+
+{% block immo_content %}
+<div class="container whatsapp-import-container">
+
+  <!-- Entête -->
+  <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+    <div>
+      <div class="whatsapp-header-badge">
+        <i class="fa-brands fa-whatsapp fa-lg text-success"></i> Capture WhatsApp Immo
+      </div>
+      <h1 class="h2 fw-bold text-dark mb-1">Importer une annonce WhatsApp</h1>
+      <p class="text-muted mb-0">Collez le message brut et déposez jusqu'à 9 photos. L'IA sélectionne les 5 meilleures et optimise la fiche.</p>
+    </div>
+    <div>
+      <a href="{% url 'immobilier:whatsapp_drafts' %}" class="btn btn-outline-dark rounded-pill px-4">
+        <i class="fa-solid fa-layer-group me-1"></i> Voir les brouillons
+      </a>
+    </div>
+  </div>
+
+  <div class="glass-card">
+    <form method="post" enctype="multipart/form-data" id="importWhatsappForm">
+      {% csrf_token %}
+
+      <!-- Section 1 : Message WhatsApp Brut -->
+      <div class="mb-4">
+        <label for="raw_text" class="form-label fw-bold d-flex justify-content-between">
+          <span><i class="fa-solid fa-message text-success me-1"></i> Message WhatsApp brut (Obligatoire)</span>
+          <span class="text-muted small">Reconnaît les formules : <code>80mil*4+2</code>, <code>150k</code>, quartiers Yaoundé/Douala</span>
+        </label>
+        <textarea
+          name="raw_text"
+          id="raw_text"
+          rows="6"
+          class="form-control form-control-lg rounded-4 shadow-sm"
+          placeholder="Exemple : Studio moderne à louer Bastos 80mil*4+2. Compteur prépayé, forage, parking sécurisé. Contact démarcheur : 699123456"
+          required
+        ></textarea>
+        <div class="mt-2 text-muted small">
+          <span class="fw-semibold">💡 Exemples supportés :</span>
+          <span class="pill-badge">80mil*4+2 (80 000 XAF + 4 mois avance + 2 mois caution)</span>
+          <span class="pill-badge">150k (150 000 XAF)</span>
+          <span class="pill-badge">Quartiers : Bastos, Bonapriso, Makepe, Odza, etc.</span>
+        </div>
+      </div>
+
+      <!-- Section 2 : Métadonnées source (Optionnelles) -->
+      <div class="row g-3 mb-4">
+        <div class="col-md-4">
+          <label for="source_phone" class="form-label fw-semibold">
+            <i class="fa-brands fa-whatsapp text-success me-1"></i> Téléphone démarcheur
+          </label>
+          <input
+            type="text"
+            name="source_phone"
+            id="source_phone"
+            class="form-control rounded-pill"
+            placeholder="+237 6XXXXXXXX (auto si dans le texte)"
+          >
+        </div>
+        <div class="col-md-4">
+          <label for="source_name" class="form-label fw-semibold">
+            <i class="fa-solid fa-user me-1"></i> Nom démarcheur / contact
+          </label>
+          <input
+            type="text"
+            name="source_name"
+            id="source_name"
+            class="form-control rounded-pill"
+            placeholder="Ex: Démarcheur Bastos"
+            value="Démarcheur WhatsApp"
+          >
+        </div>
+        <div class="col-md-4">
+          <label for="whatsapp_group_name" class="form-label fw-semibold">
+            <i class="fa-solid fa-users text-primary me-1"></i> Groupe WhatsApp
+          </label>
+          <input
+            type="text"
+            name="whatsapp_group_name"
+            id="whatsapp_group_name"
+            class="form-control rounded-pill"
+            placeholder="E-Shelle Immobilier"
+            value="E-Shelle Immobilier"
+          >
+        </div>
+      </div>
+
+      <!-- Section 3 : Upload Photos (Drag & Drop 9 photos) -->
+      <div class="mb-4">
+        <label class="form-label fw-bold d-flex justify-content-between align-items-center">
+          <span><i class="fa-solid fa-camera text-primary me-1"></i> Photos de l'annonce (Jusqu'à 9 photos)</span>
+          <span class="badge bg-secondary rounded-pill" id="photoCountBadge">0 / 9 photos</span>
+        </label>
+
+        <div class="dropzone-box" id="dropzoneBox" onclick="document.getElementById('photosInput').click();">
+          <i class="fa-solid fa-cloud-arrow-up fa-3x text-success mb-2"></i>
+          <h5 class="fw-bold mb-1">Glissez-déposez vos photos ici</h5>
+          <p class="text-muted small mb-2">ou cliquez pour sélectionner jusqu'à 9 images (JPG, PNG, WebP)</p>
+          <div class="badge bg-light text-dark border">
+            ✨ Pillow analysera la netteté et sélectionnera automatiquement les 5 meilleures
+          </div>
+          <input
+            type="file"
+            name="photos"
+            id="photosInput"
+            multiple
+            accept="image/*"
+            style="display: none;"
+          >
+        </div>
+
+        <!-- Galerie de prévisualisation -->
+        <div class="preview-grid" id="previewGrid"></div>
+      </div>
+
+      <!-- Bouton de soumission -->
+      <div class="d-grid mt-4">
+        <button type="submit" class="btn btn-success btn-lg rounded-pill fw-bold shadow-sm py-3" style="background:#1B4332; border-color:#1B4332;">
+          <i class="fa-solid fa-wand-magic-sparkles me-2"></i> Analyser & Créer le brouillon optimisé
+        </button>
+      </div>
+
+    </form>
+  </div>
+</div>
+{% endblock %}
+
+{% block immo_extra_js %}
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    const dropzone = document.getElementById('dropzoneBox');
+    const photosInput = document.getElementById('photosInput');
+    const previewGrid = document.getElementById('previewGrid');
+    const photoCountBadge = document.getElementById('photoCountBadge');
+
+    let allFiles = [];
+
+    // Drag & drop events
+    ['dragenter', 'dragover'].forEach(eventName => {
+      dropzone.addEventListener(eventName, (e) => {
+        e.preventDefault();
+        dropzone.classList.add('dragover');
+      }, false);
+    });
+
+    ['dragleave', 'drop'].forEach(eventName => {
+      dropzone.addEventListener(eventName, (e) => {
+        e.preventDefault();
+        dropzone.classList.remove('dragover');
+      }, false);
+    });
+
+    dropzone.addEventListener('drop', (e) => {
+      const dt = e.dataTransfer;
+      const files = dt.files;
+      handleFiles(files);
+    });
+
+    photosInput.addEventListener('change', function () {
+      handleFiles(this.files);
+    });
+
+    function handleFiles(files) {
+      const newFiles = Array.from(files).filter(f => f.type.startsWith('image/'));
+      allFiles = allFiles.concat(newFiles).slice(0, 9); // Max 9 photos
+      updateInputAndPreviews();
+    }
+
+    function updateInputAndPreviews() {
+      // Met à jour l'input via DataTransfer
+      const dataTransfer = new DataTransfer();
+      allFiles.forEach(file => dataTransfer.items.add(file));
+      photosInput.files = dataTransfer.files;
+
+      // Met à jour le badge
+      photoCountBadge.textContent = `${allFiles.length} / 9 photos`;
+      if (allFiles.length > 0) {
+        photoCountBadge.classList.replace('bg-secondary', 'bg-success');
+      } else {
+        photoCountBadge.classList.replace('bg-success', 'bg-secondary');
+      }
+
+      // Reconstruit la grille d'aperçu
+      previewGrid.innerHTML = '';
+      allFiles.forEach((file, index) => {
+        const reader = new FileReader();
+        reader.onload = function (e) {
+          const div = document.createElement('div');
+          div.className = 'preview-thumb';
+          div.innerHTML = `
+            <img src="${e.target.result}" alt="Photo ${index + 1}">
+            <span class="badge-pill-num">#${index + 1}</span>
+          `;
+          previewGrid.appendChild(div);
+        };
+        reader.readAsDataURL(file);
+      });
+    }
+  });
+</script>
+{% endblock %}
