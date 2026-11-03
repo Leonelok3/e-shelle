@@ -1,4 +1,4 @@
-from django.test import TestCase
+from django.test import TestCase, override_settings
 
 
 class PublicMetaReviewPagesTests(TestCase):
@@ -30,11 +30,14 @@ class PublicMetaReviewPagesTests(TestCase):
         self.assertContains(response, "SaaS E-commerce Platform for SMEs in Cameroon")
         self.assertContains(response, "Business ID: 1837509733943082")
         self.assertContains(response, "App ID Meta: 1841260056892991")
-        self.assertContains(response, "Candidature Tech Provider en cours d’examen par Meta.")
+        self.assertContains(response, "E-Shelle est officiellement Tech Provider Meta.")
+        self.assertContains(response, 'href="/services/whatsapp-business/"')
+        self.assertContains(response, "Installation WhatsApp Business API")
         self.assertContains(response, 'href="/privacy-policy"')
         self.assertContains(response, 'href="/terms"')
         self.assertContains(response, 'href="/about"')
 
+    @override_settings(LANGUAGE_CODE="en")
     def test_meta_app_review_pages_are_public_and_truthful(self):
         pages = {
             "/privacy-policy": (
@@ -52,8 +55,8 @@ class PublicMetaReviewPagesTests(TestCase):
                 "About E-Shelle",
                 "Djiala Feuguim Leonel",
                 "Bafoussam",
-                "subject to Meta's review and approval",
-                "does not claim to be an approved Meta Tech Provider",
+                "E-Shelle is a Meta Tech Provider",
+                "Meta permissions, account eligibility and configuration",
             ),
         }
         for path, expected_text in pages.items():
