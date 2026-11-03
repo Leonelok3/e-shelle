@@ -2,6 +2,15 @@ from django.test import TestCase
 
 
 class PublicMetaReviewPagesTests(TestCase):
+    def test_whatsapp_business_page_explains_setup_offer_and_limits(self):
+        response = self.client.get("/services/whatsapp-business/")
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "25 000 FCFA")
+        self.assertContains(response, "5 000 FCFA par 30 jours")
+        self.assertContains(response, "ne garantit pas qu’un numéro ou un compte ne sera jamais limité ou suspendu")
+        self.assertContains(response, "https://wa.me/237680625082?")
+
     def test_contact_page_shows_business_locations_and_contacts(self):
         response = self.client.get("/services/contact/")
 
