@@ -87,6 +87,41 @@ def get_assigned_applications(access_token):
     return applications
 
 
+def refresh_connection_metadata(connection):
+    """Fetch the connected phone number's current status from Meta."""
+    token = connection.get_access_token()
+    if not token:
+        raise MetaOnboardingError("Le jeton Meta de cette entreprise est indisponible.")
+    result = _request_meta(
+        "GET",
+        connection.phone_number_id,
+        token=token,
+        params={
+            "fields": (
+                "id,display_phone_number,verified_name,status,quality_rating,"
+                "whatsapp_business_manager_messaging_limit"
+            )
+        },
+    )
+    return result
+
+
+def deregister_connection_phone(connection):
+    """Disable the connected phone number on Cloud API while retaining its local record."""
+    token = connection.get_access_token()
+    if not token:
+        raise MetaOnboardingError("Le jeton Meta de cette entreprise est indisponible.")
+    _request_meta("POST", f"{connection.phone_number_id}/deregister", token=token, payload={})
+
+
+def resubscribe_connection_webhook(connection):
+    """Restore the app subscription to the customer's WABA webhooks."""
+    token = connection.get_access_token()
+    if not token:
+        raise MetaOnboardingError("Le jeton Meta de cette entreprise est indisponible.")
+    _request_meta("POST", f"{connection.waba_id}/subscribed_apps", token=token, payload={})
+
+
 def _finish_connection(connection, pin):
     token = connection.get_access_token()
     if not token:

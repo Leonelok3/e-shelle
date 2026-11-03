@@ -1,7 +1,7 @@
 {% extends "base.html" %}{% load static %}
 {% block title %}TCF Canada · Leçon et exercice du jour{% endblock %}
 {% block body_class %}preparation-tests{% endblock %}
-{% block extra_css %}<link rel="stylesheet" href="{% static 'css/preparation_tests.css' %}"><link rel="stylesheet" href="{% static 'css/tcf-daily.css' %}?v=20261012-1">{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'css/preparation_tests.css' %}"><link rel="stylesheet" href="{% static 'css/tcf-daily.css' %}?v=20261023-1">{% endblock %}
 {% block content %}
 <main class="tcf-daily-shell" data-day="{{ daily.key }}">
   <a href="{% url 'preparation_tests:tcf_hub' %}" class="tcf-daily-back">← Préparation TCF</a>
@@ -50,15 +50,15 @@
             <h3>{{ daily.question }}</h3>
           </div>
           {% if daily.skill == 'eo' %}
-            <p>Réponds à voix haute dès le démarrage, sans préparer un texte. L'enregistrement est facultatif ; il reste sur ton appareil.</p>
+            {% if daily.task_number == 1 %}<p>T&acirc;che 1 : r&eacute;ponds naturellement au sujet affich&eacute;, comme lors d&rsquo;un entretien dirig&eacute;. L&rsquo;enregistrement reste sur cet appareil jusqu&agrave; ton choix de l&rsquo;analyser.</p>{% elif daily.task_number == 2 %}<p>T&acirc;che 2 : pr&eacute;pare tes questions pendant les deux premi&egrave;res minutes, puis simule l&rsquo;&eacute;change pendant le temps restant. L&rsquo;enregistrement reste sur cet appareil jusqu&agrave; ton choix de l&rsquo;analyser.</p>{% else %}<p>T&acirc;che 3 : pr&eacute;sente ton point de vue sans pr&eacute;paration. L&rsquo;enregistrement reste sur cet appareil jusqu&agrave; ton choix de l&rsquo;analyser.</p>{% endif %}
             <button type="button" class="pt-btn-secondary" id="daily-record">Enregistrer ma prise de parole</button>
             <button type="button" class="pt-btn-secondary" id="daily-stop-record" hidden>Arrêter l'enregistrement</button>
             <p id="daily-record-status" role="status"></p><audio id="daily-recording" controls hidden></audio><a id="daily-recording-download" hidden>Télécharger mon enregistrement</a>
-            <p>Pour une correction IA, transcris ensuite ce que tu as réellement dit. Tu pourras ajouter cette transcription après avoir arrêté le chronomètre.</p>
+            <p>Tu peux saisir ce que tu as dit ou envoyer l&rsquo;enregistrement apr&egrave;s la s&eacute;ance pour transcription et correction IA. Le fichier temporaire est supprim&eacute; apr&egrave;s analyse.</p>
           {% endif %}
           <label for="daily-production"><strong>{% if daily.skill == 'eo' %}Transcription de ma prise de parole (facultative ici){% else %}Ma réponse · {{ daily.word_min }} à {{ daily.word_max }} mots{% endif %}</strong></label>
           <textarea id="daily-production" name="production" rows="12" maxlength="12000" class="tcf-daily-textarea"></textarea>
-          {% if daily.skill == 'ee' %}<p id="daily-word-count" data-min="{{ daily.word_min }}" data-max="{{ daily.word_max }}" role="status">0 mot</p>{% endif %}
+          {% if daily.skill == 'ee' %}<p id="daily-word-count" data-min="{{ daily.word_min }}" data-max="{{ daily.word_max }}" role="status">0 mot · objectif : {{ daily.word_min }} à {{ daily.word_max }}</p><p id="daily-word-guidance" class="tcf-daily-note" aria-live="polite">La correction reste accessible si ta réponse est plus courte ; respecte la limite pour un entraînement fidèle au format.</p>{% endif %}
         {% endif %}
         <button type="submit" class="pt-btn-primary">Rendre ma réponse</button>
       </form>
@@ -86,6 +86,7 @@
         {% if request.user.is_authenticated %}
           <button type="button" class="pt-btn-primary" id="daily-ai" data-url="{% url 'preparation_tests:tcf_daily_correction' %}">Recevoir ma correction IA</button>
           <div id="daily-ai-feedback" role="status" class="tcf-daily-ai"></div>
+          {% if daily.skill == 'eo' %}<button type="button" class="pt-btn-secondary" id="daily-audio-ai" data-url="{% url 'preparation_tests:tcf_daily_audio_correction' %}">Transcrire et corriger mon enregistrement</button>{% endif %}
         {% else %}<p><a href="{% url 'preparation_tests:learning_center' %}">Connecte-toi pour recevoir une correction IA</a>.</p>{% endif %}
         {% if daily.skill == 'eo' %}<p class="tcf-daily-note">L'IA corrige ta transcription. Elle n'évalue pas la prononciation ni la fluidité de l'enregistrement.</p>{% endif %}
       {% endif %}
@@ -97,4 +98,4 @@
   <footer class="tcf-daily-note">Sujets originaux d'entraînement, sans affiliation avec l'organisateur du TCF. <a href="{{ daily.source }}" target="_blank" rel="noopener">Consulter le format TCF Canada</a>.</footer>
 </main>
 {% endblock %}
-{% block extra_js %}<script src="{% static 'js/tcf-daily.js' %}?v=20261002-2" defer></script>{% endblock %}
+{% block extra_js %}<script src="{% static 'js/tcf-daily.js' %}?v=20261023-1" defer></script>{% endblock %}

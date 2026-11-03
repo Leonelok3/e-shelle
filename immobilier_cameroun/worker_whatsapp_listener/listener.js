@@ -3,14 +3,14 @@
  * Écoute en continu le groupe "E-Shelle Immobilier", regroupe les photos
  * et les envoie automatiquement à Django sans aucune intervention manuelle.
  */
-import makeWASocket, {
+import baileysPkg, {
     useMultiFileAuthState,
     DisconnectReason,
     downloadMediaMessage,
     fetchLatestBaileysVersion
 } from '@whiskeysockets/baileys';
 import pino from 'pino';
-import qrcode from 'qrcode-terminal';
+import qrcodeTerminal from 'qrcode-terminal';
 import axios from 'axios';
 import FormData from 'form-data';
 import dotenv from 'dotenv';
@@ -18,6 +18,19 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 
 dotenv.config();
+
+// Résolution robuste CommonJS / ES Modules pour Baileys
+const resolveMakeWASocket = () => {
+    if (typeof baileysPkg === 'function') return baileysPkg;
+    if (typeof baileysPkg?.default === 'function') return baileysPkg.default;
+    if (typeof baileysPkg?.default?.default === 'function') return baileysPkg.default.default;
+    if (typeof baileysPkg?.makeWASocket === 'function') return baileysPkg.makeWASocket;
+    if (typeof baileysPkg?.default?.makeWASocket === 'function') return baileysPkg.default.makeWASocket;
+    return baileysPkg;
+};
+const makeWASocket = resolveMakeWASocket();
+
+const qrcode = qrcodeTerminal?.default || qrcodeTerminal;
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 

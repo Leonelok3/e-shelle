@@ -4,6 +4,7 @@ from unittest.mock import patch
 
 from django.contrib.auth import get_user_model
 from django.contrib.messages import get_messages
+from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import TestCase, override_settings
 from django.urls import reverse
 from django.utils import timezone
@@ -908,3 +909,208 @@ class BusinessCampaignTests(TestCase):
         self.assertEqual(prepared[0].business_contact.phone, "+237699000031")
         self.assertEqual(prepared[0].business_contact.business_id, restaurant.pk)
         self.assertIs(prepared[0].business_contact.consent_marketing, True)
+
+    def activate_paid_plan(self, business=None):
+        business = business or self.business
+        business.plan = BusinessProfile.Plan.PRO
+        business.subscription_expires_at = timezone.now() + timezone.timedelta(days=30)
+        business.save(update_fields=["plan", "subscription_expires_at", "updated_at"])
+        return business
+
+    def test_subscriber_campaign_portal_is_owner_scoped(self):
+        self.client.force_login(self.owner)
+        response = self.client.get(
+            reverse("whatsapp_commerce:business_campaigns", args=[self.business.pk])
+        )
+        self.assertEqual(response.status_code, 200)
+
+        self.client.force_login(self.other_owner)
+        response = self.client.get(
+            reverse("whatsapp_commerce:business_campaigns", args=[self.business.pk])
+        )
+        self.assertEqual(response.status_code, 404)
+
+    def test_campaign_contact_import_requires_attestation_and_preserves_opt_out(self):
+        self.activate_paid_plan()
+        opted_out = BusinessWhatsAppContact.objects.create(
+            business=self.business,
+            phone="+237699000001",
+            opted_out_at=timezone.now(),
+        )
+        self.client.force_login(self.owner)
+        url = reverse("whatsapp_commerce:business_campaign_import", args=[self.business.pk])
+        csv_file = SimpleUploadedFile(
+            "contacts.csv",
+            b"phone,name\n699000001,Opted out\n699000002,Alice\n699000002,Duplicate\nbad,Invalid\n",
+            content_type="text/csv",
+        )
+        response = self.client.post(
+            url,
+            {"consent_source": "Formulaire boutique", "contacts_file": csv_file},
+        )
+        self.assertRedirects(
+            response,
+            reverse("whatsapp_commerce:business_campaigns", args=[self.business.pk]),
+        )
+        self.assertEqual(BusinessWhatsAppContact.objects.filter(business=self.business).count(), 1)
+        opted_out.refresh_from_db()
+        self.assertFalse(opted_out.consent_marketing)
+        self.assertIsNotNone(opted_out.opted_out_at)
+
+        csv_file = SimpleUploadedFile(
+            "contacts.csv",
+            b"phone,name\n699000001,Opted out\n699000002,Alice\n699000002,Duplicate\nbad,Invalid\n",
+            content_type="text/csv",
+        )
+        self.client.post(
+            url,
+            {
+                "consent_source": "Formulaire boutique",
+                "consent_attestation": "on",
+                "contacts_file": csv_file,
+            },
+        )
+        contact = BusinessWhatsAppContact.objects.get(
+            business=self.business, phone="+237699000002"
+        )
+        self.assertTrue(contact.consent_marketing)
+        self.assertTrue(contact.marketing_opt_in)
+        self.assertEqual(contact.consent_source, "Formulaire boutique")
+        self.assertEqual(contact.consent_recorded_by, self.owner)
+        self.assertEqual(BusinessWhatsAppContact.objects.filter(business=self.business).count(), 2)
+
+    @override_settings(WHATSAPP_COMMERCE_ENABLED=True)
+    def test_campaign_creation_uses_only_business_contacts_and_caps_audience(self):
+        self.activate_paid_plan()
+        connection = self.connect_business_waba()
+        self.client.force_login(self.owner)
+        for index in range(252):
+            BusinessWhatsAppContact.objects.create(
+                business=self.business,
+                phone=f"+237699{index:06d}",
+                display_name=f"Client {index}",
+                marketing_opt_in=True,
+                consent_marketing=True,
+                consent_source="Opt-in test",
+                consented_at=timezone.now(),
+            )
+        other_business = BusinessProfile.objects.create(
+            owner=self.other_owner,
+            module=BusinessProfile.Module.PRESSING,
+            name="Other business",
+        )
+        BusinessWhatsAppContact.objects.create(
+            business=other_business,
+            phone="+237699999999",
+            marketing_opt_in=True,
+            consent_marketing=True,
+        )
+        template = {
+            "name": "promo_locale",
+            "language": "fr",
+            "body": "Bonjour {{1}}, offre spéciale.",
+            "parameter_count": 1,
+        }
+        with patch(
+            "whatsapp_agent.forms.validate_business_campaign_template",
+            return_value=(connection, template),
+        ):
+            response = self.client.post(
+                reverse("whatsapp_commerce:business_campaign_create", args=[self.business.pk]),
+                {
+                    "nom": "Offre de lancement",
+                    "meta_template": "promo_locale|fr",
+                    "meta_params": '["{{prenom}}"]',
+                    "consent_attestation": "on",
+                },
+            )
+        campaign = Campagne.objects.get(business=self.business)
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(campaign.messages.count(), 250)
+        self.assertEqual(campaign.statut, Campagne.STATUT_VALIDEE)
+        self.assertTrue(
+            all(
+                message.business_contact.business_id == self.business.pk
+                and message.business_contact.consent_marketing
+                for message in campaign.messages.select_related("business_contact")
+            )
+        )
+        self.assertEqual(
+            campaign.messages.filter(destinataire_nom="Client 0").get().message_final,
+            "Bonjour Client, offre spéciale.",
+        )
+        detail_response = self.client.get(
+            reverse(
+                "whatsapp_commerce:business_campaign_detail",
+                args=[self.business.pk, campaign.pk],
+            )
+        )
+        self.assertContains(detail_response, "promo_locale")
+        self.assertContains(detail_response, "Client 0")
+
+        with patch(
+            "whatsapp_commerce.business_campaigns.business_campaign_template_catalog",
+            return_value=[
+                {
+                    **template,
+                    "key": "promo_locale|fr",
+                    "category": "MARKETING",
+                    "supported": True,
+                }
+            ],
+        ):
+            dashboard_response = self.client.get(
+                reverse("whatsapp_commerce:business_campaigns", args=[self.business.pk])
+            )
+        self.assertContains(dashboard_response, "promo_locale")
+
+    @override_settings(WHATSAPP_COMMERCE_ENABLED=True, WHATSAPP_DRY_RUN=True)
+    def test_owner_can_launch_a_prepared_campaign_through_its_connected_waba(self):
+        self.activate_paid_plan()
+        connection = self.connect_business_waba()
+        contact = self.create_opted_in_contact()
+        campaign = Campagne.objects.create(
+            nom="Offre propriétaire",
+            business=self.business,
+            message_template="Bonjour {{1}}",
+            template_meta_name="promo_locale",
+            template_meta_language="fr",
+            template_meta_params=["{{prenom}}"],
+            template_meta_preview="Bonjour {{1}}",
+            statut=Campagne.STATUT_VALIDEE,
+            cree_par=self.owner,
+        )
+        MessageEnvoi.objects.create(
+            campagne=campaign,
+            business_contact=contact,
+            destinataire_nom="Alice",
+            numero_whatsapp=contact.phone,
+            message_final="Bonjour Alice",
+        )
+        self.client.force_login(self.owner)
+        with patch(
+            "whatsapp_commerce.business_campaigns.validate_business_campaign_template",
+            return_value=(
+                connection,
+                {
+                    "name": "promo_locale",
+                    "language": "fr",
+                    "body": "Bonjour {{1}}",
+                    "parameter_count": 1,
+                },
+            ),
+        ):
+            response = self.client.post(
+                reverse(
+                    "whatsapp_commerce:business_campaign_launch",
+                    args=[self.business.pk, campaign.pk],
+                ),
+                {"confirm_launch": "on"},
+            )
+        self.assertEqual(response.status_code, 302)
+        campaign.refresh_from_db()
+        self.assertEqual(campaign.statut, Campagne.STATUT_TERMINEE)
+        self.assertEqual(campaign.total_envoyes, 1)
+        self.assertTrue(
+            campaign.messages.filter(statut=MessageEnvoi.STATUT_ENVOYE).exists()
+        )

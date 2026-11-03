@@ -7,11 +7,13 @@ Le tableau de bord WhatsApp est relié à une fiche `BusinessProfile` :
   enregistre le numéro avec le PIN 2 étapes et abonne le WABA aux webhooks ;
 - les contacts et messages sont rattachés à leur fiche Business ; les numéros peuvent être
   présents chez plusieurs entreprises, mais les identifiants WABA et numéro sont uniques ;
-- les réponses directes de ce premier pilote sont limitées à la fenêtre de service WhatsApp
-  de 24 heures ouverte par le client. Les campagnes et relances automatisées ne sont pas
-  activées dans cette tranche.
-- Pro donne accès à la connexion et au CRM de contacts ; Business et Premium ajoutent
-  la synchronisation des articles du catalogue Business vers le catalogue du WABA connecté.
+- les réponses directes restent limitées à la fenêtre de service WhatsApp de 24 heures
+  ouverte par le client. Le portail `/whatsapp-commerce/campaigns/` donne aussi aux
+  propriétaires Pro, Business et Premium une interface de campagnes pour leur propre WABA ;
+  les campagnes exigent un modèle MARKETING approuvé par Meta et sont plafonnées à
+  250 contacts consentants par campagne. Les frais Meta sont distincts de l’abonnement E-Shelle.
+- Pro donne accès à la connexion, au CRM et aux campagnes WhatsApp ; Business et Premium
+  ajoutent la synchronisation des articles du catalogue Business vers le catalogue du WABA connecté.
 - le CRM conserve les contacts après expiration, mais l’accès et l’envoi de réponses sont
   suspendus tant qu’une formule éligible n’est pas active ; les données ne sont pas supprimées.
 - les articles WhatsApp doivent avoir un prix numérique en XAF et une image publique HTTPS.
@@ -21,10 +23,27 @@ Le tableau de bord WhatsApp est relié à une fiche `BusinessProfile` :
   propriétaire doit attester et tracer le consentement explicite du client ; les messages
   entrants seuls ne valent pas consentement marketing. STOP désinscrit le contact et annule
   ses relances en attente.
-- le moteur n’envoie ni campagnes de masse, ni texte libre planifié : les paramètres et
-  l’approbation du modèle sont revérifiés à l’envoi. Une erreur n’est pas relancée
-  automatiquement, afin d’éviter un doublon si l’acceptation Meta était incertaine. Le
-  worker traite au plus dix relances arrivées à échéance par minute.
+- le portail de campagne importe des contacts CSV en demandant une attestation et la source
+  du consentement ; les désinscriptions ne sont jamais réactivées par un import. Les contacts,
+  campagnes et résultats sont isolés par fiche Business. Le modèle et le consentement sont
+  revérifiés au lancement et à chaque envoi ; les messages marketing ne partent pas en texte
+  libre hors fenêtre de service. Les relances individuelles restent soumises à leur propre
+  drapeau, et le worker traite au plus dix relances arrivées à échéance par minute.
+- le tableau réservé au personnel Tech Provider est disponible sur
+  `/whatsapp-commerce/tech-provider/`. Il liste les seules WABA effectivement reliées à
+  des fiches E-Shelle via Embedded Signup, leurs états connus, les clics de la page commerciale
+  et les lectures Meta d’état, de qualité et de limite de messagerie.
+- la réactivation de webhook et le désenregistrement d’un numéro sont des opérations Meta
+  côté serveur, accessibles au personnel et journalisées. Le désenregistrement coupe
+  l’utilisation Cloud API du numéro ; sa reprise nécessite le propriétaire et son PIN.
+- le bouton de la page commerciale compte les clics et ouvre WhatsApp. Le rapprochement
+  automatique avec une WABA ne se fait que si la même session du navigateur démarre ensuite
+  Embedded Signup. Le contenu des conversations WhatsApp n’est jamais collecté par ce suivi.
+- une WABA déjà créée dans Meta Business Manager, comme celle d’Immigration97, n’est pas
+  importée par simple détection. Le propriétaire doit ouvrir sa fiche Business E-Shelle,
+  lancer « Connecter mon compte WhatsApp » et autoriser la connexion Meta pour cette fiche.
+  Le tableau affiche ensuite le compte et peut agir sur les permissions accordées ; ne jamais
+  copier un jeton Meta dans le tableau ou le code.
 
 ## Configuration Meta côté serveur
 
@@ -49,8 +68,9 @@ l’App Review et l’accès avancé requis. Le callback du webhook doit être a
 
 Les entreprises clientes possèdent leurs actifs WhatsApp et doivent ajouter leur propre
 moyen de paiement Meta. L’abonnement E-Shelle ne règle pas les frais de conversations
-Meta. La configuration de l’intégration ne rend pas le statut Tech Provider effectif :
-seule l’approbation de Meta le fait.
+Meta. E-Shelle est Tech Provider Meta ; cela ne donne pas un accès global à tous les actifs
+des clients. Chaque entreprise doit accorder l’accès via Embedded Signup, et les appels
+restent limités aux permissions Meta effectivement approuvées pour l’application.
 
 ## Déploiement
 
@@ -68,6 +88,11 @@ et l’inbox business restent contrôlés par l’authentification du propriéta
 de la formule active et l’état de connexion individuel. La synchronisation Business utilise
 le jeton et le WABA de la fiche concernée ; elle échoue explicitement si Meta ne retourne
 pas un catalogue unique et ne retombe jamais sur les identifiants globaux de l’ancienne boutique.
+
+Le tableau Tech Provider est réservé aux utilisateurs `is_staff`. Les opérations d’écriture
+exigent `WHATSAPP_COMMERCE_ENABLED=True`; la désinscription du téléphone exige en plus le
+mot de confirmation et le nom exact de l’entreprise. Ne pas désenregistrer un numéro client
+sans son accord et sans avoir planifié sa réinscription Cloud API.
 
 Les relances Business sont protégées par leur propre drapeau, `WHATSAPP_BUSINESS_AUTOMATIONS_ENABLED`,
 désactivé par défaut. Leur planification reste impossible et les messages en attente sont annulés

@@ -1,10 +1,38 @@
 from django.urls import path
 
 from . import views
+from . import business_campaigns
 
 app_name = "whatsapp_commerce"
 
 urlpatterns = [
+    path("provider-referral/", views.provider_referral_click, name="provider_referral_click"),
+    path("campaigns/", business_campaigns.campaigns_home, name="campaigns_home"),
+    path("campaigns/<int:business_id>/", business_campaigns.business_campaigns, name="business_campaigns"),
+    path(
+        "campaigns/<int:business_id>/import/",
+        business_campaigns.import_business_campaign_contacts,
+        name="business_campaign_import",
+    ),
+    path(
+        "campaigns/<int:business_id>/create/",
+        business_campaigns.create_business_campaign,
+        name="business_campaign_create",
+    ),
+    path(
+        "campaigns/<int:business_id>/<int:campaign_id>/",
+        business_campaigns.business_campaign_detail,
+        name="business_campaign_detail",
+    ),
+    path(
+        "campaigns/<int:business_id>/<int:campaign_id>/launch/",
+        business_campaigns.launch_business_campaign,
+        name="business_campaign_launch",
+    ),
+    path("tech-provider/", views.tech_provider_dashboard, name="tech_provider_dashboard"),
+    path("tech-provider/<int:connection_id>/refresh/", views.tech_provider_refresh, name="tech_provider_refresh"),
+    path("tech-provider/<int:connection_id>/resubscribe/", views.tech_provider_resubscribe, name="tech_provider_resubscribe"),
+    path("tech-provider/<int:connection_id>/deregister/", views.tech_provider_deregister, name="tech_provider_deregister"),
     path("inbox/", views.business_whatsapp_inbox, name="inbox"),
     path("business/<int:business_id>/", views.business_whatsapp_dashboard, name="business_dashboard"),
     path("business/<int:business_id>/connect/", views.start_business_connection, name="business_connect"),

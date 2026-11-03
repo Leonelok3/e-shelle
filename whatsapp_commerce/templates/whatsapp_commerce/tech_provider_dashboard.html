@@ -1,0 +1,136 @@
+{% extends "base.html" %}
+{% block title %}Clients WhatsApp Business Platform | E-Shelle{% endblock %}
+{% block content %}
+<main style="min-height:75vh;padding:7rem 1rem 3rem;background:#07101b;color:#f8fafc">
+  <div style="max-width:1450px;margin:auto">
+    <header style="display:flex;justify-content:space-between;align-items:flex-start;gap:1rem;flex-wrap:wrap">
+      <div>
+        <p style="margin:0;color:#86efac;font-weight:800;text-transform:uppercase;letter-spacing:.08em">E-Shelle Tech Provider</p>
+        <h1 style="margin:.4rem 0">Clients WhatsApp Business</h1>
+        <p style="margin:0;color:#cbd5e1">Suivez les comptes reliés via Embedded Signup et contrôlez leur état Meta.</p>
+      </div>
+      <a href="{% url 'services:whatsapp-business' %}" style="padding:.7rem 1rem;border-radius:10px;background:#14532d;color:#dcfce7;text-decoration:none;font-weight:800">Voir la page de vente</a>
+    </header>
+
+    {% for message in messages %}
+      <p role="status" style="margin:1rem 0;padding:.8rem 1rem;border-radius:10px;background:rgba(255,255,255,.08)">{{ message }}</p>
+    {% endfor %}
+
+    {% if not whatsapp_enabled %}
+      <div role="alert" style="margin:1rem 0;padding:1rem;border-radius:12px;background:rgba(248,113,113,.12);color:#fecaca">
+        Les opérations WhatsApp Meta sont désactivées par <code>WHATSAPP_COMMERCE_ENABLED</code>. Le tableau reste consultable, mais les actions Meta sont bloquées.
+      </div>
+    {% endif %}
+    <aside style="margin:1rem 0;padding:1rem;border:1px solid rgba(134,239,172,.25);border-radius:12px;background:rgba(34,197,94,.06);color:#d1fae5;line-height:1.6">
+      <strong>Pour relier une WABA existante, par exemple Immigration97 :</strong>
+      elle doit être associée à une fiche Business E-Shelle. Le propriétaire de la fiche lance la connexion WhatsApp et autorise Embedded Signup avec le compte Meta qui administre cette WABA. Si Immigration97 n’a pas encore de fiche, <a href="{% url 'business:onboarding' %}" style="color:#86efac;font-weight:800">créez d’abord sa fiche Business</a>. La WABA apparaîtra ici après la connexion autorisée ; aucun jeton ne doit être copié manuellement.
+    </aside>
+
+    <section aria-label="Indicateurs" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:.8rem;margin:1.5rem 0">
+      <div style="padding:1rem;border:1px solid #334155;border-radius:12px;background:#0f1b2d"><strong style="font-size:1.6rem">{{ counts.total }}</strong><span style="display:block;color:#cbd5e1">WABA reliées</span></div>
+      <div style="padding:1rem;border:1px solid #334155;border-radius:12px;background:#0f1b2d"><strong style="font-size:1.6rem;color:#86efac">{{ counts.active }}</strong><span style="display:block;color:#cbd5e1">Actives dans E-Shelle</span></div>
+      <div style="padding:1rem;border:1px solid #334155;border-radius:12px;background:#0f1b2d"><strong style="font-size:1.6rem;color:#fde68a">{{ counts.action_required }}</strong><span style="display:block;color:#cbd5e1">Action requise</span></div>
+      <div style="padding:1rem;border:1px solid #334155;border-radius:12px;background:#0f1b2d"><strong style="font-size:1.6rem">{{ counts.referrals }}</strong><span style="display:block;color:#cbd5e1">Clics de la page de vente</span></div>
+    </section>
+
+    <section style="margin:1.5rem 0;padding:1rem;border:1px solid #263449;border-radius:14px;background:#0b1728">
+      <h2 style="margin:.2rem 0 1rem;font-size:1.25rem">Comptes connectés</h2>
+      <form method="get" style="display:flex;gap:.6rem;flex-wrap:wrap;margin-bottom:1rem">
+        <input name="q" value="{{ query }}" placeholder="Entreprise, propriétaire, numéro ou WABA" style="min-width:min(100%,320px);padding:.65rem .8rem;border:1px solid #475569;border-radius:8px;background:#07101b;color:white">
+        <select name="status" style="padding:.65rem .8rem;border:1px solid #475569;border-radius:8px;background:#07101b;color:white">
+          <option value="">Tous les statuts</option>
+          {% for value, label in status_choices %}<option value="{{ value }}" {% if status_filter == value %}selected{% endif %}>{{ label }}</option>{% endfor %}
+        </select>
+        <button type="submit" style="padding:.65rem 1rem;border:0;border-radius:8px;background:#1e293b;color:white;font-weight:700">Filtrer</button>
+      </form>
+
+      <div style="overflow-x:auto">
+        <table style="width:100%;min-width:1100px;border-collapse:collapse;font-size:.9rem">
+          <thead><tr style="color:#94a3b8;text-align:left">
+            <th style="padding:.7rem;border-bottom:1px solid #334155">Entreprise / propriétaire</th>
+            <th style="padding:.7rem;border-bottom:1px solid #334155">Numéro / état Meta</th>
+            <th style="padding:.7rem;border-bottom:1px solid #334155">WABA / Phone ID</th>
+            <th style="padding:.7rem;border-bottom:1px solid #334155">Connexion E-Shelle</th>
+            <th style="padding:.7rem;border-bottom:1px solid #334155">Webhook</th>
+            <th style="padding:.7rem;border-bottom:1px solid #334155">Actions</th>
+          </tr></thead>
+          <tbody>
+          {% for connection in connections %}
+            <tr>
+              <td style="padding:.8rem .7rem;border-bottom:1px solid #1e293b">
+                <strong>{{ connection.business.name }}</strong>
+                <small style="display:block;color:#94a3b8">{% if connection.business.owner %}{{ connection.business.owner.get_username }}{% if connection.business.owner.email %} · {{ connection.business.owner.email }}{% endif %}{% else %}Propriétaire non défini{% endif %}</small>
+                <small style="display:block;color:#64748b">Fiche #{{ connection.business_id }} · Meta Business {{ connection.meta_business_id|default:"—" }}</small>
+              </td>
+              <td style="padding:.8rem .7rem;border-bottom:1px solid #1e293b">
+                <strong>{{ connection.display_phone_number|default:"Numéro non chargé" }}</strong>
+                {% if connection.meta_verified_name %}<small style="display:block;color:#94a3b8">Nom Meta : {{ connection.meta_verified_name }}</small>{% endif %}
+                <small style="display:block;color:#cbd5e1">Meta : {{ connection.meta_phone_status|default:"À actualiser" }}</small>
+                <small style="display:block;color:#94a3b8">Qualité : {{ connection.meta_quality_rating|default:"—" }} · Limite : {{ connection.meta_messaging_limit|default:"—" }}</small>
+                {% if connection.last_meta_sync_at %}<small style="display:block;color:#64748b">Actualisé {{ connection.last_meta_sync_at|date:"d/m/Y H:i" }}</small>{% endif %}
+              </td>
+              <td style="padding:.8rem .7rem;border-bottom:1px solid #1e293b">
+                <small style="display:block">WABA {{ connection.waba_id }}</small>
+                <small style="display:block;color:#94a3b8">Phone ID {{ connection.phone_number_id }}</small>
+              </td>
+              <td style="padding:.8rem .7rem;border-bottom:1px solid #1e293b">
+                <span>{{ connection.get_status_display }}</span>
+                <small style="display:block;color:#94a3b8">{% if connection.connected_at %}Connectée {{ connection.connected_at|date:"d/m/Y H:i" }}{% else %}Créée {{ connection.created_at|date:"d/m/Y H:i" }}{% endif %}</small>
+                {% if connection.last_error %}<small style="display:block;color:#fde68a">{{ connection.last_error }}</small>{% endif %}
+              </td>
+              <td style="padding:.8rem .7rem;border-bottom:1px solid #1e293b">
+                {% if connection.webhook_subscribed %}<span style="color:#86efac">Abonné</span>{% else %}<span style="color:#fde68a">Non abonné</span>{% endif %}
+                {% if not connection.phone_registered %}<small style="display:block;color:#fca5a5">Numéro non enregistré Cloud API</small>{% endif %}
+              </td>
+              <td style="padding:.8rem .7rem;border-bottom:1px solid #1e293b">
+                <div style="display:grid;gap:.45rem;min-width:190px">
+                  <form method="post" action="{% url 'whatsapp_commerce:tech_provider_refresh' connection.pk %}">{% csrf_token %}<button type="submit" {% if not whatsapp_enabled %}disabled{% endif %} style="width:100%;padding:.5rem;border:1px solid #475569;border-radius:7px;background:#172338;color:white;cursor:pointer">Actualiser depuis Meta</button></form>
+                  {% if not connection.webhook_subscribed %}
+                    <form method="post" action="{% url 'whatsapp_commerce:tech_provider_resubscribe' connection.pk %}" onsubmit="return confirm('Réactiver le webhook E-Shelle pour le WABA de {{ connection.business.name|escapejs }} ?')">
+                      {% csrf_token %}<input type="hidden" name="confirm" value="RESUBSCRIBE"><button type="submit" {% if not whatsapp_enabled %}disabled{% endif %} style="width:100%;padding:.5rem;border:1px solid #166534;border-radius:7px;background:#14532d;color:#dcfce7;cursor:pointer">Réactiver le webhook</button>
+                    </form>
+                  {% endif %}
+                  {% if connection.phone_registered %}
+                    <details>
+                      <summary style="padding:.5rem;color:#fca5a5;cursor:pointer">Désenregistrer le numéro…</summary>
+                      <p style="font-size:.78rem;color:#fecaca;line-height:1.5">Action perturbatrice : le numéro sera désactivé sur Cloud API. Les messages ne pourront plus être envoyés via ce numéro jusqu’à sa réinscription. Cela ne supprime pas le WABA, mais une réinscription et le PIN du client seront nécessaires.</p>
+                      <form method="post" action="{% url 'whatsapp_commerce:tech_provider_deregister' connection.pk %}">
+                        {% csrf_token %}
+                        <input type="hidden" name="confirm" value="DEREGISTER">
+                        <label style="display:block;font-size:.78rem;margin-bottom:.3rem">Saisir exactement : <strong>{{ connection.business.name }}</strong></label>
+                        <input name="business_name" required autocomplete="off" style="width:100%;box-sizing:border-box;padding:.5rem;border:1px solid #7f1d1d;border-radius:7px;background:#1c1219;color:white">
+                        <button type="submit" {% if not whatsapp_enabled %}disabled{% endif %} style="width:100%;margin-top:.45rem;padding:.55rem;border:0;border-radius:7px;background:#991b1b;color:white;font-weight:800;cursor:pointer">Confirmer le désenregistrement Meta</button>
+                      </form>
+                    </details>
+                  {% endif %}
+                </div>
+              </td>
+            </tr>
+          {% empty %}
+            <tr><td colspan="6" style="padding:1.5rem;color:#94a3b8;text-align:center">Aucune WABA n’est encore reliée à une fiche E-Shelle. Une WABA visible dans Meta Business Manager n’apparaît ici qu’après connexion autorisée par son entreprise via Embedded Signup.</td></tr>
+          {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section style="margin:1.5rem 0;padding:1rem;border:1px solid #263449;border-radius:14px;background:#0b1728">
+      <h2 style="margin:.2rem 0 .4rem;font-size:1.25rem">Parcours de la page de vente</h2>
+      <p style="color:#94a3b8;font-size:.88rem">Les clics WhatsApp sont comptés sans enregistrer le contenu des conversations. Un clic est relié à une fiche si la même session du navigateur démarre ensuite Embedded Signup.</p>
+      <div style="overflow-x:auto">
+        <table style="width:100%;min-width:700px;border-collapse:collapse;font-size:.88rem">
+          <thead><tr style="color:#94a3b8;text-align:left"><th style="padding:.6rem;border-bottom:1px solid #334155">Date du clic</th><th style="padding:.6rem;border-bottom:1px solid #334155">Étape</th><th style="padding:.6rem;border-bottom:1px solid #334155">Fiche Business</th><th style="padding:.6rem;border-bottom:1px solid #334155">Connexion</th></tr></thead>
+          <tbody>
+            {% for referral in referrals %}
+              <tr><td style="padding:.65rem;border-bottom:1px solid #1e293b">{{ referral.clicked_at|date:"d/m/Y H:i" }}</td><td style="padding:.65rem;border-bottom:1px solid #1e293b">{{ referral.get_status_display }}</td><td style="padding:.65rem;border-bottom:1px solid #1e293b">{{ referral.business.name|default:"Pas encore reliée" }}</td><td style="padding:.65rem;border-bottom:1px solid #1e293b">{% if referral.connection %}{{ referral.connection.display_phone_number|default:referral.connection.phone_number_id }}{% else %}—{% endif %}</td></tr>
+            {% empty %}
+              <tr><td colspan="4" style="padding:1rem;color:#94a3b8">Aucun clic enregistré pour le moment.</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </section>
+    <p style="color:#94a3b8;font-size:.82rem;line-height:1.6">Les données affichées viennent des connexions stockées par E-Shelle et de la dernière lecture Meta. Elles ne représentent pas toutes les WABA du Business Manager. Les opérations utilisent le jeton accordé pour chaque entreprise et sont consignées dans l’audit WABA.</p>
+  </div>
+</main>
+{% endblock %}

@@ -45,7 +45,7 @@ STATIC_CHECK=$(mktemp -d)
 trap 'rm -rf -- "$STATIC_CHECK"' EXIT
 for asset in css/tcf-daily.css js/tcf-daily.js; do
   curl --fail --silent --show-error --retry 3 --retry-delay 2 \
-    "https://e-shelle.com/static/$asset?v=20261002-2" -o "$STATIC_CHECK/$(basename "$asset")"
+    "https://e-shelle.com/static/$asset?v=20261023-1" -o "$STATIC_CHECK/$(basename "$asset")"
   cmp "$APP/static/$asset" "$STATIC_CHECK/$(basename "$asset")"
 done
 for audio in "$APP"/media/audio/fr/tcf_daily/tts_*.mp3; do

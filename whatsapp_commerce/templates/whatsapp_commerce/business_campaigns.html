@@ -1,0 +1,176 @@
+{% extends "base.html" %}
+
+{% block title %}Campagnes WhatsApp de mon entreprise | E-Shelle{% endblock %}
+
+{% block content %}
+<main style="max-width:1120px;margin:2rem auto;padding:0 1rem;color:#172033;">
+  <header style="margin-bottom:1.5rem;">
+    <a href="{% url 'whatsapp_commerce:campaigns_home' %}" style="color:#16803c;">← Mes entreprises</a>
+    {% if business %}
+      <h1 style="margin:.75rem 0 .25rem;">Campagnes WhatsApp — {{ business.display_name }}</h1>
+      <p style="color:#536174;">Importez vos contacts, choisissez un modèle Meta approuvé et suivez les résultats de vos envois.</p>
+    {% else %}
+      <h1 style="margin:.75rem 0 .25rem;">Mes campagnes WhatsApp</h1>
+      <p style="color:#536174;">Choisissez une entreprise reliée à WhatsApp Business API pour gérer ses campagnes.</p>
+    {% endif %}
+  </header>
+
+  {% if not business %}
+    {% if business_rows %}
+      <section style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:1rem;">
+        {% for row in business_rows %}
+          <article style="border:1px solid #dce3eb;border-radius:12px;padding:1.1rem;background:#fff;">
+            <h2 style="margin:0 0 .5rem;font-size:1.2rem;">{{ row.business.display_name }}</h2>
+            <p>Abonnement : {{ row.entitlements.plan|title }}</p>
+            <p>Contacts autorisés : {{ row.eligible_contacts }}</p>
+            <p>WABA : {% if row.connection %}Connecté{% else %}À connecter{% endif %}</p>
+            {% if row.entitlements.can_use_crm %}
+              <a href="{% url 'whatsapp_commerce:business_campaigns' row.business.pk %}" style="display:inline-block;background:#16803c;color:white;padding:.65rem 1rem;border-radius:8px;text-decoration:none;">Gérer les campagnes</a>
+            {% else %}
+              <span style="color:#8b4513;">Un abonnement Pro, Business ou Premium actif est requis.</span>
+            {% endif %}
+          </article>
+        {% endfor %}
+      </section>
+    {% else %}
+      <p>Vous n’avez pas encore d’entreprise associée à votre compte.</p>
+    {% endif %}
+  {% else %}
+    <section style="display:flex;flex-wrap:wrap;gap:.75rem;margin-bottom:1.25rem;">
+      <div style="background:#f1f5f9;border-radius:10px;padding:.8rem 1rem;">Contacts : <strong>{{ total_contacts }}</strong></div>
+      <div style="background:#f1f5f9;border-radius:10px;padding:.8rem 1rem;">Consentement marketing actif : <strong>{{ eligible_contacts }}</strong></div>
+      <div style="background:#f1f5f9;border-radius:10px;padding:.8rem 1rem;">Plafond par campagne : <strong>{{ campaign_limit }}</strong></div>
+      <div style="background:#f1f5f9;border-radius:10px;padding:.8rem 1rem;">WABA : <strong>{% if connection %}{{ connection.display_phone_number|default:"Connecté" }}{% else %}Non connecté{% endif %}</strong></div>
+    </section>
+
+    {% if not entitlements.can_use_crm %}
+      <div role="alert" style="border:1px solid #f0c36d;background:#fff8e6;border-radius:10px;padding:1rem;margin-bottom:1rem;">
+        Les campagnes sont disponibles avec un abonnement Pro, Business ou Premium actif.
+      </div>
+    {% endif %}
+    {% if not whatsapp_enabled %}
+      <div role="alert" style="border:1px solid #f0c36d;background:#fff8e6;border-radius:10px;padding:1rem;margin-bottom:1rem;">
+        Le service WhatsApp Business est momentanément désactivé sur le serveur. Aucun envoi ne sera lancé.
+      </div>
+    {% elif not connection %}
+      <div role="alert" style="border:1px solid #f0c36d;background:#fff8e6;border-radius:10px;padding:1rem;margin-bottom:1rem;">
+        Reliez d’abord le compte WhatsApp Business de cette entreprise pour accéder à ses modèles Meta.
+        <a href="{% url 'whatsapp_commerce:business_connect' business.pk %}">Connecter WhatsApp</a>
+      </div>
+    {% endif %}
+
+    <section style="display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:1rem;margin:1.5rem 0;">
+      <article style="border:1px solid #dce3eb;border-radius:12px;padding:1.1rem;background:#fff;">
+        <h2 style="margin-top:0;">Importer des contacts CSV</h2>
+        <p>Colonnes acceptées : <code>phone</code> (ou <code>numero</code>) et facultativement <code>name</code>. Les numéros désinscrits ne seront jamais réactivés par l’import.</p>
+        <form method="post" enctype="multipart/form-data" action="{% url 'whatsapp_commerce:business_campaign_import' business.pk %}">
+          {% csrf_token %}
+          <label for="contacts-file">Fichier CSV UTF-8</label><br>
+          <input id="contacts-file" type="file" name="contacts_file" accept=".csv,text/csv" required><br><br>
+          <label for="consent-source">Source et preuve du consentement</label>
+          <input id="consent-source" name="consent_source" maxlength="120" required placeholder="Ex. formulaire boutique du 15/05/2026" style="display:block;width:100%;padding:.65rem;margin:.35rem 0 1rem;">
+          <label style="display:block;margin-bottom:1rem;">
+            <input type="checkbox" name="consent_attestation" required>
+            J’atteste que ces personnes ont accepté de recevoir les offres WhatsApp de mon entreprise.
+          </label>
+          <button type="submit" {% if not entitlements.can_use_crm %}disabled{% endif %} style="background:#16803c;color:white;border:0;border-radius:8px;padding:.7rem 1rem;">Importer</button>
+        </form>
+      </article>
+
+      <article style="border:1px solid #dce3eb;border-radius:12px;padding:1.1rem;background:#fff;">
+        <h2 style="margin-top:0;">Préparer une campagne</h2>
+        {% if template_error %}
+          <p role="alert" style="color:#a12727;">Impossible de charger les modèles Meta : {{ template_error }}</p>
+        {% elif not templates %}
+          <p>Aucun modèle MARKETING approuvé n’est disponible pour ce WABA.</p>
+        {% else %}
+          <form method="post" action="{% url 'whatsapp_commerce:business_campaign_create' business.pk %}">
+            {% csrf_token %}
+            <label for="campaign-name">Nom de la campagne</label>
+            <input id="campaign-name" name="nom" maxlength="200" required style="display:block;width:100%;padding:.65rem;margin:.35rem 0 1rem;">
+            <label for="campaign-description">Description (facultatif)</label>
+            <textarea id="campaign-description" name="description" rows="2" maxlength="2000" style="display:block;width:100%;padding:.65rem;margin:.35rem 0 1rem;"></textarea>
+            <label for="meta-template">Modèle MARKETING approuvé par Meta</label>
+            <select id="meta-template" name="meta_template" required style="display:block;width:100%;padding:.65rem;margin:.35rem 0 1rem;">
+              <option value="">Choisir un modèle</option>
+              {% for template in templates %}
+                <option value="{{ template.key }}" data-parameters="{{ template.parameter_count }}">{{ template.name }} — {{ template.language }}{% if template.parameter_count %} ({{ template.parameter_count }} variable(s)){% endif %}</option>
+              {% endfor %}
+            </select>
+            <label for="template-params">Valeurs des variables (format JSON, ex. ["Alice"]). Pour personnaliser par prénom, utilisez {% templatetag openvariable %}prenom{% templatetag closevariable %}.</label>
+            <textarea id="template-params" name="meta_params" rows="2" placeholder="[]" style="display:block;width:100%;padding:.65rem;margin:.35rem 0 1rem;"></textarea>
+            <label style="display:block;margin-bottom:1rem;">
+              <input type="checkbox" name="consent_attestation" required>
+              Je confirme que les destinataires ont accepté les messages marketing de mon entreprise.
+            </label>
+            <p style="font-size:.9rem;color:#536174;">La campagne sera limitée à {{ campaign_limit }} contacts consentants. Les frais Meta éventuels sont facturés séparément.</p>
+            <button type="submit" {% if not entitlements.can_use_crm or not connection or not whatsapp_enabled %}disabled{% endif %} style="background:#16803c;color:white;border:0;border-radius:8px;padding:.7rem 1rem;">Préparer la campagne</button>
+          </form>
+        {% endif %}
+      </article>
+    </section>
+
+    {% if campaign_detail %}
+      <section style="border:1px solid #dce3eb;border-radius:12px;padding:1.1rem;margin:1.5rem 0;background:#fff;">
+        <h2>{{ campaign_detail.nom }}</h2>
+        <p>Modèle : <strong>{{ campaign_detail.template_meta_name }}</strong> ({{ campaign_detail.template_meta_language }})</p>
+        <p>Statut : <strong>{{ campaign_detail.get_statut_display }}</strong> — {{ campaign_detail.total_envoyes }} envoyé(s), {{ campaign_detail.total_livres }} livré(s), {{ campaign_detail.total_lus }} lu(s), {{ campaign_detail.total_echecs }} échec(s), sur {{ campaign_detail.total_destinataires }} destinataire(s).</p>
+        {% if campaign_detail.statut == "validee" and campaign_detail.total_destinataires %}
+          <form method="post" action="{% url 'whatsapp_commerce:business_campaign_launch' business.pk campaign_detail.pk %}" style="border:1px solid #f0c36d;background:#fff8e6;padding:1rem;border-radius:8px;">
+            {% csrf_token %}
+            <label><input type="checkbox" name="confirm_launch" required> Je confirme l’envoi de cette campagne aux contacts consentants affichés ci-dessous.</label>
+            <button type="submit" style="display:block;margin-top:.75rem;background:#b42318;color:white;border:0;border-radius:8px;padding:.7rem 1rem;">Lancer la campagne</button>
+          </form>
+        {% endif %}
+        <h3>Destinataires de la campagne</h3>
+        <div style="overflow-x:auto;">
+          <table style="width:100%;border-collapse:collapse;">
+            <thead><tr><th style="text-align:left;padding:.5rem;">Contact</th><th style="text-align:left;padding:.5rem;">Numéro</th><th style="text-align:left;padding:.5rem;">Statut</th><th style="text-align:left;padding:.5rem;">Détail</th></tr></thead>
+            <tbody>
+              {% for message in page_obj %}
+                <tr>
+                  <td style="padding:.5rem;border-top:1px solid #e5e7eb;">{{ message.destinataire_nom }}</td>
+                  <td style="padding:.5rem;border-top:1px solid #e5e7eb;">{{ message.numero_whatsapp }}</td>
+                  <td style="padding:.5rem;border-top:1px solid #e5e7eb;">{{ message.get_statut_display }}</td>
+                  <td style="padding:.5rem;border-top:1px solid #e5e7eb;">{{ message.erreur }}</td>
+                </tr>
+              {% empty %}
+                <tr><td colspan="4" style="padding:.5rem;">Aucun destinataire préparé.</td></tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+        {% if page_obj.has_other_pages %}
+          <nav aria-label="Pagination">
+            {% if page_obj.has_previous %}<a href="?page={{ page_obj.previous_page_number }}">Précédent</a>{% endif %}
+            <span>Page {{ page_obj.number }} / {{ page_obj.paginator.num_pages }}</span>
+            {% if page_obj.has_next %}<a href="?page={{ page_obj.next_page_number }}">Suivant</a>{% endif %}
+          </nav>
+        {% endif %}
+      </section>
+    {% endif %}
+
+    <section style="margin-top:1.5rem;">
+      <h2>Historique des campagnes</h2>
+      <div style="overflow-x:auto;">
+        <table style="width:100%;border-collapse:collapse;background:#fff;">
+          <thead><tr><th style="text-align:left;padding:.65rem;">Campagne</th><th style="text-align:left;padding:.65rem;">Modèle Meta</th><th style="text-align:left;padding:.65rem;">Statut</th><th style="text-align:left;padding:.65rem;">Envoyés / cible</th><th style="text-align:left;padding:.65rem;">Suivi</th></tr></thead>
+          <tbody>
+            {% for campaign in campaigns %}
+              <tr>
+                <td style="padding:.65rem;border-top:1px solid #e5e7eb;">{{ campaign.nom }}</td>
+                <td style="padding:.65rem;border-top:1px solid #e5e7eb;">{{ campaign.template_meta_name }}</td>
+                <td style="padding:.65rem;border-top:1px solid #e5e7eb;">{{ campaign.get_statut_display }}</td>
+                <td style="padding:.65rem;border-top:1px solid #e5e7eb;">{{ campaign.total_envoyes }} / {{ campaign.total_destinataires }}</td>
+                <td style="padding:.65rem;border-top:1px solid #e5e7eb;"><a href="{% url 'whatsapp_commerce:business_campaign_detail' business.pk campaign.pk %}">Détails</a></td>
+              </tr>
+            {% empty %}
+              <tr><td colspan="5" style="padding:.65rem;">Aucune campagne pour cette entreprise.</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </section>
+  {% endif %}
+</main>
+{% endblock %}

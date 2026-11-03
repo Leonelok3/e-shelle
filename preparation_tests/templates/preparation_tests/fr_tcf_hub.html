@@ -85,6 +85,20 @@ COMPÉTENCES TCF
         </article>
         {% endif %}
 
+        {% if daily_tcf_progress %}
+        <article class="pt-card tcf-daily-feature" aria-labelledby="tcf-progress-title">
+          <span class="pt-badge">Progression sauvegardée · {{ daily_tcf_progress.sessions }} séances récentes</span>
+          <h2 id="tcf-progress-title">Ton entraînement TCF</h2>
+          <p>{% if daily_tcf_progress.streak %}{{ daily_tcf_progress.streak }} jour{{ daily_tcf_progress.streak|pluralize }} de suite · {% endif %}cycle des 28 derniers jours</p>
+          <div class="pt-modules-grid">
+            {% for skill in daily_tcf_progress.skills %}
+            <div class="pt-card"><strong>{{ skill.code }} · {{ skill.label }}</strong><p>{{ skill.count }} séance{{ skill.count|pluralize }}{% if skill.average != None %} · {{ skill.score_label }} : {{ skill.average }} %{% else %} · {{ skill.score_label }}{% endif %}</p></div>
+            {% endfor %}
+          </div>
+          {% if daily_tcf_progress.recent %}<h3>Dernières séances enregistrées</h3><ul>{% for row in daily_tcf_progress.recent %}<li>{{ row.day|date:"j F Y" }} · {{ row.skill|upper }} · {{ row.topic }}{% if row.ai_score != None %} · {{ row.ai_score|floatformat:0 }} %{% elif row.objective_total %} · {{ row.objective_correct }}/{{ row.objective_total }}{% endif %}</li>{% endfor %}</ul>{% endif %}
+        </article>
+        {% endif %}
+
         <article class="pt-card">
           <h2>Choisis ta compétence TCF</h2>
 

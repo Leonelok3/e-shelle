@@ -24,8 +24,13 @@ from .models import (
 	ProductWhatsAppSync,
 	ScheduledBusinessWhatsAppMessage,
 	WhatsAppDraftOrder,
+	WhatsAppProviderReferral,
 )
-from .onboarding import MetaOnboardingError, connect_business, get_assigned_applications
+from .onboarding import (
+	MetaOnboardingError,
+	connect_business,
+	get_assigned_applications,
+)
 from .services import get_whatsapp_schema_extension, send_abandoned_cart_whatsapp, sync_product_to_whatsapp_catalog
 from .entitlements import whatsapp_entitlements
 from .automations import (
@@ -56,6 +61,172 @@ class BusinessWhatsAppTests(TestCase):
 			owner=self.other_owner,
 			module=BusinessProfile.Module.GENERAL,
 			name="Boutique B",
+		)
+
+	@override_settings(WHATSAPP_COMMERCE_ENABLED=True)
+	def test_tech_provider_dashboard_is_staff_only_and_lists_customer_accounts(self):
+		connection = BusinessWhatsAppConnection.objects.create(
+			business=self.business,
+			waba_id="provider-dashboard-waba",
+			phone_number_id="provider-dashboard-phone",
+			status=BusinessWhatsAppConnection.Status.ACTIVE,
+			display_phone_number="+237 699 000 111",
+		)
+		connection.set_access_token("never-render-this-token")
+		connection.save(update_fields=["access_token_encrypted"])
+
+		response = self.client.get(reverse("whatsapp_commerce:tech_provider_dashboard"))
+		self.assertEqual(response.status_code, 302)
+
+		staff = get_user_model().objects.create_user(username="waba-provider-admin", is_staff=True)
+		self.client.force_login(staff)
+		response = self.client.get(reverse("whatsapp_commerce:tech_provider_dashboard"))
+
+		self.assertEqual(response.status_code, 200)
+		self.assertContains(response, self.business.name)
+		self.assertContains(response, "+237 699 000 111")
+		self.assertNotContains(response, "never-render-this-token")
+
+	@override_settings(WHATSAPP_COMMERCE_ENABLED=True)
+	def test_provider_referral_click_is_recorded_before_whatsapp_redirect(self):
+		response = self.client.get(reverse("whatsapp_commerce:provider_referral_click"))
+
+		self.assertEqual(response.status_code, 302)
+		self.assertTrue(response["Location"].startswith("https://wa.me/237680625082?text="))
+		referral = WhatsAppProviderReferral.objects.get()
+		self.assertEqual(referral.status, WhatsAppProviderReferral.Status.CLICKED)
+		self.assertEqual(
+			self.client.session["whatsapp_provider_referral_id"],
+			referral.pk,
+		)
+
+		self.business.plan = BusinessProfile.Plan.PRO
+		self.business.subscription_expires_at = timezone.now() + timezone.timedelta(days=5)
+		self.business.save(update_fields=["plan", "subscription_expires_at", "updated_at"])
+		self.client.force_login(self.owner)
+		response = self.client.get(
+			reverse("whatsapp_commerce:business_connect", args=[self.business.pk])
+		)
+
+		self.assertEqual(response.status_code, 200)
+		referral.refresh_from_db()
+		self.assertEqual(referral.status, WhatsAppProviderReferral.Status.ONBOARDING)
+		self.assertEqual(referral.business, self.business)
+
+	@override_settings(WHATSAPP_COMMERCE_ENABLED=True)
+	@patch("whatsapp_commerce.views.refresh_connection_metadata")
+	def test_provider_refresh_caches_meta_phone_status_without_exposing_token(self, refresh_meta):
+		connection = BusinessWhatsAppConnection.objects.create(
+			business=self.business,
+			waba_id="provider-refresh-waba",
+			phone_number_id="provider-refresh-phone",
+		)
+		connection.set_access_token("refresh-token-secret")
+		connection.save(update_fields=["access_token_encrypted"])
+		refresh_meta.return_value = {
+			"id": "provider-refresh-phone",
+			"display_phone_number": "+237 699 000 112",
+			"verified_name": "Boutique A Verified",
+			"status": "CONNECTED",
+			"quality_rating": "GREEN",
+			"whatsapp_business_manager_messaging_limit": "250",
+		}
+		staff = get_user_model().objects.create_user(username="waba-refresh-admin", is_staff=True)
+		self.client.force_login(staff)
+
+		response = self.client.post(
+			reverse("whatsapp_commerce:tech_provider_refresh", args=[connection.pk])
+		)
+
+		self.assertRedirects(response, reverse("whatsapp_commerce:tech_provider_dashboard"))
+		dashboard = self.client.get(reverse("whatsapp_commerce:tech_provider_dashboard"))
+		connection.refresh_from_db()
+		self.assertEqual(connection.display_phone_number, "+237 699 000 112")
+		self.assertEqual(connection.meta_verified_name, "Boutique A Verified")
+		self.assertEqual(connection.meta_phone_status, "CONNECTED")
+		self.assertEqual(connection.meta_quality_rating, "GREEN")
+		self.assertEqual(connection.meta_messaging_limit, "250")
+		self.assertIsNotNone(connection.last_meta_sync_at)
+		self.assertTrue(
+			BusinessWhatsAppAudit.objects.filter(
+				connection=connection,
+				event_type="provider_metadata_refreshed",
+			).exists()
+		)
+		self.assertNotContains(dashboard, "refresh-token-secret")
+		audit = BusinessWhatsAppAudit.objects.get(
+			connection=connection,
+			event_type="provider_metadata_refreshed",
+		)
+		self.assertEqual(audit.details["staff_username"], staff.get_username())
+
+	@override_settings(WHATSAPP_COMMERCE_ENABLED=True)
+	@patch("whatsapp_commerce.views.resubscribe_connection_webhook")
+	def test_provider_webhook_resubscribe_requires_explicit_confirmation(self, resubscribe):
+		connection = BusinessWhatsAppConnection.objects.create(
+			business=self.business,
+			waba_id="provider-webhook-waba",
+			phone_number_id="provider-webhook-phone",
+			webhook_subscribed=False,
+		)
+		staff = get_user_model().objects.create_user(username="waba-webhook-admin", is_staff=True)
+		self.client.force_login(staff)
+
+		response = self.client.post(
+			reverse("whatsapp_commerce:tech_provider_resubscribe", args=[connection.pk]),
+			{"confirm": "wrong"},
+		)
+
+		self.assertRedirects(response, reverse("whatsapp_commerce:tech_provider_dashboard"))
+		resubscribe.assert_not_called()
+		connection.refresh_from_db()
+		self.assertFalse(connection.webhook_subscribed)
+
+		response = self.client.post(
+			reverse("whatsapp_commerce:tech_provider_resubscribe", args=[connection.pk]),
+			{"confirm": "RESUBSCRIBE"},
+		)
+
+		self.assertRedirects(response, reverse("whatsapp_commerce:tech_provider_dashboard"))
+		resubscribe.assert_called_once_with(connection)
+		connection.refresh_from_db()
+		self.assertTrue(connection.webhook_subscribed)
+
+	@override_settings(WHATSAPP_COMMERCE_ENABLED=True)
+	@patch("whatsapp_commerce.views.deregister_connection_phone")
+	def test_provider_phone_deregister_requires_company_name_and_audit(self, deregister):
+		connection = BusinessWhatsAppConnection.objects.create(
+			business=self.business,
+			waba_id="provider-deregister-waba",
+			phone_number_id="provider-deregister-phone",
+			phone_registered=True,
+			webhook_subscribed=True,
+		)
+		staff = get_user_model().objects.create_user(username="waba-deregister-admin", is_staff=True)
+		self.client.force_login(staff)
+		url = reverse("whatsapp_commerce:tech_provider_deregister", args=[connection.pk])
+
+		response = self.client.post(url, {"confirm": "DEREGISTER", "business_name": "Wrong name"})
+		self.assertRedirects(response, reverse("whatsapp_commerce:tech_provider_dashboard"))
+		deregister.assert_not_called()
+
+		response = self.client.post(
+			url,
+			{"confirm": "DEREGISTER", "business_name": self.business.name},
+		)
+
+		self.assertRedirects(response, reverse("whatsapp_commerce:tech_provider_dashboard"))
+		deregister.assert_called_once_with(connection)
+		connection.refresh_from_db()
+		self.assertFalse(connection.phone_registered)
+		self.assertTrue(connection.webhook_subscribed)
+		self.assertEqual(connection.status, BusinessWhatsAppConnection.Status.ACTION_REQUIRED)
+		self.assertEqual(connection.meta_phone_status, "DEREGISTERED")
+		self.assertTrue(
+			BusinessWhatsAppAudit.objects.filter(
+				connection=connection,
+				event_type="provider_phone_deregistered",
+			).exists()
 		)
 
 	@override_settings(WHATSAPP_DRY_RUN=False)

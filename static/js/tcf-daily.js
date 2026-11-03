@@ -50,6 +50,10 @@
     const words = text.value.trim() ? text.value.trim().split(/\s+/).length : 0;
     const within = words >= Number(count.dataset.min) && words <= Number(count.dataset.max);
     count.textContent = `${words} mot${words === 1 ? "" : "s"} · ${within ? "dans la limite demandée" : "objectif : " + count.dataset.min + " à " + count.dataset.max}`;
+    const guidance = document.getElementById("daily-word-guidance");
+    if (guidance && words < Number(count.dataset.min)) guidance.textContent = `Il manque ${Number(count.dataset.min) - words} mots pour atteindre le minimum. Tu peux rendre ta réponse et recevoir un retour pédagogique, mais la note de respect du format sera moins représentative.`;
+    else if (guidance && words > Number(count.dataset.max)) guidance.textContent = `Ta réponse dépasse de ${words - Number(count.dataset.max)} mots le maximum demandé. Tu peux la rendre, puis la raccourcir pour respecter le format.`;
+    else if (guidance) guidance.textContent = "La longueur respecte la consigne. Relis les éléments demandés avant de rendre ta réponse.";
   });
   if (form) form.addEventListener("submit", async event => {
     event.preventDefault();
@@ -144,7 +148,7 @@
       const data = await response.json();
       if (!data.ok) { feedback.textContent = data.error || data.message || "Correction indisponible."; return; }
       const result = data.result;
-      const paragraphs = [result.feedback, result.coaching?.assessment_note];
+      const paragraphs = [result.feedback, result.coaching?.assessment_note, result.coaching?.length_guidance];
       for (const priority of result.coaching?.priorities || []) {
         paragraphs.push(`À travailler : ${priority.diagnosis}\nConseil : ${priority.action}\nMini-exercice : ${priority.drill}`);
       }
@@ -152,5 +156,43 @@
       feedback.textContent = paragraphs.filter(Boolean).join("\n\n");
     } catch (_) { feedback.textContent = "Connexion ou session indisponible. Ta réponse reste enregistrée dans cette séance."; }
     finally { ai.disabled = false; }
+  });
+  const oralAi = document.getElementById("daily-audio-ai");
+  if (oralAi) oralAi.addEventListener("click", async () => {
+    const feedback = document.getElementById("daily-ai-feedback");
+    oralAi.disabled = true;
+    feedback.textContent = "Transcription et correction de ton enregistrement en cours…";
+    try {
+      const db = await recordingDB();
+      const record = await new Promise((resolve, reject) => {
+        const req = db.transaction("recording", "readonly").objectStore("recording").get("latest");
+        req.onsuccess = () => resolve(req.result);
+        req.onerror = () => reject(req.error);
+      });
+      db.close();
+      if (!record?.blob || record.day !== shell.dataset.day) throw new Error("recording");
+      const payload = new FormData();
+      payload.append("audio", record.blob, `tcf-${shell.dataset.day}.webm`);
+      const response = await fetch(oralAi.dataset.url, {method: "POST", headers: {"X-CSRFToken": token}, body: payload});
+      if (!response.headers.get("content-type")?.includes("application/json")) throw new Error("session");
+      const data = await response.json();
+      if (!data.ok) {
+        if (data.transcript) {
+          const transcript = document.getElementById("daily-transcript");
+          if (transcript) transcript.value = data.transcript;
+        }
+        feedback.textContent = data.error || "Transcription ou correction indisponible.";
+        return;
+      }
+      const transcript = document.getElementById("daily-transcript");
+      if (transcript && data.transcript) transcript.value = data.transcript;
+      const result = data.result;
+      const paragraphs = ["Transcription conservée dans ta séance.", result.feedback, result.coaching?.assessment_note];
+      for (const priority of result.coaching?.priorities || []) paragraphs.push(`À travailler : ${priority.diagnosis}\nConseil : ${priority.action}\nMini-exercice : ${priority.drill}`);
+      if (result.corrected_version) paragraphs.push("Version corrigée :\n" + result.corrected_version);
+      feedback.textContent = paragraphs.filter(Boolean).join("\n\n");
+    } catch (_) {
+      feedback.textContent = "Aucun enregistrement de cette séance n'a été trouvé sur cet appareil. Tu peux saisir ta transcription manuellement.";
+    } finally { oralAi.disabled = false; }
   });
 })();

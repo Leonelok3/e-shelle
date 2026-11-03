@@ -9,7 +9,7 @@ class PublicMetaReviewPagesTests(TestCase):
         self.assertContains(response, "25 000 FCFA")
         self.assertContains(response, "5 000 FCFA par 30 jours")
         self.assertContains(response, "ne garantit pas qu’un numéro ou un compte ne sera jamais limité ou suspendu")
-        self.assertContains(response, "https://wa.me/237680625082?")
+        self.assertContains(response, "/whatsapp-commerce/provider-referral/")
 
     def test_contact_page_shows_business_locations_and_contacts(self):
         response = self.client.get("/services/contact/")

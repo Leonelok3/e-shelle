@@ -476,3 +476,20 @@ def check_token_validity():
 
 # Ces tâches sont configurées dans settings.py via CELERY_BEAT_SCHEDULE
 # Voir edu_cm/settings.py pour le planning complet
+
+
+@shared_task(bind=True, max_retries=3, default_retry_delay=300)
+def share_premium_facebook_task(self, business_pk):
+    from django.apps import apps
+    import logging
+    logger = logging.getLogger(__name__)
+    try:
+        BusinessProfile = apps.get_model('business', 'BusinessProfile')
+        business = BusinessProfile.objects.get(pk=business_pk)
+        from core.services.facebook_auto_share import share_premium_to_facebook_page
+        result = share_premium_to_facebook_page(business, dry_run=False)
+        logger.info(f"[Facebook Auto-Share] Task OK for {business.slug}: {result}")
+        return result
+    except Exception as e:
+        logger.error(f"[Facebook Auto-Share] Task FAILED for pk={business_pk}: {e}")
+        raise self.retry(exc=e)

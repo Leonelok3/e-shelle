@@ -541,6 +541,32 @@ class UserExerciseProgress(models.Model):
 # 🎤 SOUMISSIONS EO / EE
 # =====================================================
 
+class TCFDailyProgress(models.Model):
+    """Latest completed daily TCF session for a learner and calendar day."""
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="tcf_daily_progress")
+    day = models.DateField()
+    skill = models.CharField(max_length=2)
+    topic = models.CharField(max_length=160, blank=True)
+    task_number = models.PositiveSmallIntegerField(null=True, blank=True)
+    objective_correct = models.PositiveSmallIntegerField(null=True, blank=True)
+    objective_total = models.PositiveSmallIntegerField(null=True, blank=True)
+    ai_score = models.FloatField(null=True, blank=True)
+    word_count = models.PositiveIntegerField(default=0)
+    elapsed_seconds = models.PositiveIntegerField(default=0)
+    overtime = models.BooleanField(default=False)
+    production = models.TextField(blank=True)
+    answers = models.JSONField(default=dict, blank=True)
+    coaching = models.JSONField(default=dict, blank=True)
+    completed_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["-day"]
+        constraints = [models.UniqueConstraint(fields=("user", "day"), name="uniq_tcf_daily_progress_user_day")]
+        indexes = [models.Index(fields=("user", "day"), name="tcf_daily_user_day_idx")]
+
+    def __str__(self):
+        return f"TCF quotidien {self.day} · {self.skill.upper()} · {self.user}"
+
 class EOSubmission(models.Model):
     """
     Enregistrement audio soumis par un étudiant pour un exercice EO.

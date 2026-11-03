@@ -196,19 +196,28 @@ if Bien:
         )
 
 
-BusinessProfile = _model("business", "BusinessProfile")
-if BusinessProfile:
-    @receiver(post_save, sender=BusinessProfile, dispatch_uid="auto_share_premium_facebook")
-    def auto_share_premium(sender, instance, created, **kwargs):
-        """Partage automatique sur la page Facebook officielle lors de l'activation Premium."""
-        update_fields = kwargs.get("update_fields")
-        if update_fields and set(update_fields) <= {"facebook_shared_at", "last_facebook_post_id"}:
-            return
+from django.db import transaction
+from django.conf import settings
+from business.models import BusinessProfile
 
-        is_premium = getattr(instance, "is_premium", instance.plan == BusinessProfile.Plan.PREMIUM)
-        is_published = getattr(instance, "is_published", bool(instance.is_active and instance.activation_status == BusinessProfile.ActivationStatus.ACTIVE))
+try:
+    from facebook_agent.tasks import share_premium_facebook_task
+    HAS_CELERY = True
+except ImportError:
+    HAS_CELERY = False
 
-        if is_premium and is_published:
-            from core.services.facebook_auto_share import should_share, trigger_async_share_premium
-            if should_share(instance):
-                trigger_async_share_premium(instance.pk)
+@receiver(post_save, sender=BusinessProfile)
+def auto_share_premium_to_facebook(sender, instance, created, **kwargs):
+    update_fields = kwargs.get('update_fields')
+    if update_fields and any(f in update_fields for f in ['facebook_shared_at', 'last_facebook_post_id']):
+        return
+    if not getattr(settings, 'FACEBOOK_AUTO_SHARE_ENABLED', True):
+        return
+    from core.services.facebook_auto_share import should_share
+    if not should_share(instance):
+        return
+    if HAS_CELERY:
+        transaction.on_commit(lambda: share_premium_facebook_task.delay(instance.pk))
+    else:
+        from core.services.facebook_auto_share import trigger_async_share_premium
+        transaction.on_commit(lambda: trigger_async_share_premium(instance.pk))

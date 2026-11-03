@@ -2,6 +2,8 @@ import logging
 import json
 import secrets
 import time
+import urllib.parse
+from datetime import timedelta
 
 from django.apps import apps
 from django.contrib.admin.views.decorators import staff_member_required
@@ -35,12 +37,214 @@ from .models import (
 	BusinessWhatsAppMessage,
 	ProductView,
 	ScheduledBusinessWhatsAppMessage,
+	WhatsAppProviderReferral,
 	WhatsAppDraftOrder,
 )
-from .onboarding import MetaOnboardingError, connect_business, retry_connection_setup
+from .onboarding import (
+	MetaOnboardingError,
+	connect_business,
+	deregister_connection_phone,
+	refresh_connection_metadata,
+	resubscribe_connection_webhook,
+	retry_connection_setup,
+)
 from .services import get_whatsapp_order_url, normalize_phone
 
 logger = logging.getLogger(__name__)
+
+
+@require_GET
+def provider_referral_click(request):
+	referral = WhatsAppProviderReferral.objects.create(
+		source="whatsapp_business_sales_page",
+	)
+	request.session["whatsapp_provider_referral_id"] = referral.pk
+	message = (
+		"Bonjour E-Shelle, je souhaite vérifier mon éligibilité et commander "
+		"la mise en service WhatsApp Business API à 25 000 FCFA."
+	)
+	return redirect(f"https://wa.me/237680625082?text={urllib.parse.quote(message)}")
+
+
+def _record_provider_audit(connection, event_type, details=None, actor=None):
+	audit_details = dict(details or {})
+	if actor is not None:
+		audit_details["staff_user_id"] = actor.pk
+		audit_details["staff_username"] = actor.get_username()
+	BusinessWhatsAppAudit.objects.create(
+		connection=connection,
+		event_type=event_type,
+		action=event_type,
+		details=audit_details,
+	)
+
+
+def _provider_connection_or_404(connection_id):
+	return get_object_or_404(
+		BusinessWhatsAppConnection.objects.select_related("business", "business__owner"),
+		pk=connection_id,
+	)
+
+
+@staff_member_required
+@require_GET
+def tech_provider_dashboard(request):
+	query = request.GET.get("q", "").strip()[:100]
+	status_filter = request.GET.get("status", "").strip()
+	connections = BusinessWhatsAppConnection.objects.select_related(
+		"business", "business__owner"
+	).order_by("-connected_at", "-updated_at")
+	if status_filter in dict(BusinessWhatsAppConnection.Status.choices):
+		connections = connections.filter(status=status_filter)
+	else:
+		status_filter = ""
+	if query:
+		connections = connections.filter(
+			Q(business__name__icontains=query)
+			| Q(business__owner__username__icontains=query)
+			| Q(business__owner__email__icontains=query)
+			| Q(display_phone_number__icontains=query)
+			| Q(waba_id__icontains=query)
+			| Q(phone_number_id__icontains=query)
+		)
+	referrals = WhatsAppProviderReferral.objects.select_related(
+		"business", "connection"
+	).order_by("-clicked_at")[:100]
+	return render(
+		request,
+		"whatsapp_commerce/tech_provider_dashboard.html",
+		{
+			"connections": connections[:200],
+			"referrals": referrals,
+			"query": query,
+			"status_filter": status_filter,
+			"status_choices": BusinessWhatsAppConnection.Status.choices,
+			"whatsapp_enabled": bool(getattr(settings, "WHATSAPP_COMMERCE_ENABLED", False)),
+			"counts": {
+				"total": BusinessWhatsAppConnection.objects.exclude(
+					status=BusinessWhatsAppConnection.Status.DISCONNECTED
+				).count(),
+				"active": BusinessWhatsAppConnection.objects.filter(
+					status=BusinessWhatsAppConnection.Status.ACTIVE
+				).count(),
+				"action_required": BusinessWhatsAppConnection.objects.filter(
+					status=BusinessWhatsAppConnection.Status.ACTION_REQUIRED
+				).count(),
+				"referrals": WhatsAppProviderReferral.objects.count(),
+			},
+		},
+	)
+
+
+@staff_member_required
+@require_POST
+def tech_provider_refresh(request, connection_id):
+	connection = _provider_connection_or_404(connection_id)
+	if not getattr(settings, "WHATSAPP_COMMERCE_ENABLED", False):
+		messages.error(request, "Les opérations WhatsApp Meta sont désactivées côté serveur.")
+		return redirect("whatsapp_commerce:tech_provider_dashboard")
+	try:
+		data = refresh_connection_metadata(connection)
+	except MetaOnboardingError as exc:
+		_record_provider_audit(
+			connection, "provider_metadata_refresh_failed", {"error": str(exc)}, actor=request.user
+		)
+		logger.warning("Tech Provider metadata refresh failed for connection %s: %s", connection.pk, exc)
+		messages.error(request, f"Actualisation Meta impossible pour {connection.business.name} : {exc}")
+	else:
+		connection.display_phone_number = str(data.get("display_phone_number", ""))[:32]
+		connection.meta_phone_status = str(data.get("status", ""))[:32]
+		connection.meta_verified_name = str(data.get("verified_name", ""))[:180]
+		connection.meta_quality_rating = str(data.get("quality_rating", ""))[:32]
+		connection.meta_messaging_limit = str(
+			data.get("whatsapp_business_manager_messaging_limit", "")
+		)[:64]
+		connection.last_meta_sync_at = timezone.now()
+		connection.save(update_fields=[
+			"display_phone_number",
+			"meta_phone_status",
+			"meta_verified_name",
+			"meta_quality_rating",
+			"meta_messaging_limit",
+			"last_meta_sync_at",
+			"updated_at",
+		])
+		_record_provider_audit(
+			connection,
+			"provider_metadata_refreshed",
+			{"meta_phone_status": connection.meta_phone_status},
+			actor=request.user,
+		)
+		messages.success(request, f"Informations Meta actualisées pour {connection.business.name}.")
+	return redirect("whatsapp_commerce:tech_provider_dashboard")
+
+
+@staff_member_required
+@require_POST
+def tech_provider_resubscribe(request, connection_id):
+	connection = _provider_connection_or_404(connection_id)
+	if not getattr(settings, "WHATSAPP_COMMERCE_ENABLED", False):
+		messages.error(request, "Les opérations WhatsApp Meta sont désactivées côté serveur.")
+		return redirect("whatsapp_commerce:tech_provider_dashboard")
+	if request.POST.get("confirm") != "RESUBSCRIBE":
+		messages.error(request, "Confirmez explicitement la réactivation du webhook.")
+		return redirect("whatsapp_commerce:tech_provider_dashboard")
+	try:
+		resubscribe_connection_webhook(connection)
+	except MetaOnboardingError as exc:
+		_record_provider_audit(
+			connection, "provider_webhook_resubscribe_failed", {"error": str(exc)}, actor=request.user
+		)
+		logger.warning("Tech Provider webhook resubscribe failed for connection %s: %s", connection.pk, exc)
+		messages.error(request, f"Réactivation du webhook impossible : {exc}")
+	else:
+		connection.webhook_subscribed = True
+		connection.save(update_fields=["webhook_subscribed", "updated_at"])
+		_record_provider_audit(connection, "provider_webhook_resubscribed", actor=request.user)
+		messages.success(request, f"Webhook réactivé pour {connection.business.name}.")
+	return redirect("whatsapp_commerce:tech_provider_dashboard")
+
+
+@staff_member_required
+@require_POST
+def tech_provider_deregister(request, connection_id):
+	connection = _provider_connection_or_404(connection_id)
+	if not getattr(settings, "WHATSAPP_COMMERCE_ENABLED", False):
+		messages.error(request, "Les opérations WhatsApp Meta sont désactivées côté serveur.")
+		return redirect("whatsapp_commerce:tech_provider_dashboard")
+	if (
+		request.POST.get("confirm") != "DEREGISTER"
+		or request.POST.get("business_name", "").strip() != connection.business.name
+	):
+		messages.error(request, "Confirmez l’action et le nom exact de l’entreprise avant le désenregistrement.")
+		return redirect("whatsapp_commerce:tech_provider_dashboard")
+	if not connection.phone_registered:
+		messages.error(request, "Ce numéro n’est pas enregistré sur Cloud API selon E-Shelle.")
+		return redirect("whatsapp_commerce:tech_provider_dashboard")
+	try:
+		deregister_connection_phone(connection)
+	except MetaOnboardingError as exc:
+		_record_provider_audit(
+			connection, "provider_phone_deregister_failed", {"error": str(exc)}, actor=request.user
+		)
+		logger.warning("Tech Provider phone deregistration failed for connection %s: %s", connection.pk, exc)
+		messages.error(request, f"Meta n’a pas désenregistré le numéro : {exc}")
+	else:
+		connection.phone_registered = False
+		connection.status = BusinessWhatsAppConnection.Status.ACTION_REQUIRED
+		connection.meta_phone_status = "DEREGISTERED"
+		connection.last_meta_sync_at = timezone.now()
+		connection.last_error = (
+			"Numéro désenregistré par l’équipe E-Shelle. Une nouvelle inscription Cloud API "
+			"et le PIN de vérification sont nécessaires avant la reprise."
+		)
+		connection.save(update_fields=[
+			"phone_registered", "status", "meta_phone_status", "last_meta_sync_at",
+			"last_error", "updated_at",
+		])
+		_record_provider_audit(connection, "provider_phone_deregistered", actor=request.user)
+		messages.success(request, f"Le numéro de {connection.business.name} a été désenregistré de Cloud API.")
+	return redirect("whatsapp_commerce:tech_provider_dashboard")
 
 
 @staff_member_required
@@ -243,10 +447,26 @@ def start_business_connection(request, business_id):
 		messages.info(request, "Un compte WhatsApp est déjà associé à cette fiche.")
 		return redirect("whatsapp_commerce:business_dashboard", business_id=business.pk)
 	state = secrets.token_urlsafe(32)
+	referral_id = request.session.get("whatsapp_provider_referral_id")
+	if referral_id:
+		referral = WhatsAppProviderReferral.objects.filter(
+			pk=referral_id,
+			status__in=[
+				WhatsAppProviderReferral.Status.CLICKED,
+				WhatsAppProviderReferral.Status.FAILED,
+			],
+			clicked_at__gte=timezone.now() - timedelta(days=30),
+		).first()
+		if referral:
+			referral.business = business
+			referral.status = WhatsAppProviderReferral.Status.ONBOARDING
+			referral.signup_started_at = timezone.now()
+			referral.save(update_fields=["business", "status", "signup_started_at"])
 	request.session["wa_embedded_signup"] = {
 		"state": state,
 		"business_id": business.pk,
 		"issued_at": int(time.time()),
+		"provider_referral_id": referral.pk if referral_id and referral else None,
 	}
 	return render(
 		request,
@@ -306,8 +526,22 @@ def complete_business_connection(request, business_id):
 			pin=data.get("pin", ""),
 		)
 	except MetaOnboardingError as exc:
+		referral_id = session.get("provider_referral_id")
+		if referral_id:
+			WhatsAppProviderReferral.objects.filter(
+				pk=referral_id,
+				business=business,
+				status=WhatsAppProviderReferral.Status.ONBOARDING,
+			).update(status=WhatsAppProviderReferral.Status.FAILED)
 		return JsonResponse({"error": str(exc)}, status=400)
 	except IntegrityError:
+		referral_id = session.get("provider_referral_id")
+		if referral_id:
+			WhatsAppProviderReferral.objects.filter(
+				pk=referral_id,
+				business=business,
+				status=WhatsAppProviderReferral.Status.ONBOARDING,
+			).update(status=WhatsAppProviderReferral.Status.FAILED)
 		return JsonResponse(
 			{"error": "Ce compte ou numéro WhatsApp vient d’être relié à une autre fiche E-Shelle."},
 			status=409,
@@ -316,7 +550,31 @@ def complete_business_connection(request, business_id):
 	request.session.modified = True
 
 	if ready:
+		referral_id = session.get("provider_referral_id")
+		if referral_id:
+			WhatsAppProviderReferral.objects.filter(
+				pk=referral_id,
+				business=business,
+				status=WhatsAppProviderReferral.Status.ONBOARDING,
+			).update(
+				status=WhatsAppProviderReferral.Status.CONNECTED,
+				connection=connection,
+				connected_at=timezone.now(),
+			)
+		_record_provider_audit(connection, "provider_embedded_signup_completed")
 		return JsonResponse({"ok": True, "redirect": reverse("whatsapp_commerce:business_dashboard", args=[business.pk])})
+	referral_id = session.get("provider_referral_id")
+	if referral_id:
+		WhatsAppProviderReferral.objects.filter(
+			pk=referral_id,
+			business=business,
+			status=WhatsAppProviderReferral.Status.ONBOARDING,
+		).update(status=WhatsAppProviderReferral.Status.FAILED)
+	_record_provider_audit(
+		connection,
+		"provider_embedded_signup_action_required",
+		{"error": connection.last_error},
+	)
 	return JsonResponse(
 		{
 			"ok": False,

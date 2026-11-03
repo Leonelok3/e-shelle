@@ -58,9 +58,20 @@ def daily_session(day=None):
                        format_label=f"Expression écrite · tâche {task} · {minimum} à {maximum} mots",
                        format_note="Une tâche isolée ; 20 minutes est un objectif d'entraînement. L'épreuve complète comprend 3 tâches en 60 minutes.")
     else:
-        session.update(duration=270, duration_label="4 minutes 30", task_number=3, question=topic["eo"], document="",
-                       format_label="Expression orale · tâche 3 · point de vue sans préparation",
-                       format_note="Durée de la tâche 3 du TCF Canada. L'épreuve orale complète comprend 3 tâches en 12 minutes. Ici, entraîne-toi seul à parler ; ce n'est pas un entretien avec un examinateur.")
+        task = index // 4 % 3 + 1
+        eo_tasks = {
+            1: (120, "2 minutes", f"Vous participez à {topic['event']}. Présentez-vous brièvement, expliquez votre intérêt pour cette activité et répondez naturellement à des questions sur vos habitudes ou votre expérience.", "Entretien dirigé · tâche 1 · sans préparation",
+                "Répondre clairement à un entretien", ["Réponds d'abord directement à chaque question, sans réciter une présentation préparée.", "Ajoute un détail personnel ou un exemple pour rendre ta réponse précise.", "Si une question est large, choisis un seul aspect et développe-le brièvement."]),
+            2: (330, "5 minutes 30", f"Vous souhaitez participer à {topic['event']}. Imaginez un échange avec l'organisateur : posez des questions précises sur les horaires, le lieu, les conditions pratiques et les possibilités proposées. Réagissez aux réponses imaginées et demandez une précision si nécessaire.", "Interaction simulée · tâche 2 · 2 minutes de préparation puis échange",
+                "Préparer des questions utiles", ["Pendant la préparation, note des mots-clés, pas un texte à mémoriser.", "Prépare des questions ouvertes sur le déroulement et des questions précises sur les conditions pratiques.", "Dans l'échange simulé, imagine une réponse, rebondis dessus et demande une précision si un point reste flou."]),
+            3: (270, "4 minutes 30", topic["eo"], "Point de vue · tâche 3 · sans préparation",
+                topic["lessons"]["eo"][0], LESSONS["eo"][1:]),
+        }
+        duration, duration_label, question, format_label, lesson_title, lesson_steps = eo_tasks[task]
+        session.update(duration=duration, duration_label=duration_label, task_number=task, question=question, document="",
+                       lesson_title=lesson_title, lesson_steps=[topic["lessons"]["eo"][1], *lesson_steps],
+                       format_label=f"Expression orale · tâche {task} · {format_label}",
+                       format_note="Entraînement à une tâche isolée. Le parcours quotidien fait tourner les trois types de tâche ; l'épreuve complète comprend les trois tâches en 12 minutes.")
     return session
 
 

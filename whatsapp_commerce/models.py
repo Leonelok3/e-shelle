@@ -43,6 +43,11 @@ class BusinessWhatsAppConnection(models.Model):
 		related_name="whatsapp_agent_connections",
 	)
 	last_error = models.CharField(max_length=500, blank=True)
+	meta_phone_status = models.CharField(max_length=32, blank=True)
+	meta_verified_name = models.CharField(max_length=180, blank=True)
+	meta_quality_rating = models.CharField(max_length=32, blank=True)
+	meta_messaging_limit = models.CharField(max_length=64, blank=True)
+	last_meta_sync_at = models.DateTimeField(null=True, blank=True)
 	connected_at = models.DateTimeField(null=True, blank=True)
 	created_at = models.DateTimeField(auto_now_add=True)
 	updated_at = models.DateTimeField(auto_now=True)
@@ -61,6 +66,41 @@ class BusinessWhatsAppConnection(models.Model):
 		from .security import decrypt_access_token
 
 		return decrypt_access_token(self.access_token_encrypted)
+
+
+class WhatsAppProviderReferral(models.Model):
+	class Status(models.TextChoices):
+		CLICKED = "clicked", "Lien ouvert"
+		ONBOARDING = "onboarding", "Connexion commencée"
+		CONNECTED = "connected", "WABA connectée"
+		FAILED = "failed", "Connexion à reprendre"
+
+	source = models.CharField(max_length=80, default="whatsapp_business_sales_page")
+	status = models.CharField(max_length=16, choices=Status.choices, default=Status.CLICKED, db_index=True)
+	business = models.ForeignKey(
+		"business.BusinessProfile",
+		null=True,
+		blank=True,
+		on_delete=models.SET_NULL,
+		related_name="whatsapp_provider_referrals",
+	)
+	connection = models.ForeignKey(
+		"whatsapp_commerce.BusinessWhatsAppConnection",
+		null=True,
+		blank=True,
+		on_delete=models.SET_NULL,
+		related_name="provider_referrals",
+	)
+	clicked_at = models.DateTimeField(auto_now_add=True)
+	signup_started_at = models.DateTimeField(null=True, blank=True)
+	connected_at = models.DateTimeField(null=True, blank=True)
+
+	class Meta:
+		ordering = ["-clicked_at", "-pk"]
+		indexes = [
+			models.Index(fields=["status", "clicked_at"]),
+			models.Index(fields=["business", "status"]),
+		]
 
 
 class BusinessWhatsAppContact(models.Model):

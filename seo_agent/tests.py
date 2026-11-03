@@ -175,6 +175,35 @@ class BaseCanonicalAndRobotsTestCase(TestCase):
         self.assertIn('Organization', content)
         self.assertIn('WebSite', content)
 
+    def test_query_param_canonical_is_clean_and_produit_has_noindex(self):
+        # Even with query params, canonical must be clean and ?produit must have noindex, follow
+        response = self.client.get("/?produit=5")
+        self.assertEqual(response.status_code, 200)
+        content = response.content.decode("utf-8")
+        self.assertIn('<link rel="canonical" href="https://e-shelle.com/">', content)
+        self.assertNotIn('?produit=5"', content.split('<link rel="canonical"')[1].split('>')[0])
+        self.assertIn('<meta name="robots" content="noindex, follow">', content)
+
+    def test_business_at_slug_301_redirect(self):
+        # /business/@<slug>/ must 301 redirect to /b/<slug>/
+        response = self.client.get("/business/@mon-commerce-douala/")
+        self.assertEqual(response.status_code, 301)
+        self.assertEqual(response["Location"], "/b/mon-commerce-douala/")
+
+        # Preserves query parameters across 301 redirect
+        response_query = self.client.get("/business/@mon-commerce-douala/?produit=3")
+        self.assertEqual(response_query.status_code, 301)
+        self.assertEqual(response_query["Location"], "/b/mon-commerce-douala/?produit=3")
+
+    def test_sitemap_xml_excludes_produit_and_business_at(self):
+        response = self.client.get("/sitemap.xml")
+        self.assertEqual(response.status_code, 200)
+        root = ET.fromstring(response.content)
+        locs = [elem.text for elem in root.findall(".//{http://www.sitemaps.org/schemas/sitemap/0.9}loc")]
+        for loc in locs:
+            self.assertNotIn("?produit=", loc)
+            self.assertNotIn("/business/@", loc)
+
 
 class FacebookAutoShareAntiCasseTestCase(TestCase):
     def setUp(self):

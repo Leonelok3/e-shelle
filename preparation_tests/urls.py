@@ -6,6 +6,7 @@ app_name = "preparation_tests"
 urlpatterns = [
     path("fr/tcf/du-jour/", views_daily_tcf.daily_tcf, name="tcf_daily"),
     path("api/tcf-du-jour/correction/", views_daily_tcf.correct_daily_production, name="tcf_daily_correction"),
+    path("api/tcf-du-jour/correction-orale-audio/", views_daily_tcf.correct_daily_oral_audio, name="tcf_daily_audio_correction"),
     path("fr/mon-coach/", views_learning.learning_center, name="learning_center"),
     path("api/explain-answer/", views_learning.explain_answer, name="explain_answer"),
     # =====================================================

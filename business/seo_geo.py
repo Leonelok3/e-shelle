@@ -1,10 +1,19 @@
 import json
 
 from django.db.models import Count, Q
-from django.http import Http404
+from django.http import Http404, HttpResponsePermanentRedirect
 from django.shortcuts import render
 from django.urls import reverse
 from django.utils.text import slugify
+
+SEO_SERVICE_ALIASES = {
+    "gaz": "livraison-gaz",
+    "sante": "pharmacies",
+    "pharma": "pharmacies",
+    "jobs": "emplois",
+    "salons": "salons-coiffure",
+    "coiffure": "salons-coiffure",
+}
 
 from .models import BusinessProfile
 
@@ -165,6 +174,10 @@ def geo_index(request):
 
 
 def geo_landing(request, city_slug, service_slug):
+    if service_slug in SEO_SERVICE_ALIASES:
+        return HttpResponsePermanentRedirect(
+            reverse("business:geo_landing", args=[city_slug, SEO_SERVICE_ALIASES[service_slug]])
+        )
     service = SEO_SERVICE_MAP.get(service_slug)
     if not service:
         raise Http404("Service SEO introuvable")

@@ -124,43 +124,23 @@ def build_aeo_message(business) -> str:
 
 
 def should_share(business) -> bool:
-    """
-    Vérifie si un business doit être partagé sur la Page Facebook:
-    - is_premium = True (plan == PREMIUM)
-    - is_published = True (is_active et activation_status == ACTIVE)
-    - facebook_shared_at est None ou date de plus de 24h
-    - limite journalière de max 3 posts non atteinte
-    """
-    if not getattr(settings, "FACEBOOK_AUTO_SHARE_ENABLED", True):
-        logger.debug("[FacebookAutoShare] Partage auto désactivé dans settings.")
-        return False
-
-    is_premium = getattr(business, "is_premium", None)
-    if is_premium is None:
-        is_premium = getattr(business, "plan", "") == "premium"
-    if not is_premium:
-        return False
-
-    is_published = getattr(business, "is_published", None)
-    if is_published is None:
-        is_published = bool(getattr(business, "is_active", False))
-    if not is_published:
-        return False
-
-    # Éviter de re-poster le même business dans les 24h
+    from django.conf import settings
+    from django.utils import timezone
+    from datetime import timedelta
+    from business.models import FacebookShareLog
+    if not business: return False
+    if not getattr(business, 'is_premium', False): return False
+    if not getattr(business, 'is_published', False): return False
+    if not business.slug: return False
+    if not business.is_active: return False
     if business.facebook_shared_at:
-        delta = timezone.now() - business.facebook_shared_at
-        if delta < timedelta(hours=24):
-            logger.info(f"[FacebookAutoShare] Business {business.pk} déjà partagé il y a {delta.total_seconds()/3600:.1f}h.")
+        if timezone.now() - business.facebook_shared_at < timedelta(hours=24):
             return False
-
-    # Vérification de la limite journalière (3 posts/jour)
-    max_daily = getattr(settings, "FACEBOOK_MAX_POSTS_PER_DAY", 3)
-    current_count = get_daily_shared_count()
-    if current_count >= max_daily:
-        logger.info(f"[FacebookAutoShare] Limite quotidienne atteinte: {current_count}/{max_daily} posts.")
+    max_per_day = getattr(settings, 'FACEBOOK_MAX_POSTS_PER_DAY', 3)
+    today_count = FacebookShareLog.objects.filter(status='success', shared_at__date=timezone.now().date()).count()
+    if today_count >= max_per_day: return False
+    if getattr(business, 'pk', None) and FacebookShareLog.objects.filter(business=business, status='failed', shared_at__gte=timezone.now() - timedelta(hours=1)).exists():
         return False
-
     return True
 
 
