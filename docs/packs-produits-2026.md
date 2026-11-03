@@ -1,5 +1,13 @@
 # Audit produit E-Shelle et grille de packs — 8 octobre 2026
 
+> **Mise à jour commerciale du 3 novembre 2026 :** la grille de cet audit est
+> historique et ne doit plus être utilisée pour publier les tarifs. La grille
+> approuvée est désormais **Gratuit 0 / Présence—Pro 5 000 / Croissance—Business
+> 15 000 / Premium 30 000 XAF par 30 jours**, par fiche Business. Les prix de
+> production doivent encore être vérifiés après déploiement. Voir
+> [tarifs-prestataires-2026.md](./tarifs-prestataires-2026.md) pour les limites,
+> conditions et promesses commerciales à jour.
+
 ## Résumé exécutif
 
 E-Shelle dispose déjà d'un large ensemble d'applications Django et d'un premier
@@ -9,10 +17,11 @@ illimitées et forfaits multi-applications.
 
 Les constats déterminants pour les offres :
 
-- Les prix déclarés par le seed après la modification locale du 8 octobre sont
-  **0, 5 000, 15 000 et 25 000 XAF**. La commande seed n'a pas été lancée sur le
-  VPS : sa base de production peut encore porter Business à 10 000 XAF jusqu'à
-  l'exécution de la commande.
+- Les prix déclarés dans l'ancien état du seed du 8 octobre étaient
+  **0, 5 000, 15 000 et 25 000 XAF**. La grille approuvée le 3 novembre est
+  **0, 5 000, 15 000 et 30 000 XAF**. La commande seed de production n'a pas été
+  exécutée au cours de cette mise à jour; les montants actifs du VPS restent à
+  vérifier.
 - Le plan Pro relie une fiche à un WABA et ouvre l'accès au CRM WhatsApp. Business
   et Premium ajoutent la synchronisation de catalogue et les relances individuelles
   par modèles Meta approuvés.
@@ -247,9 +256,9 @@ seul abonnement.
 
 | Pack proposé | Prix / mois | Repère USD | Maturité commerciale actuelle |
 |---|---:|---:|---|
-| **Présence — Démarrage** | **5 000 XAF** | ≈ $8,33 | Proche du plan Pro déjà seedé ; paiement à valider manuellement. |
-| **Croissance — Business** | **15 000 XAF** | ≈ $25,00 | Prix mis à jour dans le seed local ; appliquer la commande sur le VPS pour mettre à jour ProviderPlan. |
-| **Premium — Croissance étendue** | **25 000 XAF** | ≈ $41,67 | Tarif existant dans le seed ; limite catalogue sans plafond déclaré. |
+| **Présence — Pro** | **5 000 XAF / 30 jours** | — | Grille approuvée le 3 novembre 2026. |
+| **Croissance — Business** | **15 000 XAF / 30 jours** | — | Grille approuvée le 3 novembre 2026. |
+| **Premium — Croissance étendue** | **30 000 XAF / 30 jours** | — | Grille approuvée le 3 novembre 2026 ; limite catalogue sans plafond déclaré. |
 | **Empire — Multi-activité** | **35 000 XAF — sur devis** | ≈ $58,33 | Prix repère, mais activation manuelle ; aucun entitlement multi-apps unifié. |
 | **Écosystème — Accompagnement** | **60 000 XAF — sur devis** | ≈ $100,00 | Prix repère, périmètre à confirmer manuellement ; pas de bundle prêt au checkout. |
 
@@ -259,7 +268,7 @@ seul abonnement.
 |---|---|---:|---|---:|---:|
 | Présence — Démarrage | Fiche Business, catalogue, CRM, réponses 24 h | 20 articles, 2 photos additionnelles/article | Pas de plafond mensuel de messages ou de contacts codé ; aucun siège équipe défini | 1 par fiche | 720 / 4 280 XAF ; 85,6 % |
 | Croissance — Business | Démarrage + sync catalogue Meta + relances individuelles consenties (activation conditionnelle) | 50 articles, 4 photos additionnelles/article | Pas de plafond mensuel de messages ou de contacts codé ; aucun siège équipe défini ; worker max. 10 relances dues/minute | 1 par fiche | 720 / 14 280 XAF ; 95,2 % |
-| Premium — Croissance étendue | Tout Croissance selon la description du seed ; visibilité premium, carrousels, accompagnement marketing | Pas de plafond déclaré, 7 photos additionnelles/article | Pas de plafond mensuel de messages ou de contacts codé ; aucun siège équipe défini ; worker max. 10 relances dues/minute | 1 par fiche | 720 / 24 280 XAF ; 97,1 % |
+| Premium — Croissance étendue | Tout Croissance selon les droits du plan ; 15 jours de Boost E-Shelle et outils SEO/IA; services humains sur devis | Pas de plafond déclaré, 7 photos additionnelles/article | Pas de plafond mensuel de messages ou de contacts codé ; aucun siège équipe défini ; worker max. 10 relances dues/minute | 1 par fiche | 720 / 29 280 XAF ; 97,6 % |
 | Empire — Multi-activité | Modules indépendants (voir ci-dessous), activation manuelle à spécifier | Aucun quota commun de produits ou boutiques | Aucun quota de messages, contacts ou sièges défini pour un bundle | 1 par fiche si le WABA CRM est vendu | 720 / 34 280 XAF ; 97,9 % |
 | Écosystème — Accompagnement | Périmètre de plusieurs modules à fixer au devis ; aucun bundle codé | Aucun quota commun défini | Aucun quota de messages, contacts ou sièges défini pour un bundle | 1 par fiche si le WABA CRM est vendu | 720 / 59 280 XAF ; 98,8 % |
 
@@ -274,7 +283,7 @@ du VPS.
 **Cible :** petite entreprise qui veut une vitrine simple, un numéro WhatsApp
 Business connecté et un fichier de contacts exploitable.
 
-**À 5 000 XAF/mois (≈ $8,33)**, aligné sur le tarif Pro présent dans le seed :
+**À 5 000 XAF par 30 jours**, aligné sur le tarif Pro approuvé :
 
 - une fiche Business publique, ses coordonnées et lien de partage ;
 - catalogue de la fiche jusqu'à **20 produits/services**, et jusqu'à **2 photos
@@ -303,9 +312,8 @@ configuration ne sont pas vérifiées.
 **Cible :** PME qui reçoit des demandes sur WhatsApp et veut tenir un catalogue et
 effectuer des relances autorisées.
 
-**Prix recommandé : 15 000 XAF/mois (≈ $25)**. Le seed local a été mis à jour ;
-la base de production ne sera alignée qu'après exécution de la commande seed sur
-le VPS.
+**Prix approuvé : 15 000 XAF par 30 jours.** La base de production ne sera
+alignée qu'après déploiement et synchronisation des ProviderPlan.
 
 - fonctionnalités Présence ;
 - jusqu'à **50 articles Business**, **4 photos supplémentaires par article** ;
@@ -335,22 +343,24 @@ ses quotas, son usage Meta et ses fonctionnalités.
 
 **Cible :** entreprise qui veut le plafond catalogue déclaré le plus élevé et les
 avantages Premium existants.
-**Prix : 25 000 XAF/mois (≈ $41,67)**, déjà présent dans le seed.
+**Prix approuvé : 30 000 XAF par 30 jours.** Le tarif en production doit être
+confirmé après déploiement et synchronisation des ProviderPlan.
 
 - tout Croissance selon les droits Business/Premium et la description du seed ;
 - pas de plafond d'articles déclaré pour `BusinessCatalogItem` ;
 - jusqu'à **7 photos supplémentaires par article** ;
 - 50 crédits IA et 15 jours de boost inclus selon le seed ;
-- visibilité Top résultats IA, carrousels premium et accompagnement marketing,
-  tels que décrits dans le seed (le périmètre exact doit être vérifié côté service).
+- outils logiciels de visibilité locale, SEO et IA selon les fonctions disponibles ;
+  aucun accompagnement humain mensuel n'est compris. Les prestations humaines sont
+  facturées séparément sur devis.
 
 **Limites honnêtes :** « sans plafond déclaré » ne promet pas un volume illimité
 de stockage ou de synchronisation Meta ; aucun quota mensuel de messages,
 contacts ou sièges n'est défini. L'automatisation reste conditionnée aux
 prérequis Meta et au flag serveur.
 
-**Coût VPS partagé :** 720 XAF/client pour 10 clients ; reste 24 280 XAF, soit
-**97,1 %** avant les coûts exclus.
+**Coût VPS partagé :** 720 XAF/client pour 10 clients ; reste 29 280 XAF, soit
+**97,6 %** avant les coûts exclus. Ce n'est pas une marge nette.
 
 **Argument vs Twilio :** regrouper fiche, catalogue Business, CRM et outils de
 présence au lieu d'une facturation API au message. La référence Twilio de
@@ -472,7 +482,7 @@ décision Meta avant de l'afficher comme statut acquis.
 
 1. Choisir les offres réellement vendables : Pro à 5 000 XAF, Business à
    15 000 XAF (seed modifié localement, commande serveur encore nécessaire) et
-   Premium à 25 000 XAF.
+   Premium à 30 000 XAF, selon la grille approuvée le 3 novembre 2026.
 2. Définir explicitement l'unité de facturation : par fiche Business, par WABA,
    par numéro ou par utilisateur. Le code actuel est par fiche et limite à une
    connexion par fiche.

@@ -22,14 +22,14 @@ class Command(BaseCommand):
             },
             {
                 "code": "pro",
-                "name": "Fiche Business Premium",
+                "name": "Présence — Pro",
                 "plan_level": BusinessProfile.Plan.PRO,
                 "monthly_price_xaf": 5000,
                 "duration_days": 30,
                 "included_boost_days": 0,
                 "included_ai_credits": 5,
                 "order": 10,
-                "description": "Fiche et catalogue publics, partage, 5 crédits IA, connexion WhatsApp et CRM de contacts avec réponses dans la fenêtre de 24 h.",
+                "description": "Fiche publique optimisée pour la visibilité locale, catalogue jusqu'à 20 articles, partage, 5 crédits IA, connexion WhatsApp et CRM de contacts avec réponses dans la fenêtre de 24 h.",
             },
             {
                 "code": "business",
@@ -40,18 +40,18 @@ class Command(BaseCommand):
                 "included_boost_days": 7,
                 "included_ai_credits": 20,
                 "order": 20,
-                "description": "Avantages Pro, meilleur classement, 7 jours de boost, demandes reçues, 20 crédits IA, synchronisation du catalogue et relances CRM individuelles par modèles Meta approuvés avec consentement explicite.",
+                "description": "Avantages Pro, visibilité prioritaire E-Shelle avec 7 jours de boost, jusqu'à 50 articles, 20 crédits IA, synchronisation du catalogue Meta et relances CRM individuelles sous réserve d'activation, de modèles approuvés et du consentement explicite.",
             },
             {
                 "code": "premium",
                 "name": "Premium",
                 "plan_level": BusinessProfile.Plan.PREMIUM,
-                "monthly_price_xaf": 25000,
+                "monthly_price_xaf": 30000,
                 "duration_days": 30,
                 "included_boost_days": 15,
                 "included_ai_credits": 50,
                 "order": 30,
-                "description": "Avantages Business, top résultats IA, carrousels premium, accompagnement marketing, 50 crédits IA et relances CRM individuelles par modèles Meta approuvés avec consentement explicite.",
+                "description": "Avantages Business, catalogue sans plafond déclaré dans le code, 15 jours de boost E-Shelle, 50 crédits IA et outils de visibilité locale. Aucun classement Google ou placement dans un assistant IA n'est garanti; accompagnement humain sur devis.",
             },
         ]
         created = 0

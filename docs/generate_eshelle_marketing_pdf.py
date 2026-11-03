@@ -16,7 +16,7 @@ from reportlab.platypus import (
 
 
 ROOT = Path(__file__).resolve().parent
-OUTPUT = ROOT / "strategie_marketing_eshelle_business_key.pdf"
+OUTPUT = ROOT / "strategie_marketing_eshelle_business_key_pricing_final.pdf"
 
 
 GREEN = colors.HexColor("#1f9d55")
@@ -204,12 +204,13 @@ def build():
             [
                 ["Offre", "Prix", "Client cible", "Argument de vente"],
                 ["Fiche gratuite", "0 FCFA", "Tous commerces", "Demarrer sans risque, obtenir un lien partageable."],
+                ["Présence — Pro", "5 000 FCFA/30 jours", "Petits commerces locaux", "Fiche, catalogue, CRM WhatsApp et outils IA de base."],
                 ["Cours de langue", "5 000/mois", "Etudiants, travailleurs", "Progresser en anglais, allemand, italien avec suivi."],
                 ["Formation IA/Marketing", "5 000/mois", "Jeunes, entrepreneurs", "Apprendre a vendre en ligne et utiliser l'IA."],
                 ["E-Shelle Love", "5 000/mois", "Celibataires serieux", "Rencontres plus organisees et respectueuses."],
-                ["Business", "15 000/mois", "Restaurants, pressing, gaz", "Visibilite, leads WhatsApp, IA commerciale."],
-                ["Premium", "30 000/mois", "Immobilier, auto, gros services", "Boost, contenu, priorite locale, campagnes."],
-                ["Business Key", "5 000", "Partenaires", "Kit pour vendre E-Shelle et gagner par commission."],
+                ["Croissance — Business", "15 000 FCFA/30 jours", "Restaurants, pressing, gaz", "Boost E-Shelle, catalogue Meta et outils IA."],
+                ["Premium", "30 000 FCFA/30 jours", "Commerces avec grand catalogue", "Catalogue étendu, boost E-Shelle et outils SEO/IA."],
+                ["Business Key", "9 900 FCFA", "Partenaires", "Kit pour vendre E-Shelle et commissions selon les règles du programme."],
                 ["Site vitrine", "50 000+", "PME, pros", "Presence professionnelle, WhatsApp, SEO local."],
                 ["Boutique web", "100 000+", "Vendeurs, grossistes", "Catalogue, commande WhatsApp, paiement."],
                 ["Logiciel personnalise", "150 000+", "Ecoles, tontines, business", "Application metier adaptee au besoin reel."],
@@ -242,7 +243,7 @@ def build():
                 ["Messages envoyes", "100", "20 reponses"],
                 ["Demos montrees", "20", "8 interesses"],
                 ["Fiches gratuites creees", "10", "5 prospects chauds"],
-                ["Ventes Business/Premium", "2 a 5", "30 000 a 150 000 FCFA/mois potentiel"],
+                ["Ventes Business/Premium", "2 a 5", "30 000 a 150 000 FCFA/mois de chiffre d’affaires brut potentiel"],
             ],
             [5 * cm, 3 * cm, 8.4 * cm],
         )
@@ -271,7 +272,7 @@ def build():
                 ["Etape", "Objectif", "Message"],
                 ["Contact", "Obtenir une reponse", "Bonjour, je peux vous montrer comment recevoir plus de demandes WhatsApp avec E-Shelle ?"],
                 ["Demo", "Montrer une preuve", "Voici une fiche simple de votre activite avec bouton WhatsApp."],
-                ["Offre", "Convertir", "Le plan Business permet visibilite + campagne + suivi pour 15 000 FCFA/mois."],
+                ["Offre", "Convertir", "Le plan Croissance fournit visibilité E-Shelle, catalogue et CRM/IA pour 15 000 FCFA par 30 jours; les campagnes de masse ne sont pas incluses."],
                 ["Paiement", "Encaisser", "Vous pouvez payer par Mobile Money, on active apres confirmation."],
                 ["Relance", "Recuperer les hesitants", "Je peux vous laisser la fiche gratuite, puis activer le boost quand vous etes pret."],
             ],
