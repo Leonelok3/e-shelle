@@ -39,6 +39,8 @@ def eshelle_public_urls(request):
         "META_TECH_PROVIDER_LABEL": getattr(settings, "META_TECH_PROVIDER_LABEL", ""),
         "SHOW_PARTNER_LOGOS": getattr(settings, "SHOW_PARTNER_LOGOS", False),
         "SHOW_TESTIMONIALS": getattr(settings, "SHOW_TESTIMONIALS", False),
+        "SHOW_HOME_WHATSAPP_ACADEMY": getattr(settings, "SHOW_HOME_WHATSAPP_ACADEMY", False),
+        "SHOW_HOME_APPLICATION_GRID": getattr(settings, "SHOW_HOME_APPLICATION_GRID", False),
         "HOME_TESTIMONIALS": getattr(settings, "HOME_TESTIMONIALS", []),
     }
 

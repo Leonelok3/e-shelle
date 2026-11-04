@@ -56,6 +56,95 @@
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/home.css' %}">
 <style>
+  .home-growth-section {
+    padding: clamp(2rem, 4vw, 3.5rem) 0;
+    background: linear-gradient(180deg, rgba(5, 10, 17, .98), rgba(8, 24, 17, .94));
+    border-top: 1px solid rgba(125, 236, 108, .14);
+    border-bottom: 1px solid rgba(125, 236, 108, .14);
+  }
+  .home-growth-heading {
+    max-width: 760px;
+    margin: 0 auto 1.4rem;
+    text-align: center;
+  }
+  .home-growth-heading h2 {
+    margin: 0;
+    color: #fff;
+    font: 850 clamp(1.45rem, 3vw, 2.1rem)/1.15 'Outfit', sans-serif;
+  }
+  .home-growth-heading p {
+    margin: .55rem 0 0;
+    color: rgba(255,255,255,.66);
+    font-size: .92rem;
+    line-height: 1.55;
+  }
+  .home-growth-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: .9rem;
+  }
+  .home-growth-card {
+    display: flex;
+    min-height: 190px;
+    flex-direction: column;
+    padding: 1.15rem;
+    border: 1px solid rgba(255,255,255,.12);
+    border-radius: 16px;
+    background: rgba(255,255,255,.045);
+    color: #fff;
+    text-decoration: none;
+    transition: transform .2s ease, border-color .2s ease, background .2s ease;
+  }
+  .home-growth-card:hover {
+    transform: translateY(-3px);
+    border-color: rgba(125,236,108,.45);
+    background: rgba(255,255,255,.075);
+  }
+  .home-growth-icon { margin-bottom: .65rem; font-size: 1.35rem; }
+  .home-growth-card strong { font-size: 1rem; font-weight: 850; }
+  .home-growth-card p {
+    margin: .45rem 0 .8rem;
+    color: rgba(255,255,255,.68);
+    font-size: .82rem;
+    line-height: 1.55;
+  }
+  .home-growth-link {
+    margin-top: auto;
+    color: #a8ff84;
+    font-size: .8rem;
+    font-weight: 850;
+  }
+  .home-growth-note {
+    margin: 1rem auto 0;
+    max-width: 900px;
+    color: rgba(255,255,255,.48);
+    font-size: .72rem;
+    line-height: 1.5;
+    text-align: center;
+  }
+  .home-apps-link-section {
+    padding: 1.15rem 0;
+    background: rgba(255,255,255,.025);
+    border-top: 1px solid rgba(255,255,255,.07);
+    border-bottom: 1px solid rgba(255,255,255,.07);
+    text-align: center;
+  }
+  .home-apps-link-section p {
+    margin: 0 0 .35rem;
+    color: rgba(255,255,255,.62);
+    font-size: .82rem;
+  }
+  .home-apps-link-section a {
+    color: #a8ff84;
+    font-size: .88rem;
+    font-weight: 850;
+    text-decoration: none;
+  }
+  .home-apps-link-section a:hover { text-decoration: underline; }
+  @media (max-width: 760px) {
+    .home-growth-grid { grid-template-columns: 1fr; }
+    .home-growth-card { min-height: 0; }
+  }
   /* Pulse Animation for Status Dots in Badges */
   @keyframes eshLivePulse {
     0%, 100% { transform: scale(1); opacity: 0.6; }
@@ -517,6 +606,7 @@
       padding: 0.75rem;
     }
   }
+  {% if SHOW_HOME_WHATSAPP_ACADEMY %}
   .wa-academy {
     position: relative;
     overflow: hidden;
@@ -724,6 +814,7 @@
     .wa-academy-card, .wa-academy-cta { transition: none; }
     .wa-academy-dots i { animation: none; opacity: 1; }
   }
+  {% endif %}
 </style>
 {# Balises GEO SEO et Indexation #}
 <meta name="geo.region" content="CM" />
@@ -803,6 +894,7 @@
     </div>
   </section>
 
+  {% if SHOW_HOME_WHATSAPP_ACADEMY %}
   <section class="wa-academy" aria-labelledby="wa-academy-title">
     <div class="wa-academy-inner">
       <header class="wa-academy-head">
@@ -946,6 +1038,39 @@
       </p>
     </div>
   </section>
+  {% else %}
+  <section class="home-growth-section" aria-labelledby="home-growth-title">
+    <div class="esh-shell">
+      <header class="home-growth-heading">
+        <h2 id="home-growth-title">{% if LANGUAGE_CODE == 'en' %}Get found. Automate. Connect on WhatsApp.{% else %}Gagnez en visibilité. Automatisez. Connectez WhatsApp.{% endif %}</h2>
+        <p>{% if LANGUAGE_CODE == 'en' %}Practical digital tools to help your business get discovered and manage customer conversations.{% else %}Des outils numériques concrets pour aider vos clients à vous trouver et mieux gérer leurs échanges.{% endif %}</p>
+      </header>
+      <div class="home-growth-grid">
+        <a class="home-growth-card" href="{% url 'business:onboarding' %}">
+          <span class="home-growth-icon" aria-hidden="true">📍</span>
+          <strong>{% if LANGUAGE_CODE == 'en' %}Local visibility{% else %}Visibilité locale{% endif %}</strong>
+          <p>{% if LANGUAGE_CODE == 'en' %}Present your business, services and products in a structured profile customers can find.{% else %}Présentez votre activité, vos services et vos produits dans une fiche structurée et consultable.{% endif %}</p>
+          <span class="home-growth-link">{% if LANGUAGE_CODE == 'en' %}Create my business profile{% else %}Créer ma fiche business{% endif %} →</span>
+        </a>
+        <a class="home-growth-card" href="/business/arsenal-ia/">
+          <span class="home-growth-icon" aria-hidden="true">🤖</span>
+          <strong>{% if LANGUAGE_CODE == 'en' %}AI and automation{% else %}IA et automatisations{% endif %}</strong>
+          <p>{% if LANGUAGE_CODE == 'en' %}Explore AI tools that can help prepare content and support recurring customer tasks, depending on your setup.{% else %}Découvrez des outils IA pour préparer vos contenus et accompagner certaines tâches récurrentes, selon votre configuration.{% endif %}</p>
+          <span class="home-growth-link">{% if LANGUAGE_CODE == 'en' %}Explore AI tools{% else %}Découvrir les outils IA{% endif %} →</span>
+        </a>
+        <a class="home-growth-card" href="{% url 'services:whatsapp-business' %}">
+          <span class="home-growth-icon" aria-hidden="true">💬</span>
+          <strong>{% if LANGUAGE_CODE == 'en' %}WhatsApp Business API{% else %}Connexion WhatsApp Business API{% endif %}</strong>
+          <p>{% if LANGUAGE_CODE == 'en' %}Get support connecting your eligible business account to the official WhatsApp Business Platform.{% else %}Faites-vous accompagner pour connecter un compte professionnel éligible à la plateforme officielle WhatsApp Business.{% endif %}</p>
+          <span class="home-growth-link">{% if LANGUAGE_CODE == 'en' %}Discover the setup{% else %}Découvrir l’accompagnement{% endif %} →</span>
+        </a>
+      </div>
+      <p class="home-growth-note">
+        {% if LANGUAGE_CODE == 'en' %}Search ranking is not guaranteed. WhatsApp features depend on Meta eligibility, approval, quotas and fees; Meta fees are billed separately.{% else %}Aucune position dans les résultats n’est garantie. Les fonctions WhatsApp dépendent de l’éligibilité, des validations et des quotas Meta ; les frais Meta sont facturés séparément.{% endif %}
+      </p>
+    </div>
+  </section>
+  {% endif %}
 
   <!-- CTA Booster Google Spot 1 / Slider Promotionnel E-Shelle -->
   {% if app_promo_slides %}
@@ -1609,6 +1734,7 @@
   {% endif %}
 
   {# 4. Tout l'écosystème E-Shelle tout en bas #}
+  {% if SHOW_HOME_APPLICATION_GRID %}
   <section class="esh-section alt">
     <div class="esh-shell">
       <div style="text-align:center;max-width:760px;margin:0 auto 3rem">
@@ -1670,6 +1796,14 @@
       </div>
     </div>
   </section>
+  {% else %}
+  <section class="home-apps-link-section" aria-label="{% if LANGUAGE_CODE == 'en' %}E-Shelle applications{% else %}Applications E-Shelle{% endif %}">
+    <div class="esh-shell">
+      <p>{% if LANGUAGE_CODE == 'en' %}Looking for another E-Shelle service?{% else %}Vous cherchez un autre service E-Shelle ?{% endif %}</p>
+      <a href="{% url 'applications' %}">{% if LANGUAGE_CODE == 'en' %}Explore all E-Shelle applications{% else %}Voir toutes les applications E-Shelle{% endif %} →</a>
+    </div>
+  </section>
+  {% endif %}
 
   {# 5. Section Référencement, Copywriting & Géo-Visibilité (SEO-Booster) #}
   <section class="esh-section esh-seo-booster-section" style="padding: 6rem 0; background: #030712; border-top: 1px solid rgba(255, 255, 255, 0.05); position: relative; overflow: hidden; font-family: 'Plus Jakarta Sans', sans-serif;">

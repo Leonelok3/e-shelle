@@ -940,6 +940,7 @@ urlpatterns = [
     path("produits-services/", products_services_view, name="products_services"),
     path("presentation/", presentation_view, name="presentation"),
     path("immigration/", immigration_view, name="immigration"),
+    path("applications/", TemplateView.as_view(template_name="applications.html"), name="applications"),
     path("marketing/", marketing_view, name="marketing"),
     path("formation/", formation_view, name="formation"),
     path("tarifs/", tarifs_view, name="tarifs"),
