@@ -2,6 +2,23 @@ from django.test import TestCase, override_settings
 
 
 class PublicMetaReviewPagesTests(TestCase):
+    def test_homepage_uses_meta_label_and_hides_unverified_content(self):
+        response = self.client.get("/")
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "E-Shelle est Tech Provider Meta (App ID 1841260056892991)")
+        for unpublished_text in (
+            "VERCEL",
+            "Marcelle Kenfack",
+            "Rodrigue Tchakounté",
+            "Amadou Bello",
+            "automated 80% of client inquiries",
+            "a automatisé 80% des réponses",
+            "première page",
+        ):
+            with self.subTest(unpublished_text=unpublished_text):
+                self.assertNotContains(response, unpublished_text)
+
     def test_whatsapp_business_page_explains_setup_offer_and_limits(self):
         response = self.client.get("/services/whatsapp-business/")
 
@@ -29,8 +46,7 @@ class PublicMetaReviewPagesTests(TestCase):
 
         self.assertContains(response, "SaaS E-commerce Platform for SMEs in Cameroon")
         self.assertContains(response, "Business ID: 1837509733943082")
-        self.assertContains(response, "App ID Meta: 1841260056892991")
-        self.assertContains(response, "E-Shelle est officiellement Tech Provider Meta.")
+        self.assertContains(response, "E-Shelle est Tech Provider Meta (App ID 1841260056892991)")
         self.assertContains(response, 'href="/services/whatsapp-business/"')
         self.assertContains(response, "Installation WhatsApp Business API")
         self.assertContains(response, 'href="/privacy-policy"')

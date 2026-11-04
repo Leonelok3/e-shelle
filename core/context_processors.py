@@ -36,6 +36,10 @@ def eshelle_public_urls(request):
         "SALONHUB_PUBLIC_URL": getattr(settings, "SALONHUB_PUBLIC_URL", "/salons/"),
         "GOOGLE_SITE_VERIFICATION": getattr(settings, "GOOGLE_SITE_VERIFICATION", ""),
         "GOOGLE_ANALYTICS_ID": getattr(settings, "GOOGLE_ANALYTICS_ID", ""),
+        "META_TECH_PROVIDER_LABEL": getattr(settings, "META_TECH_PROVIDER_LABEL", ""),
+        "SHOW_PARTNER_LOGOS": getattr(settings, "SHOW_PARTNER_LOGOS", False),
+        "SHOW_TESTIMONIALS": getattr(settings, "SHOW_TESTIMONIALS", False),
+        "HOME_TESTIMONIALS": getattr(settings, "HOME_TESTIMONIALS", []),
     }
 
 

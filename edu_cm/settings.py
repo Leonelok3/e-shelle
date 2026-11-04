@@ -572,6 +572,11 @@ def _public_url(name, default, local_default=None):
 
 
 SITE_URL = os.getenv('SITE_URL', 'https://e-shelle.com')
+META_TECH_PROVIDER_LABEL = "E-Shelle est Tech Provider Meta (App ID 1841260056892991)"
+SHOW_PARTNER_LOGOS = False
+SHOW_TESTIMONIALS = False
+# Each verified testimonial may define: name, business, city, date, quote, proof_url (WhatsApp or capture).
+HOME_TESTIMONIALS = []
 FORMATIONS_PUBLIC_URL = _public_url("FORMATIONS_PUBLIC_URL", "/formations/")
 BOUTIQUE_PUBLIC_URL = _public_url("BOUTIQUE_PUBLIC_URL", "/boutique/")
 SERVICES_PUBLIC_URL = _public_url("SERVICES_PUBLIC_URL", "/services/")
