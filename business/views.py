@@ -788,6 +788,16 @@ def provider_plans(request):
     return render(request, "business/provider_plans.html", {"plans": plans, "proof": proof, "comparison": comparison})
 
 
+def restaurant_sales(request):
+    """Page de présentation des outils et parcours déjà disponibles pour les restaurants."""
+    return render(request, "business/restaurant_sales.html")
+
+
+def wholesale_sales(request):
+    """Page de présentation du catalogue business pour grossistes et grandes boutiques."""
+    return render(request, "business/wholesale_sales.html")
+
+
 def solutions(request):
     """Page commerciale qui oriente chaque besoin vers la bonne application E-Shelle."""
     proof = {

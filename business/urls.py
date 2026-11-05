@@ -6,6 +6,8 @@ from . import seo_geo
 app_name = "business"
 
 urlpatterns = [
+    path("restaurants/", views.restaurant_sales, name="restaurant_sales"),
+    path("grossistes/", views.wholesale_sales, name="wholesale_sales"),
     path("solutions/", views.solutions, name="solutions"),
     path("communication/", views.eshelle_communication, name="eshelle_communication"),
     path("arsenal-ia/", views.ai_arsenal, name="ai_arsenal"),

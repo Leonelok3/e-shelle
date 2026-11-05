@@ -13,6 +13,8 @@ class PublicMetaReviewPagesTests(TestCase):
         self.assertContains(response, "5 000 FCFA")
         self.assertContains(response, "15 000 FCFA")
         self.assertContains(response, "30 000 FCFA")
+        self.assertContains(response, 'href="/business/restaurants/"')
+        self.assertContains(response, 'href="/business/grossistes/"')
         for unpublished_text in (
             "VERCEL",
             "Marcelle Kenfack",
@@ -24,6 +26,39 @@ class PublicMetaReviewPagesTests(TestCase):
         ):
             with self.subTest(unpublished_text=unpublished_text):
                 self.assertNotContains(response, unpublished_text)
+
+    def test_restaurant_sales_page_uses_existing_registration_and_discovery_routes(self):
+        response = self.client.get("/business/restaurants/")
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Organisez votre menu")
+        self.assertContains(response, "disponibilité des plats")
+        self.assertContains(response, 'href="/resto/inscription/"')
+        self.assertContains(response, 'href="/resto/restaurants/"')
+
+    def test_wholesale_sales_page_describes_catalogue_and_existing_csv_import(self):
+        response = self.client.get("/business/grossistes/")
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "prix de gros")
+        self.assertContains(response, "SKU")
+        self.assertContains(response, "Importez un fichier CSV")
+        self.assertContains(response, "pas de catégorie « Grossiste » dédiée")
+        self.assertContains(response, 'href="/business/onboarding/"')
+        self.assertContains(response, 'href="/tarifs/#merchant-plans-title"')
+
+    @override_settings(LANGUAGE_CODE="en")
+    def test_sector_sales_pages_include_aligned_english_copy(self):
+        pages = {
+            "/business/restaurants/": ("Organize your menu", "Register my restaurant"),
+            "/business/grossistes/": ("wholesale prices", "Import an existing CSV"),
+        }
+        for path, expected_copy in pages.items():
+            with self.subTest(path=path):
+                response = self.client.get(path)
+                self.assertEqual(response.status_code, 200)
+                for text in expected_copy:
+                    self.assertContains(response, text)
 
     def test_whatsapp_business_page_explains_setup_offer_and_limits(self):
         response = self.client.get("/services/whatsapp-business/")
