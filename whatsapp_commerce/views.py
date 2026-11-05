@@ -41,12 +41,14 @@ from .models import (
 	WhatsAppDraftOrder,
 )
 from .onboarding import (
+	EXISTING_WABA_TARGET_PUBLIC_SLUG,
 	MetaOnboardingError,
 	connect_business,
 	deregister_connection_phone,
 	refresh_connection_metadata,
 	resubscribe_connection_webhook,
 	retry_connection_setup,
+	sync_existing_waba,
 )
 from .services import get_whatsapp_order_url, normalize_phone
 
@@ -321,12 +323,21 @@ def business_whatsapp_dashboard(request, business_id):
 	catalog_syncs = BusinessCatalogWhatsAppSync.objects.filter(
 		connection=connection,
 	).select_related("business_catalog_item")[:50] if connection else []
+	meta_messaging_limit_display = ""
+	if connection and connection.meta_messaging_limit:
+		meta_messaging_limit = connection.meta_messaging_limit
+		meta_messaging_limit_display = (
+			f"{meta_messaging_limit}/24h"
+			if meta_messaging_limit.isdecimal()
+			else f"Limite Meta : {meta_messaging_limit}"
+		)
 	return render(
 		request,
 		"whatsapp_commerce/business_dashboard.html",
 		{
 			"business": business,
 			"connection": connection,
+			"meta_messaging_limit_display": meta_messaging_limit_display,
 			"agent_enabled": bool(connection and connection.agent_enabled),
 			"business_automations_enabled": bool(connection and connection.automations_enabled),
 			"agent_tone": connection.agent_tone if connection else "friendly",
@@ -362,8 +373,47 @@ def business_whatsapp_dashboard(request, business_id):
 				and getattr(settings, "WHATSAPP_TECH_PROVIDER_APP_SECRET", "")
 				and getattr(settings, "WHATSAPP_EMBEDDED_SIGNUP_CONFIG_ID", "")
 			),
+			"existing_waba_ids_configured": bool(
+				business.public_slug == EXISTING_WABA_TARGET_PUBLIC_SLUG
+				and getattr(settings, "WHATSAPP_WABA_ID", "")
+				and getattr(settings, "WHATSAPP_PHONE_NUMBER_ID", "")
+			),
+			"existing_waba_sync_available": bool(
+				business.public_slug == EXISTING_WABA_TARGET_PUBLIC_SLUG
+				and getattr(settings, "WHATSAPP_WABA_ID", "")
+				and getattr(settings, "WHATSAPP_PHONE_NUMBER_ID", "")
+				and getattr(settings, "WHATSAPP_ACCESS_TOKEN", "")
+			),
 		},
 	)
+
+
+@login_required
+@require_POST
+def sync_existing_waba_for_business(request, business_id):
+	business = get_object_or_404(
+		BusinessProfile,
+		pk=business_id,
+		owner=request.user,
+		public_slug=EXISTING_WABA_TARGET_PUBLIC_SLUG,
+	)
+	if not whatsapp_entitlements(business)["can_connect"]:
+		messages.error(request, "La synchronisation WhatsApp nécessite une formule Pro active ou l’essai Business.")
+		return redirect("whatsapp_commerce:business_dashboard", business_id=business.pk)
+	try:
+		connection = sync_existing_waba(business)
+	except MetaOnboardingError as exc:
+		messages.error(request, str(exc))
+	except IntegrityError:
+		messages.error(request, "Ce compte ou numéro WhatsApp vient d’être relié à une autre fiche E-Shelle.")
+	else:
+		_record_provider_audit(
+			connection,
+			"provider_existing_waba_synced",
+			{"meta_phone_status": connection.meta_phone_status},
+		)
+		messages.success(request, "Le compte WhatsApp existant a été vérifié et synchronisé.")
+	return redirect("whatsapp_commerce:business_dashboard", business_id=business.pk)
 
 
 @login_required

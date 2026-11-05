@@ -52,6 +52,24 @@ WHATSAPP_API_URL=https://graph.facebook.com/v19.0/123456789012345/messages
 
 Si `WHATSAPP_API_URL` n'est pas defini, Django le construit automatiquement depuis `WHATSAPP_PHONE_ID`.
 
+### Synchroniser un numero Cloud API deja connecte
+
+Pour rattacher le WABA deja configure a la fiche publique `immigration-canada-douala`,
+definis aussi ces variables cote serveur :
+
+```env
+WHATSAPP_WABA_ID=<ID du WABA>
+WHATSAPP_PHONE_NUMBER_ID=<Phone Number ID deja connecte>
+WHATSAPP_ACCESS_TOKEN=<jeton System User autorise pour ce WABA>
+WHATSAPP_BUSINESS_ID=<ID du portefeuille Meta, facultatif>
+```
+
+Le tableau de bord ne propose cette synchronisation que pour cette fiche. Avant
+d'enregistrer la connexion, E-Shelle verifie dans Graph API que le numero est
+`CONNECTED` et appartient au WABA indique, puis abonne l'application aux webhooks.
+Cette operation ne re-enregistre ni ne deregistre le numero. Les autres fiches
+conservent leur parcours Embedded Signup. Ne jamais afficher ni committer le jeton.
+
 ## 3. Webhook Meta
 
 URL callback a donner a Meta:

@@ -4,10 +4,14 @@ import re
 
 import requests
 from django.conf import settings
+from django.db import transaction
 from django.db.models import Q
 from django.utils import timezone
 
 from .models import BusinessWhatsAppConnection, ScheduledBusinessWhatsAppMessage
+
+
+EXISTING_WABA_TARGET_PUBLIC_SLUG = "immigration-canada-douala"
 
 
 class MetaOnboardingError(RuntimeError):
@@ -104,6 +108,123 @@ def refresh_connection_metadata(connection):
         },
     )
     return result
+
+
+def sync_existing_waba(business):
+    """Attach the preconfigured, already-registered WABA to its designated profile."""
+    if business.public_slug != EXISTING_WABA_TARGET_PUBLIC_SLUG:
+        raise MetaOnboardingError("La synchronisation du WABA existant n’est pas autorisée pour cette fiche.")
+
+    waba_id = str(getattr(settings, "WHATSAPP_WABA_ID", "")).strip()
+    phone_number_id = str(getattr(settings, "WHATSAPP_PHONE_NUMBER_ID", "")).strip()
+    token = str(getattr(settings, "WHATSAPP_ACCESS_TOKEN", "")).strip()
+    meta_business_id = str(getattr(settings, "WHATSAPP_BUSINESS_ID", "")).strip()
+    if not waba_id or not phone_number_id or not token:
+        raise MetaOnboardingError("La configuration du compte WhatsApp existant est incomplète.")
+    if not re.fullmatch(r"\d{1,64}", waba_id):
+        raise MetaOnboardingError("L’identifiant WABA configuré est invalide.")
+    if not re.fullmatch(r"\d{1,64}", phone_number_id):
+        raise MetaOnboardingError("L’identifiant du numéro WhatsApp configuré est invalide.")
+    if meta_business_id and not re.fullmatch(r"\d{1,64}", meta_business_id):
+        raise MetaOnboardingError("L’identifiant Business configuré est invalide.")
+
+    existing = BusinessWhatsAppConnection.objects.filter(business=business).first()
+    if existing and (existing.waba_id != waba_id or existing.phone_number_id != phone_number_id):
+        raise MetaOnboardingError(
+            "Un autre compte WhatsApp est déjà associé à cette fiche. Il n’a pas été modifié."
+        )
+    conflict = BusinessWhatsAppConnection.objects.exclude(business=business).filter(
+        Q(waba_id=waba_id) | Q(phone_number_id=phone_number_id)
+    ).exists()
+    if conflict:
+        raise MetaOnboardingError("Ce compte ou numéro WhatsApp est déjà relié à une autre fiche E-Shelle.")
+
+    phone_data = _request_meta(
+        "GET",
+        phone_number_id,
+        token=token,
+        params={
+            "fields": (
+                "id,display_phone_number,verified_name,status,quality_rating,"
+                "whatsapp_business_manager_messaging_limit"
+            )
+        },
+    )
+    if str(phone_data.get("id", "")) != phone_number_id:
+        raise MetaOnboardingError("Meta n’a pas confirmé l’identifiant du numéro configuré.")
+    if phone_data.get("status") != "CONNECTED":
+        raise MetaOnboardingError(
+            "Meta indique que ce numéro n’est pas connecté à WhatsApp Cloud API."
+        )
+
+    waba_phones = _request_meta(
+        "GET",
+        f"{waba_id}/phone_numbers",
+        token=token,
+        params={"fields": "id", "limit": 1000},
+    ).get("data")
+    if not isinstance(waba_phones, list) or not any(
+        isinstance(item, dict) and str(item.get("id", "")) == phone_number_id
+        for item in waba_phones
+    ):
+        raise MetaOnboardingError("Meta n’a pas confirmé que ce numéro appartient au WABA configuré.")
+
+    with transaction.atomic():
+        existing = BusinessWhatsAppConnection.objects.select_for_update().filter(
+            business=business,
+        ).first()
+        if existing and (existing.waba_id != waba_id or existing.phone_number_id != phone_number_id):
+            raise MetaOnboardingError(
+                "Un autre compte WhatsApp est déjà associé à cette fiche. Il n’a pas été modifié."
+            )
+        conflict = BusinessWhatsAppConnection.objects.exclude(business=business).filter(
+            Q(waba_id=waba_id) | Q(phone_number_id=phone_number_id)
+        ).exists()
+        if conflict:
+            raise MetaOnboardingError(
+                "Ce compte ou numéro WhatsApp est déjà relié à une autre fiche E-Shelle."
+            )
+
+        connection = existing or BusinessWhatsAppConnection(business=business)
+        connection.waba_id = waba_id
+        connection.phone_number_id = phone_number_id
+        if meta_business_id:
+            connection.meta_business_id = meta_business_id
+        connection.set_access_token(token)
+        connection.display_phone_number = str(phone_data.get("display_phone_number", ""))[:32]
+        connection.meta_verified_name = str(phone_data.get("verified_name", ""))[:180]
+        connection.meta_phone_status = str(phone_data.get("status", ""))[:32]
+        connection.meta_quality_rating = str(phone_data.get("quality_rating", ""))[:32]
+        connection.meta_messaging_limit = str(
+            phone_data.get("whatsapp_business_manager_messaging_limit", "")
+        )[:64]
+        connection.phone_registered = True
+        connection.webhook_subscribed = False
+        connection.status = BusinessWhatsAppConnection.Status.CONNECTING
+        connection.last_error = ""
+        connection.last_meta_sync_at = timezone.now()
+        connection.save()
+
+    try:
+        resubscribe_connection_webhook(connection)
+    except MetaOnboardingError as exc:
+        connection.status = BusinessWhatsAppConnection.Status.ACTION_REQUIRED
+        connection.last_error = str(exc)[:500]
+        connection.save(update_fields=["status", "last_error", "updated_at"])
+        raise
+
+    connection.status = BusinessWhatsAppConnection.Status.ACTIVE
+    connection.webhook_subscribed = True
+    connection.last_error = ""
+    connection.connected_at = connection.connected_at or timezone.now()
+    connection.save(update_fields=[
+        "status",
+        "webhook_subscribed",
+        "last_error",
+        "connected_at",
+        "updated_at",
+    ])
+    return connection
 
 
 def deregister_connection_phone(connection):

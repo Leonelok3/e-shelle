@@ -36,6 +36,11 @@ urlpatterns = [
     path("inbox/", views.business_whatsapp_inbox, name="inbox"),
     path("business/<int:business_id>/", views.business_whatsapp_dashboard, name="business_dashboard"),
     path("business/<int:business_id>/connect/", views.start_business_connection, name="business_connect"),
+    path(
+        "business/<int:business_id>/sync-existing/",
+        views.sync_existing_waba_for_business,
+        name="business_sync_existing_waba",
+    ),
     path("business/<int:business_id>/complete/", views.complete_business_connection, name="business_connect_complete"),
     path("business/<int:business_id>/retry/", views.retry_business_connection, name="business_connect_retry"),
     path("business/<int:business_id>/catalog/sync/", views.sync_business_catalog, name="business_catalog_sync"),

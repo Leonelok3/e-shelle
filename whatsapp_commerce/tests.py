@@ -30,6 +30,7 @@ from .onboarding import (
 	MetaOnboardingError,
 	connect_business,
 	get_assigned_applications,
+	sync_existing_waba,
 )
 from .services import get_whatsapp_schema_extension, send_abandoned_cart_whatsapp, sync_product_to_whatsapp_catalog
 from .entitlements import whatsapp_entitlements
@@ -370,6 +371,109 @@ class BusinessWhatsAppTests(TestCase):
 		self.assertEqual(request.call_args_list[1].kwargs["json"]["pin"], "123456")
 		self.assertTrue(request.call_args_list[2].args[1].endswith("/123456/subscribed_apps"))
 		self.assertEqual(request.call_args_list[2].kwargs["headers"]["Authorization"], "Bearer business-token-secret")
+
+	@patch("whatsapp_commerce.onboarding._request_meta")
+	def test_existing_waba_sync_verifies_phone_and_waba_without_registering_phone(self, meta_request):
+		self.business.public_slug = "immigration-canada-douala"
+		self.business.save(update_fields=["public_slug", "updated_at"])
+		meta_request.side_effect = [
+			{
+				"id": "654321",
+				"display_phone_number": "+237 693 64 99 44",
+				"verified_name": "Immigration97",
+				"status": "CONNECTED",
+				"quality_rating": "GREEN",
+				"whatsapp_business_manager_messaging_limit": "250",
+			},
+			{"data": [{"id": "654321"}]},
+			{"success": True},
+		]
+
+		with self.settings(
+			WHATSAPP_WABA_ID="123456",
+			WHATSAPP_PHONE_NUMBER_ID="654321",
+			WHATSAPP_ACCESS_TOKEN="existing-waba-token",
+			WHATSAPP_BUSINESS_ID="777",
+		):
+			connection = sync_existing_waba(self.business)
+
+		self.assertEqual(connection.status, BusinessWhatsAppConnection.Status.ACTIVE)
+		self.assertTrue(connection.phone_registered)
+		self.assertTrue(connection.webhook_subscribed)
+		self.assertEqual(connection.meta_verified_name, "Immigration97")
+		self.assertEqual(connection.display_phone_number, "+237 693 64 99 44")
+		self.assertEqual(connection.meta_messaging_limit, "250")
+		self.assertEqual(connection.get_access_token(), "existing-waba-token")
+		self.assertNotIn("existing-waba-token", connection.access_token_encrypted)
+		self.client.force_login(self.owner)
+		dashboard = self.client.get(
+			reverse("whatsapp_commerce:business_dashboard", args=[self.business.pk])
+		)
+		self.assertContains(dashboard, "Connecté : Immigration97 +237 693 64 99 44 (250/24h)")
+		self.assertEqual(meta_request.call_count, 3)
+		self.assertEqual(meta_request.call_args_list[0].args[:2], ("GET", "654321"))
+		self.assertEqual(meta_request.call_args_list[1].args[:2], ("GET", "123456/phone_numbers"))
+		self.assertEqual(meta_request.call_args_list[2].args[:2], ("POST", "123456/subscribed_apps"))
+
+	@patch("whatsapp_commerce.onboarding._request_meta")
+	def test_existing_waba_sync_rejects_phone_not_owned_by_configured_waba(self, meta_request):
+		self.business.public_slug = "immigration-canada-douala"
+		self.business.save(update_fields=["public_slug", "updated_at"])
+		meta_request.side_effect = [
+			{"id": "654321", "status": "CONNECTED"},
+			{"data": [{"id": "another-phone"}]},
+		]
+
+		with self.settings(
+			WHATSAPP_WABA_ID="123456",
+			WHATSAPP_PHONE_NUMBER_ID="654321",
+			WHATSAPP_ACCESS_TOKEN="existing-waba-token",
+		):
+			with self.assertRaisesMessage(MetaOnboardingError, "appartient au WABA configuré"):
+				sync_existing_waba(self.business)
+
+		self.assertEqual(meta_request.call_count, 2)
+		self.assertFalse(BusinessWhatsAppConnection.objects.filter(business=self.business).exists())
+
+	def test_existing_waba_sync_is_restricted_to_designated_profile(self):
+		with self.settings(
+			WHATSAPP_WABA_ID="123456",
+			WHATSAPP_PHONE_NUMBER_ID="654321",
+			WHATSAPP_ACCESS_TOKEN="existing-waba-token",
+		):
+			with patch("whatsapp_commerce.onboarding._request_meta") as meta_request:
+				with self.assertRaisesMessage(MetaOnboardingError, "n’est pas autorisée"):
+					sync_existing_waba(self.business)
+
+		meta_request.assert_not_called()
+
+	def test_dashboard_keeps_embedded_signup_for_other_business_profiles(self):
+		self.business.public_slug = "immigration-canada-douala"
+		self.business.plan = BusinessProfile.Plan.PRO
+		self.business.subscription_expires_at = timezone.now() + timezone.timedelta(days=5)
+		self.business.save(update_fields=["public_slug", "plan", "subscription_expires_at", "updated_at"])
+		self.client.force_login(self.owner)
+
+		with self.settings(
+			WHATSAPP_WABA_ID="123456",
+			WHATSAPP_PHONE_NUMBER_ID="654321",
+			WHATSAPP_ACCESS_TOKEN="existing-waba-token",
+		):
+			target_response = self.client.get(
+				reverse("whatsapp_commerce:business_dashboard", args=[self.business.pk])
+			)
+			self.assertContains(target_response, "Compte Meta prêt à vérifier")
+			self.assertContains(target_response, "Synchroniser")
+			self.assertNotContains(target_response, "Connecter mon compte WhatsApp")
+
+			self.business.public_slug = "autre-fiche"
+			self.business.save(update_fields=["public_slug", "updated_at"])
+			other_response = self.client.get(
+				reverse("whatsapp_commerce:business_dashboard", args=[self.business.pk])
+			)
+
+		self.assertContains(other_response, "Connecter mon compte WhatsApp")
+		self.assertNotContains(other_response, "Synchroniser")
 
 	@patch("whatsapp_commerce.onboarding._request_meta")
 	def test_get_assigned_applications_uses_meta_me_endpoint(self, meta_request):
