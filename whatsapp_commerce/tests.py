@@ -418,6 +418,103 @@ class BusinessWhatsAppTests(TestCase):
 		self.assertEqual(meta_request.call_args_list[2].args[:2], ("POST", "123456/subscribed_apps"))
 
 	@patch("whatsapp_commerce.onboarding._request_meta")
+	def test_existing_waba_sync_moves_same_owner_connection_without_deleting_source_profile(self, meta_request):
+		self.business.public_slug = "immigration-canada-douala"
+		self.business.save(update_fields=["public_slug", "updated_at"])
+		source_business = BusinessProfile.objects.create(
+			owner=self.owner,
+			module=BusinessProfile.Module.GENERAL,
+			name="Ancienne fiche WhatsApp",
+			public_slug="ancienne-fiche-whatsapp",
+		)
+		connection = BusinessWhatsAppConnection.objects.create(
+			business=source_business,
+			waba_id="123456",
+			phone_number_id="654321",
+			status=BusinessWhatsAppConnection.Status.ACTIVE,
+			agent_enabled=True,
+			automations_enabled=True,
+		)
+		connection.set_access_token("old-existing-waba-token")
+		connection.save(update_fields=["access_token_encrypted"])
+		contact = BusinessWhatsAppContact.objects.create(
+			business=source_business,
+			phone="+237693649944",
+			marketing_opt_in=True,
+			consent_marketing=True,
+		)
+		scheduled = ScheduledBusinessWhatsAppMessage.objects.create(
+			contact=contact,
+			connection=connection,
+			template_name="approved_follow_up",
+			template_language="fr",
+			scheduled_for=timezone.now() + timezone.timedelta(days=1),
+		)
+		meta_request.side_effect = [
+			{
+				"id": "654321",
+				"display_phone_number": "+237 693 64 99 44",
+				"verified_name": "Immigration97",
+				"status": "CONNECTED",
+				"quality_rating": "GREEN",
+				"whatsapp_business_manager_messaging_limit": "250",
+			},
+			{"data": [{"id": "654321"}]},
+			{"success": True},
+		]
+
+		with self.settings(
+			WHATSAPP_WABA_ID="123456",
+			WHATSAPP_PHONE_NUMBER_ID="",
+			WHATSAPP_ACCESS_TOKEN="",
+			WHATSAPP_PHONE_ID="654321",
+			WHATSAPP_TOKEN="existing-waba-token",
+		):
+			moved_connection = sync_existing_waba(self.business)
+
+		source_business.refresh_from_db()
+		moved_connection.refresh_from_db()
+		scheduled.refresh_from_db()
+		self.assertTrue(BusinessProfile.objects.filter(pk=source_business.pk).exists())
+		self.assertEqual(moved_connection.business_id, self.business.pk)
+		self.assertEqual(moved_connection.pk, connection.pk)
+		self.assertFalse(moved_connection.agent_enabled)
+		self.assertFalse(moved_connection.automations_enabled)
+		self.assertEqual(scheduled.status, ScheduledBusinessWhatsAppMessage.Status.CANCELLED)
+		self.assertEqual(contact.business_id, source_business.pk)
+		self.assertTrue(BusinessWhatsAppAudit.objects.filter(
+			connection=moved_connection,
+			event_type="provider_existing_waba_transferred",
+			details__from_business_id=source_business.pk,
+			details__to_business_id=self.business.pk,
+		).exists())
+
+	@patch("whatsapp_commerce.onboarding._request_meta")
+	def test_existing_waba_sync_does_not_move_connection_from_another_owner(self, meta_request):
+		self.business.public_slug = "immigration-canada-douala"
+		self.business.save(update_fields=["public_slug", "updated_at"])
+		connection = BusinessWhatsAppConnection.objects.create(
+			business=self.other_business,
+			waba_id="123456",
+			phone_number_id="654321",
+			status=BusinessWhatsAppConnection.Status.ACTIVE,
+		)
+
+		with self.settings(
+			WHATSAPP_WABA_ID="123456",
+			WHATSAPP_PHONE_NUMBER_ID="",
+			WHATSAPP_ACCESS_TOKEN="",
+			WHATSAPP_PHONE_ID="654321",
+			WHATSAPP_TOKEN="existing-waba-token",
+		):
+			with self.assertRaisesMessage(MetaOnboardingError, "appartenant à un autre compte"):
+				sync_existing_waba(self.business)
+
+		connection.refresh_from_db()
+		self.assertEqual(connection.business_id, self.other_business.pk)
+		meta_request.assert_not_called()
+
+	@patch("whatsapp_commerce.onboarding._request_meta")
 	def test_existing_waba_sync_rejects_phone_not_owned_by_configured_waba(self, meta_request):
 		self.business.public_slug = "immigration-canada-douala"
 		self.business.save(update_fields=["public_slug", "updated_at"])

@@ -322,6 +322,7 @@ def business_whatsapp_dashboard(request, business_id):
 		contact = contacts.filter(pk=contact_id).first()
 	catalog_syncs = BusinessCatalogWhatsAppSync.objects.filter(
 		connection=connection,
+		business_catalog_item__business=business,
 	).select_related("business_catalog_item")[:50] if connection else []
 	meta_messaging_limit_display = ""
 	if connection and connection.meta_messaging_limit:

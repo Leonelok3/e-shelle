@@ -8,7 +8,11 @@ from django.db import transaction
 from django.db.models import Q
 from django.utils import timezone
 
-from .models import BusinessWhatsAppConnection, ScheduledBusinessWhatsAppMessage
+from .models import (
+    BusinessWhatsAppAudit,
+    BusinessWhatsAppConnection,
+    ScheduledBusinessWhatsAppMessage,
+)
 
 
 EXISTING_WABA_TARGET_PUBLIC_SLUG = "immigration-canada-douala"
@@ -139,11 +143,25 @@ def sync_existing_waba(business):
         raise MetaOnboardingError(
             "Un autre compte WhatsApp est déjà associé à cette fiche. Il n’a pas été modifié."
         )
-    conflict = BusinessWhatsAppConnection.objects.exclude(business=business).filter(
-        Q(waba_id=waba_id) | Q(phone_number_id=phone_number_id)
-    ).exists()
-    if conflict:
-        raise MetaOnboardingError("Ce compte ou numéro WhatsApp est déjà relié à une autre fiche E-Shelle.")
+    conflicting_connection = (
+        BusinessWhatsAppConnection.objects.exclude(business=business)
+        .filter(Q(waba_id=waba_id) | Q(phone_number_id=phone_number_id))
+        .select_related("business")
+        .first()
+    )
+    if conflicting_connection:
+        if (
+            conflicting_connection.waba_id != waba_id
+            or conflicting_connection.phone_number_id != phone_number_id
+        ):
+            raise MetaOnboardingError(
+                "La connexion en conflit ne correspond pas exactement au WABA et au numéro configurés."
+            )
+        if not business.owner_id or conflicting_connection.business.owner_id != business.owner_id:
+            raise MetaOnboardingError(
+                "La connexion est associée à une fiche appartenant à un autre compte. "
+                "Demandez au propriétaire de transférer l’accès."
+            )
 
     phone_data = _request_meta(
         "GET",
@@ -175,6 +193,7 @@ def sync_existing_waba(business):
     ):
         raise MetaOnboardingError("Meta n’a pas confirmé que ce numéro appartient au WABA configuré.")
 
+    transferred_from_business_id = None
     with transaction.atomic():
         existing = BusinessWhatsAppConnection.objects.select_for_update().filter(
             business=business,
@@ -183,15 +202,38 @@ def sync_existing_waba(business):
             raise MetaOnboardingError(
                 "Un autre compte WhatsApp est déjà associé à cette fiche. Il n’a pas été modifié."
             )
-        conflict = BusinessWhatsAppConnection.objects.exclude(business=business).filter(
-            Q(waba_id=waba_id) | Q(phone_number_id=phone_number_id)
-        ).exists()
-        if conflict:
+        conflict = (
+            BusinessWhatsAppConnection.objects.select_for_update()
+            .exclude(business=business)
+            .filter(Q(waba_id=waba_id) | Q(phone_number_id=phone_number_id))
+            .select_related("business")
+            .first()
+        )
+        if conflict and (
+            conflict.waba_id != waba_id
+            or conflict.phone_number_id != phone_number_id
+            or not business.owner_id
+            or conflict.business.owner_id != business.owner_id
+        ):
             raise MetaOnboardingError(
-                "Ce compte ou numéro WhatsApp est déjà relié à une autre fiche E-Shelle."
+                "La connexion WhatsApp en conflit ne peut pas être déplacée en toute sécurité."
             )
 
-        connection = existing or BusinessWhatsAppConnection(business=business)
+        connection = conflict or existing or BusinessWhatsAppConnection(business=business)
+        if conflict:
+            transferred_from_business_id = conflict.business_id
+            ScheduledBusinessWhatsAppMessage.objects.filter(
+                connection=connection,
+                status=ScheduledBusinessWhatsAppMessage.Status.SCHEDULED,
+            ).update(
+                status=ScheduledBusinessWhatsAppMessage.Status.CANCELLED,
+                last_error="La connexion WhatsApp a été déplacée vers une autre fiche.",
+                updated_at=timezone.now(),
+            )
+            connection.agent_enabled = False
+            connection.automations_enabled = False
+            connection.agent_catalog_items.clear()
+            connection.business = business
         connection.waba_id = waba_id
         connection.phone_number_id = phone_number_id
         if meta_business_id:
@@ -210,6 +252,16 @@ def sync_existing_waba(business):
         connection.last_error = ""
         connection.last_meta_sync_at = timezone.now()
         connection.save()
+        if transferred_from_business_id:
+            BusinessWhatsAppAudit.objects.create(
+                connection=connection,
+                event_type="provider_existing_waba_transferred",
+                action="transferred",
+                details={
+                    "from_business_id": transferred_from_business_id,
+                    "to_business_id": business.pk,
+                },
+            )
 
     try:
         resubscribe_connection_webhook(connection)
