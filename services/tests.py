@@ -7,6 +7,12 @@ class PublicMetaReviewPagesTests(TestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "E-Shelle est Tech Provider Meta (App ID 1841260056892991)")
+        self.assertContains(response, "Créer ma fiche business gratuite")
+        self.assertContains(response, "Connecter WhatsApp Business")
+        self.assertContains(response, "Mise en service WhatsApp : 25 000 FCFA une fois")
+        self.assertContains(response, "5 000 FCFA")
+        self.assertContains(response, "15 000 FCFA")
+        self.assertContains(response, "30 000 FCFA")
         for unpublished_text in (
             "VERCEL",
             "Marcelle Kenfack",
