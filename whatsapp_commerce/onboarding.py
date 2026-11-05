@@ -116,8 +116,14 @@ def sync_existing_waba(business):
         raise MetaOnboardingError("La synchronisation du WABA existant n’est pas autorisée pour cette fiche.")
 
     waba_id = str(getattr(settings, "WHATSAPP_WABA_ID", "")).strip()
-    phone_number_id = str(getattr(settings, "WHATSAPP_PHONE_NUMBER_ID", "")).strip()
-    token = str(getattr(settings, "WHATSAPP_ACCESS_TOKEN", "")).strip()
+    phone_number_id = str(
+        getattr(settings, "WHATSAPP_PHONE_NUMBER_ID", "")
+        or getattr(settings, "WHATSAPP_PHONE_ID", "")
+    ).strip()
+    token = str(
+        getattr(settings, "WHATSAPP_ACCESS_TOKEN", "")
+        or getattr(settings, "WHATSAPP_TOKEN", "")
+    ).strip()
     meta_business_id = str(getattr(settings, "WHATSAPP_BUSINESS_ID", "")).strip()
     if not waba_id or not phone_number_id or not token:
         raise MetaOnboardingError("La configuration du compte WhatsApp existant est incomplète.")

@@ -376,13 +376,22 @@ def business_whatsapp_dashboard(request, business_id):
 			"existing_waba_ids_configured": bool(
 				business.public_slug == EXISTING_WABA_TARGET_PUBLIC_SLUG
 				and getattr(settings, "WHATSAPP_WABA_ID", "")
-				and getattr(settings, "WHATSAPP_PHONE_NUMBER_ID", "")
+				and (
+					getattr(settings, "WHATSAPP_PHONE_NUMBER_ID", "")
+					or getattr(settings, "WHATSAPP_PHONE_ID", "")
+				)
 			),
 			"existing_waba_sync_available": bool(
 				business.public_slug == EXISTING_WABA_TARGET_PUBLIC_SLUG
 				and getattr(settings, "WHATSAPP_WABA_ID", "")
-				and getattr(settings, "WHATSAPP_PHONE_NUMBER_ID", "")
-				and getattr(settings, "WHATSAPP_ACCESS_TOKEN", "")
+				and (
+					getattr(settings, "WHATSAPP_PHONE_NUMBER_ID", "")
+					or getattr(settings, "WHATSAPP_PHONE_ID", "")
+				)
+				and (
+					getattr(settings, "WHATSAPP_ACCESS_TOKEN", "")
+					or getattr(settings, "WHATSAPP_TOKEN", "")
+				)
 			),
 		},
 	)

@@ -391,8 +391,10 @@ class BusinessWhatsAppTests(TestCase):
 
 		with self.settings(
 			WHATSAPP_WABA_ID="123456",
-			WHATSAPP_PHONE_NUMBER_ID="654321",
-			WHATSAPP_ACCESS_TOKEN="existing-waba-token",
+			WHATSAPP_PHONE_NUMBER_ID="",
+			WHATSAPP_ACCESS_TOKEN="",
+			WHATSAPP_PHONE_ID="654321",
+			WHATSAPP_TOKEN="existing-waba-token",
 			WHATSAPP_BUSINESS_ID="777",
 		):
 			connection = sync_existing_waba(self.business)
@@ -426,8 +428,10 @@ class BusinessWhatsAppTests(TestCase):
 
 		with self.settings(
 			WHATSAPP_WABA_ID="123456",
-			WHATSAPP_PHONE_NUMBER_ID="654321",
-			WHATSAPP_ACCESS_TOKEN="existing-waba-token",
+			WHATSAPP_PHONE_NUMBER_ID="",
+			WHATSAPP_ACCESS_TOKEN="",
+			WHATSAPP_PHONE_ID="654321",
+			WHATSAPP_TOKEN="existing-waba-token",
 		):
 			with self.assertRaisesMessage(MetaOnboardingError, "appartient au WABA configuré"):
 				sync_existing_waba(self.business)
@@ -438,8 +442,10 @@ class BusinessWhatsAppTests(TestCase):
 	def test_existing_waba_sync_is_restricted_to_designated_profile(self):
 		with self.settings(
 			WHATSAPP_WABA_ID="123456",
-			WHATSAPP_PHONE_NUMBER_ID="654321",
-			WHATSAPP_ACCESS_TOKEN="existing-waba-token",
+			WHATSAPP_PHONE_NUMBER_ID="",
+			WHATSAPP_ACCESS_TOKEN="",
+			WHATSAPP_PHONE_ID="654321",
+			WHATSAPP_TOKEN="existing-waba-token",
 		):
 			with patch("whatsapp_commerce.onboarding._request_meta") as meta_request:
 				with self.assertRaisesMessage(MetaOnboardingError, "n’est pas autorisée"):
@@ -456,8 +462,10 @@ class BusinessWhatsAppTests(TestCase):
 
 		with self.settings(
 			WHATSAPP_WABA_ID="123456",
-			WHATSAPP_PHONE_NUMBER_ID="654321",
-			WHATSAPP_ACCESS_TOKEN="existing-waba-token",
+			WHATSAPP_PHONE_NUMBER_ID="",
+			WHATSAPP_ACCESS_TOKEN="",
+			WHATSAPP_PHONE_ID="654321",
+			WHATSAPP_TOKEN="existing-waba-token",
 		):
 			target_response = self.client.get(
 				reverse("whatsapp_commerce:business_dashboard", args=[self.business.pk])
