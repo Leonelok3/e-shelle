@@ -439,6 +439,24 @@ class CampayClientTests(TestCase):
         tx.refresh_from_db()
         self.assertEqual(tx.statut, "initie")
 
+    def test_legacy_webhook_cannot_change_transaction_status(self):
+        tx = self.make_transaction(
+            methode="mtn_momo",
+            ref_operateur="unverified-ref",
+        )
+        response = self.client.post(
+            reverse("payments:webhook"),
+            data=json.dumps({
+                "reference": "unverified-ref",
+                "status": "SUCCESSFUL",
+            }),
+            content_type="application/json",
+        )
+
+        self.assertEqual(response.status_code, 410)
+        tx.refresh_from_db()
+        self.assertEqual(tx.statut, "initie")
+
     def test_return_page_reports_manual_validation_after_verified_payment(self):
         user = get_user_model().objects.create_user(username="buyer", password="test")
         tx = self.make_transaction(

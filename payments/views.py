@@ -468,27 +468,14 @@ def historique(request):
 
 @csrf_exempt
 def webhook(request):
-    """Webhook pour les confirmations de paiement Mobile Money (MTN / Airtel)."""
+    """Retired legacy callback; payment status must be verified with the provider."""
     if request.method != "POST":
         return JsonResponse({"error": "Method not allowed"}, status=405)
 
-    try:
-        data = json.loads(request.body)
-        ref  = data.get("reference", "")
-        tx   = Transaction.objects.exclude(methode="campay").filter(ref_operateur=ref).first()
-
-        if tx:
-            statut = data.get("status", "")
-            if statut in ("SUCCESS", "SUCCESSFUL"):
-                tx.statut = "succes"
-            elif statut in ("FAILED", "CANCELLED"):
-                tx.statut = "echec"
-            tx.save(update_fields=["statut"])
-
-    except Exception as e:
-        return JsonResponse({"error": str(e)}, status=400)
-
-    return JsonResponse({"ok": True})
+    return JsonResponse(
+        {"error": "Legacy callback retired; provider verification is required."},
+        status=410,
+    )
 
 
 @csrf_exempt
