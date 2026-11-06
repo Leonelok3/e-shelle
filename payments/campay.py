@@ -173,6 +173,13 @@ def reconcile_transaction(transaction_obj, client=None):
         elif current.statut not in {"succes", "rembourse", "pending_awaiting_manual_validation", "echec"}:
             current.statut = "en_attente"
         current.save(update_fields=["metadata", "statut", "erreur", "updated_at"])
+        if status == "SUCCESSFUL" and metadata.get("product_type") == "provider_whatsapp_onboarding":
+            from business.services import activate_provider_whatsapp_payment
+
+            if not activate_provider_whatsapp_payment(current):
+                raise CampayError(
+                    "The verified provider onboarding payment could not be activated."
+                )
         payment_id = metadata.get("app_payment_history_id")
         if payment_id:
             from accounts.models import AppSubscription, PaymentHistory

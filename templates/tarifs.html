@@ -1,28 +1,26 @@
 {% extends "base.html" %}
-{% load static %}
+{% load i18n static %}
 
-{% block title %}{% if LANGUAGE_CODE == 'en' %}Local visibility, WhatsApp and AI plans in Cameroon | E-Shelle{% else %}Tarifs E-Shelle : visibilité locale, WhatsApp et IA au Cameroun{% endif %}{% endblock %}
-{% block meta_description %}{% if LANGUAGE_CODE == 'en' %}Compare E-Shelle plans for local visibility, WhatsApp CRM and AI tools. Prices in XAF; Meta fees are billed separately.{% else %}Comparez les offres E-Shelle pour la visibilité locale, le CRM WhatsApp et les outils IA. Tarifs en FCFA; frais Meta séparés.{% endif %}{% endblock %}
-
-{% block nav_tarifs %}active{% endblock %}
-
-{% block extra_head %}
+{% block title %}
+  {% if LANGUAGE_CODE == 'en' %}
+    Pricing &amp; Opportunities | E-Shelle
+  {% else %}
+    Tarifs &amp; Opportunités | E-Shelle
+  {% endif %}
 {% endblock %}
 
 {% block extra_css %}
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=Outfit:wght@600;700;800;900&display=swap');
+  @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Outfit:wght@600;700;800;900&display=swap');
 
   :root {
-    --color-bg-dark: #05100c; /* Premium dark forest green matching Capture 3 */
-    --color-primary-light: #7dec6c;
+    --color-bg-dark: #061109;
     --color-primary: #22c55e;
-    --color-secondary: #f59e0b;
-    --color-accent-blue: #3b82f6;
-    --color-card-bg: #ffffff;
-    --color-border: rgba(0, 0, 0, 0.06);
-    --color-text-white: #ffffff;
-    --color-text-gray: #cbd5e1;
+    --color-primary-dark: #16a34a;
+    --color-primary-light: #4ade80;
+    --color-orange: #f97316;
+    --color-orange-dark: #ea580c;
+    --color-orange-light: #fb923c;
     --font-heading: 'Outfit', sans-serif;
     --font-body: 'Plus Jakarta Sans', sans-serif;
     --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -31,46 +29,69 @@
   .tarifs-page {
     min-height: 100vh;
     background: 
-      radial-gradient(circle at 80% 10%, rgba(34, 197, 94, 0.15), transparent 50%),
-      radial-gradient(circle at 15% 45%, rgba(245, 158, 11, 0.1), transparent 45%),
-      radial-gradient(circle at 50% 85%, rgba(34, 197, 94, 0.12), transparent 50%),
+      radial-gradient(circle at 85% 12%, rgba(34, 197, 94, 0.12), transparent 45%),
+      radial-gradient(circle at 15% 40%, rgba(249, 115, 22, 0.08), transparent 45%),
+      radial-gradient(circle at 50% 85%, rgba(34, 197, 94, 0.1), transparent 50%),
       var(--color-bg-dark);
-    color: var(--color-text-white);
+    color: #f8fafc;
     font-family: var(--font-body);
-    padding: 9rem 0 6rem;
+    padding: 8rem 0 6rem;
     overflow-x: hidden;
   }
 
   .tarifs-container {
-    width: min(1200px, calc(100% - 40px));
+    width: min(1420px, calc(100% - 48px));
     margin: 0 auto;
   }
 
   .tarifs-hero {
     text-align: center;
-    margin-bottom: 5rem;
+    margin-bottom: 4.5rem;
     position: relative;
+  }
+
+  .pres-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 16px;
+    border-radius: 999px;
+    background: rgba(34, 197, 94, 0.12);
+    border: 1px solid rgba(74, 222, 128, 0.3);
+    color: #4ade80;
+    font-size: 0.8rem;
+    font-weight: 800;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    margin-bottom: 1.25rem;
   }
 
   .tarifs-hero h1 {
     font-family: var(--font-heading);
-    font-size: clamp(2.2rem, 5vw, 3.8rem);
+    font-size: clamp(2.3rem, 5vw, 3.8rem);
     font-weight: 900;
     line-height: 1.15;
     margin-bottom: 1.25rem;
     letter-spacing: -0.02em;
+    color: #ffffff;
   }
 
-  .tarifs-hero h1 span {
-    background: linear-gradient(135deg, var(--color-primary-light) 0%, var(--color-primary) 100%);
+  .text-gradient-green {
+    background: linear-gradient(135deg, #4ade80 0%, #22c55e 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  .text-gradient-orange {
+    background: linear-gradient(135deg, #fb923c 0%, #f97316 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
   }
 
   .tarifs-hero p {
-    color: var(--color-text-gray);
-    font-size: clamp(1rem, 1.2vw, 1.2rem);
-    max-width: 780px;
+    color: #cbd5e1;
+    font-size: clamp(1rem, 1.2vw, 1.18rem);
+    max-width: 800px;
     margin: 0 auto;
     line-height: 1.7;
   }
@@ -79,224 +100,196 @@
     font-family: var(--font-heading);
     font-size: clamp(1.6rem, 3vw, 2.2rem);
     font-weight: 800;
-    margin-bottom: 0.75rem;
-    color: var(--color-text-white);
+    margin-bottom: 0.5rem;
+    color: #ffffff;
     display: flex;
     align-items: center;
     gap: 0.75rem;
   }
 
+  .tarifs-section-title svg {
+    color: #22c55e;
+  }
+
   .tarifs-section-subtitle {
-    color: var(--color-text-gray);
-    font-size: 0.98rem;
+    color: #cbd5e1;
+    font-size: 0.96rem;
     margin-bottom: 2.5rem;
-    max-width: 650px;
+    max-width: 700px;
     line-height: 1.6;
   }
 
   /* Grid layouts */
   .plans-grid {
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(4, minmax(0, 1fr));
     gap: 1.5rem;
-    margin-bottom: 6rem;
-  }
-
-  @keyframes sheen {
-    0% { transform: rotate(45deg) translateX(-150%); }
-    100% { transform: rotate(45deg) translateX(150%); }
+    margin-bottom: 4rem;
+    align-items: stretch;
   }
 
   /* Pricing Cards */
   .plan-card {
-    border: 1px solid rgba(46, 125, 50, 0.08);
-    border-radius: 24px;
-    background: var(--color-card-bg);
-    padding: 2.75rem 2rem;
+    border: 1px solid rgba(74, 222, 128, 0.18);
+    border-radius: 20px;
+    background: linear-gradient(165deg, rgba(14, 34, 23, 0.82) 0%, rgba(9, 23, 15, 0.94) 100%);
+    backdrop-filter: blur(14px);
+    padding: 2.25rem 1.65rem;
     display: flex;
     flex-direction: column;
-    transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+    transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
     position: relative;
     overflow: hidden;
-    box-shadow: 0 10px 30px rgba(11, 29, 18, 0.04);
-    color: #1e293b;
-    transform-style: preserve-3d;
-    perspective: 1000px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+    color: #f8fafc;
   }
 
   .plan-card::before {
     content: "";
     position: absolute;
-    top: 0; left: 0; right: 0; height: 4px;
-    background: linear-gradient(90deg, #15803d, #f59e0b);
-    opacity: 0;
+    top: 0; left: 0; right: 0; height: 3px;
+    background: rgba(255, 255, 255, 0.16);
     transition: var(--transition-smooth);
     z-index: 2;
   }
 
-  .plan-card::after {
-    content: "";
-    position: absolute;
-    top: -50%; left: -50%; width: 200%; height: 200%;
-    background: linear-gradient(
-      to right,
-      rgba(255, 255, 255, 0) 0%,
-      rgba(255, 255, 255, 0.3) 50%,
-      rgba(255, 255, 255, 0) 100%
-    );
-    transform: rotate(45deg) translateX(-150%);
-    pointer-events: none;
-    z-index: 3;
-  }
-
-  .plan-card:hover::after {
-    animation: sheen 1.2s cubic-bezier(0.16, 1, 0.3, 1);
-  }
-
   .plan-card:hover {
-    transform: translateY(-8px) rotateX(1deg) rotateY(0.5deg);
-    border-color: rgba(34, 197, 94, 0.25);
-    box-shadow: 0 25px 50px rgba(11, 29, 18, 0.1);
+    transform: translateY(-6px);
+    border-color: rgba(74, 222, 128, 0.4);
+    box-shadow: 0 20px 45px rgba(0, 0, 0, 0.45);
   }
 
-  .plan-card:hover::before {
-    opacity: 1;
+  .plan-card.featured {
+    border: 2px solid #22c55e;
+    background: linear-gradient(165deg, rgba(20, 52, 34, 0.92) 0%, rgba(11, 28, 19, 0.98) 100%);
+    box-shadow: 0 0 35px rgba(34, 197, 94, 0.22), 0 20px 50px rgba(0, 0, 0, 0.45);
+    transform: scale(1.02);
+    z-index: 2;
+  }
+
+  .plan-card.featured::before {
+    background: linear-gradient(90deg, #22c55e, #f97316);
+    height: 4px;
+  }
+
+  .plan-card.featured:hover {
+    transform: scale(1.02) translateY(-6px);
+    box-shadow: 0 0 45px rgba(34, 197, 94, 0.35), 0 25px 60px rgba(0, 0, 0, 0.5);
   }
 
   .plan-badge {
     align-self: flex-start;
-    padding: 0.4rem 0.9rem;
-    border-radius: 100px;
-    font-size: 0.72rem;
+    padding: 0.4rem 0.95rem;
+    border-radius: 999px;
+    font-size: 0.74rem;
     font-weight: 800;
     text-transform: uppercase;
-    letter-spacing: 0.06em;
-    margin-bottom: 1.5rem;
+    letter-spacing: 0.07em;
+    margin-bottom: 1.25rem;
   }
 
-  /* Custom badge colors */
-  .plan-card:nth-of-type(1) .plan-badge {
-    background: rgba(34, 197, 94, 0.08);
-    color: #15803d;
-    border: 1px solid rgba(34, 197, 94, 0.15);
-  }
-  .plan-card:nth-of-type(2) .plan-badge {
-    background: rgba(245, 158, 11, 0.08);
-    color: #d97706;
-    border: 1px solid rgba(245, 158, 11, 0.18);
-  }
-  .plan-card:nth-of-type(3) .plan-badge {
-    background: rgba(34, 197, 94, 0.08);
-    color: #15803d;
-    border: 1px solid rgba(34, 197, 94, 0.15);
-  }
-  .plan-card:nth-of-type(4) .plan-badge {
-    background: rgba(245, 158, 11, 0.08);
-    color: #d97706;
-    border: 1px solid rgba(245, 158, 11, 0.18);
+  .plan-badge-free {
+    background: rgba(255, 255, 255, 0.08);
+    color: #cbd5e1;
+    border: 1px solid rgba(255, 255, 255, 0.16);
   }
 
-  .plan-card.featured {
-    border: 2px solid #16a34a;
-    background: #ffffff;
-    box-shadow: 0 20px 45px rgba(34, 197, 94, 0.12);
+  .plan-badge-pro {
+    background: rgba(34, 197, 94, 0.2);
+    color: #4ade80;
+    border: 1px solid rgba(34, 197, 94, 0.45);
+    box-shadow: 0 0 12px rgba(34, 197, 94, 0.25);
   }
 
-  .plan-card.featured::before {
-    opacity: 1;
-    background: linear-gradient(90deg, #16a34a, #f59e0b);
+  .plan-badge-business {
+    background: rgba(249, 115, 22, 0.2);
+    color: #fb923c;
+    border: 1px solid rgba(249, 115, 22, 0.45);
+    box-shadow: 0 0 12px rgba(249, 115, 22, 0.25);
   }
 
-  .plan-card.featured::after {
-    background: linear-gradient(
-      to right,
-      rgba(255, 255, 255, 0) 0%,
-      rgba(255, 255, 255, 0.4) 50%,
-      rgba(255, 255, 255, 0) 100%
-    );
-  }
-
-  .plan-card.featured:hover {
-    transform: translateY(-10px) rotateX(1.5deg) rotateY(0.75deg);
-    border-color: #f59e0b;
-    box-shadow: 0 30px 60px rgba(34, 197, 94, 0.18);
+  .plan-badge-premium {
+    background: linear-gradient(135deg, rgba(34, 197, 94, 0.2), rgba(249, 115, 22, 0.2));
+    color: #fde047;
+    border: 1px solid rgba(253, 224, 71, 0.35);
   }
 
   .plan-card h3 {
     font-family: var(--font-heading);
-    font-size: 1.45rem;
+    font-size: 1.4rem;
     font-weight: 800;
-    margin-bottom: 0.5rem;
-    color: #0c2419; /* Deep forest black-green */
+    margin: 0 0 0.5rem;
+    color: #ffffff;
     letter-spacing: -0.01em;
   }
 
   .plan-price {
-    margin: 1rem 0 1.25rem;
+    margin: 0.65rem 0 1.15rem;
     display: flex;
     align-items: baseline;
-    gap: 0.25rem;
+    gap: 0.35rem;
   }
 
   .plan-price strong {
     font-family: var(--font-heading);
-    font-size: 2.3rem;
+    font-size: 2.15rem;
     font-weight: 900;
-    color: #0a1d12; /* Deep black-green */
+    color: #ffffff;
+    line-height: 1.1;
   }
 
   .plan-price span {
-    font-size: 0.88rem;
-    color: #ea580c; /* Orange for "/ mois" */
+    font-size: 0.85rem;
+    color: #86efac;
     font-weight: 700;
   }
 
   .plan-desc {
-    color: #475569;
-    font-size: 0.92rem;
+    color: #cbd5e1;
+    font-size: 0.88rem;
     line-height: 1.55;
-    margin-bottom: 2rem;
-    min-height: 50px;
+    margin-bottom: 1.5rem;
+    min-height: 52px;
   }
 
   .plan-features {
     list-style: none;
     padding: 0;
-    margin: 0 0 2.5rem;
-    display: grid;
+    margin: 0 0 2rem;
+    display: flex;
+    flex-direction: column;
     gap: 0.85rem;
-    margin-top: auto;
+    flex-grow: 1; /* Aligns all buttons perfectly at bottom */
   }
 
   .plan-features li {
-    font-size: 0.88rem;
-    color: #1a2e22; /* Dark green-grey */
+    font-size: 0.86rem;
+    color: #e2e8f0;
     display: flex;
     align-items: flex-start;
     gap: 0.65rem;
     line-height: 1.45;
   }
 
-  /* Premium checkmark color mixing */
   .plan-features li svg {
-    color: #16a34a; /* Default rich green check */
+    color: #22c55e;
     flex-shrink: 0;
-    margin-top: 0.15rem;
+    margin-top: 0.2rem;
   }
 
   .plan-features li:has(strong) svg {
-    color: #f59e0b; /* Orange check for key/boosted features */
+    color: #fb923c;
   }
 
   .plan-features li strong {
-    color: #ea580c; /* Orange for important texts */
+    color: #ffffff;
     font-weight: 700;
   }
 
   .btn-plan {
     width: 100%;
     height: 48px;
-    border-radius: 999px; /* Pill shaped buttons like Capture 2 */
+    border-radius: 12px;
     font-family: var(--font-heading);
     font-weight: 800;
     font-size: 0.95rem;
@@ -306,74 +299,117 @@
     text-decoration: none;
     transition: var(--transition-smooth);
     border: none;
-    background: linear-gradient(135deg, #15803d 0%, #f59e0b 100%);
-    color: #ffffff !important;
-    box-shadow: 0 4px 15px rgba(46, 125, 50, 0.2);
+    cursor: pointer;
+    margin-top: auto;
   }
 
-  .btn-plan:hover {
+  .btn-plan-free {
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.22);
+    color: #ffffff !important;
+  }
+
+  .btn-plan-free:hover {
+    background: rgba(34, 197, 94, 0.2);
+    border-color: #22c55e;
+    color: #4ade80 !important;
     transform: translateY(-2px);
-    box-shadow: 0 8px 25px rgba(245, 124, 0, 0.35);
-    background: linear-gradient(135deg, #1b9c4c 0%, #ff9800 100%);
-    color: #ffffff !important;
   }
 
-  /* Custom styling helpers */
+  .btn-plan-pro {
+    background: linear-gradient(135deg, #16a34a, #15803d);
+    border: 1px solid rgba(74, 222, 128, 0.4);
+    color: #ffffff !important;
+    box-shadow: 0 4px 18px rgba(22, 163, 74, 0.35);
+  }
+
+  .btn-plan-pro:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(22, 163, 74, 0.5);
+    background: linear-gradient(135deg, #22c55e, #16a34a);
+  }
+
+  .btn-plan-business {
+    background: linear-gradient(135deg, #f97316, #ea580c);
+    border: 1px solid rgba(249, 115, 22, 0.4);
+    color: #ffffff !important;
+    box-shadow: 0 4px 18px rgba(249, 115, 22, 0.35);
+  }
+
+  .btn-plan-business:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(249, 115, 22, 0.5);
+    background: linear-gradient(135deg, #fb923c, #f97316);
+  }
+
+  .btn-plan-premium {
+    background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+    border: 1px solid rgba(74, 222, 128, 0.4);
+    color: #ffffff !important;
+    box-shadow: 0 4px 18px rgba(34, 197, 94, 0.35);
+  }
+
+  .btn-plan-premium:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(34, 197, 94, 0.5);
+  }
+
   .text-green {
-    color: #7dec6c !important;
+    color: #4ade80 !important;
     font-weight: 700;
   }
 
   .text-orange {
-    color: #f9c332 !important;
+    color: #fb923c !important;
     font-weight: 700;
   }
 
-  /* Partner Row / Business Key styling */
+  /* Business Key Section */
   .bk-section {
-    border: 1px solid rgba(0, 0, 0, 0.08);
+    border: 1px solid rgba(249, 115, 22, 0.3);
     border-radius: 24px;
-    background: #ffffff;
-    padding: 3.5rem;
-    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.15);
-    color: #1e293b;
+    background: linear-gradient(165deg, rgba(16, 38, 26, 0.85) 0%, rgba(9, 23, 15, 0.96) 100%);
+    backdrop-filter: blur(14px);
+    padding: clamp(2rem, 4vw, 3.5rem);
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.45);
+    color: #f8fafc;
   }
 
   .bk-grid {
     display: grid;
     grid-template-columns: 1.1fr 0.9fr;
-    gap: 4rem;
+    gap: 3.5rem;
     align-items: center;
   }
 
   .bk-info h3 {
     font-family: var(--font-heading);
-    font-size: clamp(1.8rem, 3.5vw, 2.6rem);
+    font-size: clamp(1.8rem, 3.5vw, 2.5rem);
     font-weight: 800;
     line-height: 1.2;
-    margin-bottom: 1rem;
-    color: #0f172a;
+    margin: 0.5rem 0 1rem;
+    color: #ffffff;
   }
 
   .bk-info h3 span {
-    background: linear-gradient(135deg, #f9c332 0%, #f59e0b 100%);
+    background: linear-gradient(135deg, #fb923c 0%, #f97316 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
   }
 
   .bk-info p {
-    color: #475569;
-    font-size: 1.05rem;
+    color: #cbd5e1;
+    font-size: 0.98rem;
     line-height: 1.7;
-    margin-bottom: 2.25rem;
+    margin-bottom: 2rem;
   }
 
   .bk-price-badge {
     display: inline-flex;
     align-items: baseline;
     gap: 0.5rem;
-    background: rgba(245, 158, 11, 0.1);
-    border: 1px solid rgba(245, 158, 11, 0.2);
+    background: rgba(249, 115, 22, 0.12);
+    border: 1px solid rgba(249, 115, 22, 0.35);
     padding: 0.6rem 1.25rem;
     border-radius: 12px;
     margin-bottom: 2rem;
@@ -381,14 +417,14 @@
 
   .bk-price-badge strong {
     font-family: var(--font-heading);
-    font-size: 1.8rem;
-    color: var(--color-secondary);
+    font-size: 1.85rem;
+    color: #fb923c;
     font-weight: 900;
   }
 
   .bk-price-badge span {
     font-size: 0.82rem;
-    color: #475569;
+    color: #e2e8f0;
     text-transform: uppercase;
     font-weight: 600;
     letter-spacing: 0.05em;
@@ -405,14 +441,14 @@
 
   .bk-features-list li {
     font-size: 0.88rem;
-    color: #334155;
+    color: #e2e8f0;
     display: flex;
     align-items: center;
     gap: 0.6rem;
   }
 
   .bk-features-list li svg {
-    color: var(--color-secondary);
+    color: #22c55e;
     flex-shrink: 0;
   }
 
@@ -420,16 +456,16 @@
     height: 52px;
     padding: 0 2.5rem;
     border-radius: 12px;
-    background: linear-gradient(135deg, #f9c332, #f59e0b);
-    color: #070e17;
+    background: linear-gradient(135deg, #f97316, #ea580c);
+    color: #ffffff !important;
     font-family: var(--font-heading);
-    font-weight: 700;
+    font-weight: 800;
     font-size: 1rem;
     display: inline-flex;
     align-items: center;
     justify-content: center;
     border: none;
-    box-shadow: 0 8px 24px rgba(245, 158, 11, 0.25);
+    box-shadow: 0 6px 20px rgba(249, 115, 22, 0.4);
     text-decoration: none;
     transition: var(--transition-smooth);
     cursor: pointer;
@@ -437,25 +473,25 @@
 
   .btn-bk:hover {
     transform: translateY(-2px);
-    box-shadow: 0 12px 30px rgba(245, 158, 11, 0.4);
-    color: #070e17;
+    box-shadow: 0 10px 28px rgba(249, 115, 22, 0.55);
+    background: linear-gradient(135deg, #fb923c, #f97316);
   }
 
   .bk-stats-card {
-    border: 1px solid rgba(0, 0, 0, 0.06);
+    border: 1px solid rgba(74, 222, 128, 0.2);
     border-radius: 20px;
-    background: #ffffff;
-    padding: 2.5rem;
+    background: rgba(12, 28, 19, 0.85);
+    padding: 2.25rem;
     display: flex;
     flex-direction: column;
     gap: 1.75rem;
-    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.06);
-    color: #1e293b;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+    color: #f8fafc;
   }
 
   .bk-stat-item {
-    border-bottom: 1px solid rgba(0, 0, 0, 0.06);
-    padding-bottom: 1.5rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    padding-bottom: 1.4rem;
   }
 
   .bk-stat-item:last-child {
@@ -466,42 +502,45 @@
   .bk-stat-item strong {
     display: block;
     font-family: var(--font-heading);
-    font-size: 2.2rem;
+    font-size: 2.4rem;
     font-weight: 900;
-    color: var(--color-secondary);
+    color: #fb923c;
     margin-bottom: 0.15rem;
   }
 
   .bk-stat-item span {
-    font-size: 0.8rem;
+    font-size: 0.82rem;
     text-transform: uppercase;
     font-weight: 700;
     letter-spacing: 0.08em;
-    color: #475569;
+    color: #86efac;
   }
 
   .bk-stat-item p {
     font-size: 0.88rem;
-    color: #334155;
+    color: #cbd5e1;
     margin: 0.35rem 0 0;
     line-height: 1.4;
   }
 
   .tarifs-divider {
     height: 1px;
-    background: radial-gradient(circle, rgba(255,255,255,0.12) 0%, transparent 80%);
-    margin: 6rem 0;
+    background: radial-gradient(circle, rgba(74,222,128,0.25) 0%, transparent 80%);
+    margin: 5rem 0;
   }
 
   /* Responsive styling */
-  @media (max-width: 1024px) {
+  @media (max-width: 1200px) {
     .plans-grid {
       grid-template-columns: repeat(2, 1fr);
       gap: 1.5rem;
     }
+  }
+
+  @media (max-width: 860px) {
     .bk-grid {
       grid-template-columns: 1fr;
-      gap: 3rem;
+      gap: 2.5rem;
     }
   }
 
@@ -510,13 +549,13 @@
       grid-template-columns: 1fr;
     }
     .bk-section {
-      padding: 2rem 1.5rem;
+      padding: 2rem 1.25rem;
     }
     .bk-features-list {
       grid-template-columns: 1fr;
     }
     .tarifs-hero h1 {
-      font-size: 1.85rem;
+      font-size: 2rem;
     }
   }
 </style>
@@ -531,9 +570,9 @@
       <span class="pres-pill">{% if LANGUAGE_CODE == 'en' %}Pricing &amp; Opportunities{% else %}Tarifs &amp; Opportunités{% endif %}</span>
       <h1>
         {% if LANGUAGE_CODE == 'en' %}
-          Tailored plans to <span>boost</span> your <span>revenue</span>
+          Tailored plans to <span class="text-gradient-green">boost</span> your <span class="text-gradient-orange">revenue</span>
         {% else %}
-          Des plans sur mesure pour <span>propulser</span> vos <span>revenus</span>
+          Des plans sur mesure pour <span class="text-gradient-green">propulser</span> vos <span class="text-gradient-orange">revenus</span>
         {% endif %}
       </h1>
       <p>
@@ -566,7 +605,7 @@
       <div class="plans-grid">
         <!-- 1. GRATUIT -->
         <article class="plan-card">
-          <span class="plan-badge">{% if LANGUAGE_CODE == 'en' %}Overview{% else %}Aperçu{% endif %}</span>
+          <span class="plan-badge plan-badge-free">{% if LANGUAGE_CODE == 'en' %}Overview{% else %}Aperçu{% endif %}</span>
           <h3>{% if LANGUAGE_CODE == 'en' %}Free{% else %}Gratuit{% endif %}</h3>
           <div class="plan-price">
             <strong>0 FCFA</strong>
@@ -594,15 +633,15 @@
             </li>
           </ul>
           {% if user.is_authenticated %}
-          <a href="{% url 'business:onboarding' %}?plan=free" class="btn-plan">{% if LANGUAGE_CODE == 'en' %}Get started &rarr;{% else %}Commencer &rarr;{% endif %}</a>
+          <a href="{% url 'business:onboarding' %}?plan=free" class="btn-plan btn-plan-free">{% if LANGUAGE_CODE == 'en' %}Get started &rarr;{% else %}Commencer &rarr;{% endif %}</a>
           {% else %}
-          <a href="/accounts/register/?next={% url 'business:onboarding' %}%3Fplan%3Dfree" class="btn-plan">{% if LANGUAGE_CODE == 'en' %}Sign up &rarr;{% else %}S'inscrire &rarr;{% endif %}</a>
+          <a href="/accounts/register/?next={% url 'business:onboarding' %}%3Fplan%3Dfree" class="btn-plan btn-plan-free">{% if LANGUAGE_CODE == 'en' %}Sign up &rarr;{% else %}S'inscrire &rarr;{% endif %}</a>
           {% endif %}
         </article>
 
         <!-- 2. PRESENCE — PRO -->
         <article class="plan-card featured">
-          <span class="plan-badge">{% if LANGUAGE_CODE == 'en' %}Recommended{% else %}Recommandé{% endif %}</span>
+          <span class="plan-badge plan-badge-pro">{% if LANGUAGE_CODE == 'en' %}Recommended{% else %}Recommandé{% endif %}</span>
           <h3>{% if LANGUAGE_CODE == 'en' %}Presence — Pro{% else %}Présence — Pro{% endif %}</h3>
           <div class="plan-price">
             <strong>5 000 FCFA</strong>
@@ -652,12 +691,16 @@
               {% if LANGUAGE_CODE == 'en' %}<strong>E-Shelle verified badge included</strong>{% else %}<strong>Vérification E-Shelle incluse</strong>{% endif %}
             </li>
           </ul>
-          <a href="https://wa.me/237680625082?text={{ "Bonjour E-Shelle, je veux activer le plan Présence Pro à 5 000 FCFA pour 30 jours pour ma fiche business."|urlencode }}" target="_blank" rel="noopener" class="btn-plan">{% if LANGUAGE_CODE == 'en' %}Choose this plan &rarr;{% else %}Choisir ce plan &rarr;{% endif %}</a>
+          {% if user.is_authenticated %}
+            <a href="{% url 'business:onboarding' %}?plan=pro" class="btn-plan btn-plan-pro">{% if LANGUAGE_CODE == 'en' %}Choose this plan &rarr;{% else %}Choisir ce plan &rarr;{% endif %}</a>
+          {% else %}
+            <a href="/accounts/register/?next={% url 'business:onboarding' %}%3Fplan%3Dpro" class="btn-plan btn-plan-pro">{% if LANGUAGE_CODE == 'en' %}Choose this plan &rarr;{% else %}Choisir ce plan &rarr;{% endif %}</a>
+          {% endif %}
         </article>
 
         <!-- 3. BUSINESS -->
         <article class="plan-card">
-          <span class="plan-badge">{% if LANGUAGE_CODE == 'en' %}Accelerated Growth{% else %}Vitesse Supérieure{% endif %}</span>
+          <span class="plan-badge plan-badge-business">{% if LANGUAGE_CODE == 'en' %}Accelerated Growth{% else %}Vitesse Supérieure{% endif %}</span>
           <h3>{% if LANGUAGE_CODE == 'en' %}Growth — Business{% else %}Croissance — Business{% endif %}</h3>
           <div class="plan-price">
             <strong>15 000 FCFA</strong>
@@ -703,12 +746,16 @@
               {% if LANGUAGE_CODE == 'en' %}<strong>E-Shelle verified badge included</strong>{% else %}<strong>Vérification E-Shelle incluse</strong>{% endif %}
             </li>
           </ul>
-          <a href="https://wa.me/237680625082?text={{ "Bonjour E-Shelle, je veux activer le plan Croissance Business à 15 000 FCFA pour 30 jours pour ma fiche business."|urlencode }}" target="_blank" rel="noopener" class="btn-plan">{% if LANGUAGE_CODE == 'en' %}Choose this plan &rarr;{% else %}Choisir ce plan &rarr;{% endif %}</a>
+          {% if user.is_authenticated %}
+            <a href="{% url 'business:onboarding' %}?plan=business" class="btn-plan btn-plan-business">{% if LANGUAGE_CODE == 'en' %}Choose this plan &rarr;{% else %}Choisir ce plan &rarr;{% endif %}</a>
+          {% else %}
+            <a href="/accounts/register/?next={% url 'business:onboarding' %}%3Fplan%3Dbusiness" class="btn-plan btn-plan-business">{% if LANGUAGE_CODE == 'en' %}Choose this plan &rarr;{% else %}Choisir ce plan &rarr;{% endif %}</a>
+          {% endif %}
         </article>
 
         <!-- 4. PREMIUM -->
         <article class="plan-card">
-          <span class="plan-badge">{% if LANGUAGE_CODE == 'en' %}Maximum Performance{% else %}Performance Maximale{% endif %}</span>
+          <span class="plan-badge plan-badge-premium">{% if LANGUAGE_CODE == 'en' %}Maximum Performance{% else %}Performance Maximale{% endif %}</span>
           <h3>{% if LANGUAGE_CODE == 'en' %}Premium Plan{% else %}Plan Premium{% endif %}</h3>
           <div class="plan-price">
             <strong>30 000 FCFA</strong>
@@ -754,10 +801,15 @@
               {% if LANGUAGE_CODE == 'en' %}<strong>E-Shelle verified badge included</strong>{% else %}<strong>Vérification E-Shelle incluse</strong>{% endif %}
             </li>
           </ul>
-          <a href="https://wa.me/237680625082?text={{ "Bonjour E-Shelle, je veux activer le plan Premium à 30 000 FCFA pour 30 jours pour ma fiche business."|urlencode }}" target="_blank" rel="noopener" class="btn-plan">{% if LANGUAGE_CODE == 'en' %}Choose this plan &rarr;{% else %}Choisir ce plan &rarr;{% endif %}</a>
+          {% if user.is_authenticated %}
+            <a href="{% url 'business:onboarding' %}?plan=premium" class="btn-plan btn-plan-premium">{% if LANGUAGE_CODE == 'en' %}Choose this plan &rarr;{% else %}Choisir ce plan &rarr;{% endif %}</a>
+          {% else %}
+            <a href="/accounts/register/?next={% url 'business:onboarding' %}%3Fplan%3Dpremium" class="btn-plan btn-plan-premium">{% if LANGUAGE_CODE == 'en' %}Choose this plan &rarr;{% else %}Choisir ce plan &rarr;{% endif %}</a>
+          {% endif %}
         </article>
       </div>
-      <p class="plan-desc" style="max-width:1000px;margin:1.5rem auto 0;line-height:1.7">
+
+      <p class="plan-desc" style="max-width:1000px;margin:1.5rem auto 0;line-height:1.7;text-align:center;color:#94a3b8;font-size:0.84rem">
         {% if LANGUAGE_CODE == 'en' %}
           Prices are per business listing for 30 days. SEO and AI visibility tools help structure public information but do not guarantee Google rankings or citations by AI assistants. Human SEO services are quoted separately. Meta messaging fees are billed separately; WhatsApp setup and follow-ups depend on permissions, approved templates, consent, and activation. Bulk messaging is not included.
         {% else %}
@@ -775,7 +827,7 @@
         <div class="bk-grid">
           
           <div class="bk-info">
-            <span class="pres-pill" style="color:var(--color-secondary);border-color:rgba(245, 158, 11, 0.3);background:rgba(245, 158, 11, 0.05)">{% if LANGUAGE_CODE == 'en' %}Partner Program{% else %}Programme Partenaires{% endif %}</span>
+            <span class="pres-pill" style="color:#fb923c;border-color:rgba(249, 115, 22, 0.35);background:rgba(249, 115, 22, 0.1)">{% if LANGUAGE_CODE == 'en' %}Partner Program{% else %}Programme Partenaires{% endif %}</span>
             <h2 id="partner-section-title" style="display:none">{% if LANGUAGE_CODE == 'en' %}For Business Introducer Partners{% else %}Pour les Partenaires Apporteurs d'affaires{% endif %}</h2>
             <h3>{% if LANGUAGE_CODE == 'en' %}Earn income with the <span>E-Shelle Business Key</span>{% else %}Gagnez de l'argent avec la <span>E-Shelle Business Key</span>{% endif %}</h3>
             <p>

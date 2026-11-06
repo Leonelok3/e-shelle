@@ -16,6 +16,8 @@ from .models import (
 
 
 EXISTING_WABA_TARGET_PUBLIC_SLUG = "immigration-canada-douala"
+EXISTING_WABA_TARGET_BUSINESS_ID = 44
+EXISTING_WABA_ID = "1415282143385478"
 
 
 class MetaOnboardingError(RuntimeError):
@@ -115,22 +117,28 @@ def refresh_connection_metadata(connection):
 
 
 def sync_existing_waba(business):
-    """Attach the preconfigured, already-registered WABA to its designated profile."""
-    if business.public_slug != EXISTING_WABA_TARGET_PUBLIC_SLUG:
+    """Revalidate the dedicated WABA already stored on the designated profile."""
+    if (
+        business.pk != EXISTING_WABA_TARGET_BUSINESS_ID
+        or business.public_slug != EXISTING_WABA_TARGET_PUBLIC_SLUG
+    ):
         raise MetaOnboardingError("La synchronisation du WABA existant n’est pas autorisée pour cette fiche.")
 
-    waba_id = str(getattr(settings, "WHATSAPP_WABA_ID", "")).strip()
-    phone_number_id = str(
-        getattr(settings, "WHATSAPP_PHONE_NUMBER_ID", "")
-        or getattr(settings, "WHATSAPP_PHONE_ID", "")
-    ).strip()
-    token = str(
-        getattr(settings, "WHATSAPP_ACCESS_TOKEN", "")
-        or getattr(settings, "WHATSAPP_TOKEN", "")
-    ).strip()
-    meta_business_id = str(getattr(settings, "WHATSAPP_BUSINESS_ID", "")).strip()
+    existing = BusinessWhatsAppConnection.objects.filter(business=business).first()
+    if existing is None:
+        raise MetaOnboardingError(
+            "La connexion WhatsApp dédiée à cette fiche est absente de la base de données."
+        )
+    waba_id = existing.waba_id.strip()
+    phone_number_id = existing.phone_number_id.strip()
+    token = existing.get_access_token() if existing.access_token_encrypted else ""
+    meta_business_id = existing.meta_business_id.strip()
+    if waba_id != EXISTING_WABA_ID:
+        raise MetaOnboardingError(
+            "Le WABA enregistré pour cette fiche ne correspond pas au compte Immigration Canada attendu."
+        )
     if not waba_id or not phone_number_id or not token:
-        raise MetaOnboardingError("La configuration du compte WhatsApp existant est incomplète.")
+        raise MetaOnboardingError("La connexion WhatsApp dédiée à cette fiche est incomplète.")
     if not re.fullmatch(r"\d{1,64}", waba_id):
         raise MetaOnboardingError("L’identifiant WABA configuré est invalide.")
     if not re.fullmatch(r"\d{1,64}", phone_number_id):
@@ -138,11 +146,6 @@ def sync_existing_waba(business):
     if meta_business_id and not re.fullmatch(r"\d{1,64}", meta_business_id):
         raise MetaOnboardingError("L’identifiant Business configuré est invalide.")
 
-    existing = BusinessWhatsAppConnection.objects.filter(business=business).first()
-    if existing and (existing.waba_id != waba_id or existing.phone_number_id != phone_number_id):
-        raise MetaOnboardingError(
-            "Un autre compte WhatsApp est déjà associé à cette fiche. Il n’a pas été modifié."
-        )
     conflicting_connection = (
         BusinessWhatsAppConnection.objects.exclude(business=business)
         .filter(Q(waba_id=waba_id) | Q(phone_number_id=phone_number_id))

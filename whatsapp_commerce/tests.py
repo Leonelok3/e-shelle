@@ -64,6 +64,42 @@ class BusinessWhatsAppTests(TestCase):
 			name="Boutique B",
 		)
 
+	def create_verified_provider_payment(self, business):
+		business.plan = BusinessProfile.Plan.PRO
+		business.activation_status = BusinessProfile.ActivationStatus.ACTIVE
+		business.subscription_expires_at = timezone.now() + timezone.timedelta(days=30)
+		business.is_trial = False
+		business.save(update_fields=[
+			"plan",
+			"activation_status",
+			"subscription_expires_at",
+			"is_trial",
+			"updated_at",
+		])
+		return Transaction.objects.create(
+			utilisateur=business.owner,
+			type_tx="abonnement",
+			methode="campay",
+			montant="3000",
+			devise="XAF",
+			statut="pending_awaiting_manual_validation",
+			ref_operateur="verified-provider-payment",
+			metadata={
+				"product_type": "provider_whatsapp_onboarding",
+				"provider_whatsapp_business_id": business.pk,
+				"provider_whatsapp_activated_at": timezone.now().isoformat(),
+				"campay": {
+					"provider_status": "SUCCESSFUL",
+					"verified_at": timezone.now().isoformat(),
+				},
+			},
+		)
+
+	def set_as_immigration_target(self):
+		self.business.pk = 44
+		self.business.public_slug = "immigration-canada-douala"
+		self.business.save()
+
 	@override_settings(WHATSAPP_COMMERCE_ENABLED=True)
 	def test_tech_provider_dashboard_is_staff_only_and_lists_customer_accounts(self):
 		connection = BusinessWhatsAppConnection.objects.create(
@@ -104,6 +140,7 @@ class BusinessWhatsAppTests(TestCase):
 		self.business.plan = BusinessProfile.Plan.PRO
 		self.business.subscription_expires_at = timezone.now() + timezone.timedelta(days=5)
 		self.business.save(update_fields=["plan", "subscription_expires_at", "updated_at"])
+		self.create_verified_provider_payment(self.business)
 		self.client.force_login(self.owner)
 		response = self.client.get(
 			reverse("whatsapp_commerce:business_connect", args=[self.business.pk])
@@ -374,8 +411,15 @@ class BusinessWhatsAppTests(TestCase):
 
 	@patch("whatsapp_commerce.onboarding._request_meta")
 	def test_existing_waba_sync_verifies_phone_and_waba_without_registering_phone(self, meta_request):
-		self.business.public_slug = "immigration-canada-douala"
-		self.business.save(update_fields=["public_slug", "updated_at"])
+		self.set_as_immigration_target()
+		connection = BusinessWhatsAppConnection.objects.create(
+			business=self.business,
+			waba_id="1415282143385478",
+			phone_number_id="654321",
+			meta_business_id="777",
+		)
+		connection.set_access_token("existing-waba-token")
+		connection.save(update_fields=["access_token_encrypted"])
 		meta_request.side_effect = [
 			{
 				"id": "654321",
@@ -390,15 +434,14 @@ class BusinessWhatsAppTests(TestCase):
 		]
 
 		with self.settings(
-			WHATSAPP_WABA_ID="123456",
-			WHATSAPP_PHONE_NUMBER_ID="",
-			WHATSAPP_ACCESS_TOKEN="",
-			WHATSAPP_PHONE_ID="654321",
-			WHATSAPP_TOKEN="existing-waba-token",
-			WHATSAPP_BUSINESS_ID="777",
+			WHATSAPP_WABA_ID="281884521842754",
+			WHATSAPP_PHONE_NUMBER_ID="1224105114129043",
+			WHATSAPP_ACCESS_TOKEN="primary-waba-token",
 		):
 			connection = sync_existing_waba(self.business)
 
+		self.assertEqual(connection.waba_id, "1415282143385478")
+		self.assertEqual(connection.phone_number_id, "654321")
 		self.assertEqual(connection.status, BusinessWhatsAppConnection.Status.ACTIVE)
 		self.assertTrue(connection.phone_registered)
 		self.assertTrue(connection.webhook_subscribed)
@@ -407,6 +450,7 @@ class BusinessWhatsAppTests(TestCase):
 		self.assertEqual(connection.meta_messaging_limit, "250")
 		self.assertEqual(connection.get_access_token(), "existing-waba-token")
 		self.assertNotIn("existing-waba-token", connection.access_token_encrypted)
+		self.assertNotIn("primary-waba-token", connection.access_token_encrypted)
 		self.client.force_login(self.owner)
 		dashboard = self.client.get(
 			reverse("whatsapp_commerce:business_dashboard", args=[self.business.pk])
@@ -414,13 +458,12 @@ class BusinessWhatsAppTests(TestCase):
 		self.assertContains(dashboard, "Connecté : Immigration97 +237 693 64 99 44 (250/24h)")
 		self.assertEqual(meta_request.call_count, 3)
 		self.assertEqual(meta_request.call_args_list[0].args[:2], ("GET", "654321"))
-		self.assertEqual(meta_request.call_args_list[1].args[:2], ("GET", "123456/phone_numbers"))
-		self.assertEqual(meta_request.call_args_list[2].args[:2], ("POST", "123456/subscribed_apps"))
+		self.assertEqual(meta_request.call_args_list[1].args[:2], ("GET", "1415282143385478/phone_numbers"))
+		self.assertEqual(meta_request.call_args_list[2].args[:2], ("POST", "1415282143385478/subscribed_apps"))
 
 	@patch("whatsapp_commerce.onboarding._request_meta")
-	def test_existing_waba_sync_moves_same_owner_connection_without_deleting_source_profile(self, meta_request):
-		self.business.public_slug = "immigration-canada-douala"
-		self.business.save(update_fields=["public_slug", "updated_at"])
+	def test_existing_waba_sync_does_not_move_a_connection_from_another_profile(self, meta_request):
+		self.set_as_immigration_target()
 		source_business = BusinessProfile.objects.create(
 			owner=self.owner,
 			module=BusinessProfile.Module.GENERAL,
@@ -429,7 +472,7 @@ class BusinessWhatsAppTests(TestCase):
 		)
 		connection = BusinessWhatsAppConnection.objects.create(
 			business=source_business,
-			waba_id="123456",
+			waba_id="1415282143385478",
 			phone_number_id="654321",
 			status=BusinessWhatsAppConnection.Status.ACTIVE,
 			agent_enabled=True,
@@ -450,65 +493,32 @@ class BusinessWhatsAppTests(TestCase):
 			template_language="fr",
 			scheduled_for=timezone.now() + timezone.timedelta(days=1),
 		)
-		meta_request.side_effect = [
-			{
-				"id": "654321",
-				"display_phone_number": "+237 693 64 99 44",
-				"verified_name": "Immigration97",
-				"status": "CONNECTED",
-				"quality_rating": "GREEN",
-				"whatsapp_business_manager_messaging_limit": "250",
-			},
-			{"data": [{"id": "654321"}]},
-			{"success": True},
-		]
-
-		with self.settings(
-			WHATSAPP_WABA_ID="123456",
-			WHATSAPP_PHONE_NUMBER_ID="",
-			WHATSAPP_ACCESS_TOKEN="",
-			WHATSAPP_PHONE_ID="654321",
-			WHATSAPP_TOKEN="existing-waba-token",
-		):
-			moved_connection = sync_existing_waba(self.business)
+		with self.assertRaisesMessage(MetaOnboardingError, "connexion WhatsApp dédiée"):
+			sync_existing_waba(self.business)
 
 		source_business.refresh_from_db()
-		moved_connection.refresh_from_db()
+		connection.refresh_from_db()
 		scheduled.refresh_from_db()
 		self.assertTrue(BusinessProfile.objects.filter(pk=source_business.pk).exists())
-		self.assertEqual(moved_connection.business_id, self.business.pk)
-		self.assertEqual(moved_connection.pk, connection.pk)
-		self.assertFalse(moved_connection.agent_enabled)
-		self.assertFalse(moved_connection.automations_enabled)
-		self.assertEqual(scheduled.status, ScheduledBusinessWhatsAppMessage.Status.CANCELLED)
+		self.assertEqual(connection.business_id, source_business.pk)
+		self.assertTrue(connection.agent_enabled)
+		self.assertTrue(connection.automations_enabled)
+		self.assertEqual(scheduled.status, ScheduledBusinessWhatsAppMessage.Status.SCHEDULED)
 		self.assertEqual(contact.business_id, source_business.pk)
-		self.assertTrue(BusinessWhatsAppAudit.objects.filter(
-			connection=moved_connection,
-			event_type="provider_existing_waba_transferred",
-			details__from_business_id=source_business.pk,
-			details__to_business_id=self.business.pk,
-		).exists())
+		meta_request.assert_not_called()
 
 	@patch("whatsapp_commerce.onboarding._request_meta")
 	def test_existing_waba_sync_does_not_move_connection_from_another_owner(self, meta_request):
-		self.business.public_slug = "immigration-canada-douala"
-		self.business.save(update_fields=["public_slug", "updated_at"])
+		self.set_as_immigration_target()
 		connection = BusinessWhatsAppConnection.objects.create(
 			business=self.other_business,
-			waba_id="123456",
+			waba_id="1415282143385478",
 			phone_number_id="654321",
 			status=BusinessWhatsAppConnection.Status.ACTIVE,
 		)
 
-		with self.settings(
-			WHATSAPP_WABA_ID="123456",
-			WHATSAPP_PHONE_NUMBER_ID="",
-			WHATSAPP_ACCESS_TOKEN="",
-			WHATSAPP_PHONE_ID="654321",
-			WHATSAPP_TOKEN="existing-waba-token",
-		):
-			with self.assertRaisesMessage(MetaOnboardingError, "appartenant à un autre compte"):
-				sync_existing_waba(self.business)
+		with self.assertRaisesMessage(MetaOnboardingError, "connexion WhatsApp dédiée"):
+			sync_existing_waba(self.business)
 
 		connection.refresh_from_db()
 		self.assertEqual(connection.business_id, self.other_business.pk)
@@ -516,25 +526,31 @@ class BusinessWhatsAppTests(TestCase):
 
 	@patch("whatsapp_commerce.onboarding._request_meta")
 	def test_existing_waba_sync_rejects_phone_not_owned_by_configured_waba(self, meta_request):
-		self.business.public_slug = "immigration-canada-douala"
-		self.business.save(update_fields=["public_slug", "updated_at"])
+		self.set_as_immigration_target()
+		connection = BusinessWhatsAppConnection.objects.create(
+			business=self.business,
+			waba_id="1415282143385478",
+			phone_number_id="654321",
+		)
+		connection.set_access_token("existing-waba-token")
+		connection.save(update_fields=["access_token_encrypted"])
 		meta_request.side_effect = [
 			{"id": "654321", "status": "CONNECTED"},
 			{"data": [{"id": "another-phone"}]},
 		]
 
 		with self.settings(
-			WHATSAPP_WABA_ID="123456",
-			WHATSAPP_PHONE_NUMBER_ID="",
-			WHATSAPP_ACCESS_TOKEN="",
-			WHATSAPP_PHONE_ID="654321",
-			WHATSAPP_TOKEN="existing-waba-token",
+			WHATSAPP_WABA_ID="281884521842754",
+			WHATSAPP_PHONE_NUMBER_ID="1224105114129043",
+			WHATSAPP_ACCESS_TOKEN="primary-waba-token",
 		):
 			with self.assertRaisesMessage(MetaOnboardingError, "appartient au WABA configuré"):
 				sync_existing_waba(self.business)
 
 		self.assertEqual(meta_request.call_count, 2)
-		self.assertFalse(BusinessWhatsAppConnection.objects.filter(business=self.business).exists())
+		connection.refresh_from_db()
+		self.assertEqual(connection.waba_id, "1415282143385478")
+		self.assertEqual(connection.status, BusinessWhatsAppConnection.Status.CONNECTING)
 
 	def test_existing_waba_sync_is_restricted_to_designated_profile(self):
 		with self.settings(
@@ -551,18 +567,23 @@ class BusinessWhatsAppTests(TestCase):
 		meta_request.assert_not_called()
 
 	def test_dashboard_keeps_embedded_signup_for_other_business_profiles(self):
-		self.business.public_slug = "immigration-canada-douala"
+		self.set_as_immigration_target()
 		self.business.plan = BusinessProfile.Plan.PRO
 		self.business.subscription_expires_at = timezone.now() + timezone.timedelta(days=5)
-		self.business.save(update_fields=["public_slug", "plan", "subscription_expires_at", "updated_at"])
+		self.business.save(update_fields=["plan", "subscription_expires_at", "updated_at"])
+		connection = BusinessWhatsAppConnection.objects.create(
+			business=self.business,
+			waba_id="1415282143385478",
+			phone_number_id="654321",
+		)
+		connection.set_access_token("dedicated-token")
+		connection.save(update_fields=["access_token_encrypted"])
 		self.client.force_login(self.owner)
 
 		with self.settings(
-			WHATSAPP_WABA_ID="123456",
-			WHATSAPP_PHONE_NUMBER_ID="",
-			WHATSAPP_ACCESS_TOKEN="",
-			WHATSAPP_PHONE_ID="654321",
-			WHATSAPP_TOKEN="existing-waba-token",
+			WHATSAPP_WABA_ID="281884521842754",
+			WHATSAPP_PHONE_NUMBER_ID="1224105114129043",
+			WHATSAPP_ACCESS_TOKEN="primary-waba-token",
 		):
 			target_response = self.client.get(
 				reverse("whatsapp_commerce:business_dashboard", args=[self.business.pk])
@@ -573,12 +594,41 @@ class BusinessWhatsAppTests(TestCase):
 
 			self.business.public_slug = "autre-fiche"
 			self.business.save(update_fields=["public_slug", "updated_at"])
+			connection.delete()
+			self.create_verified_provider_payment(self.business)
 			other_response = self.client.get(
 				reverse("whatsapp_commerce:business_dashboard", args=[self.business.pk])
 			)
 
 		self.assertContains(other_response, "Connecter mon compte WhatsApp")
 		self.assertNotContains(other_response, "Synchroniser")
+
+	def test_unpaid_business_cannot_start_embedded_signup(self):
+		self.client.force_login(self.owner)
+		response = self.client.get(
+			reverse("whatsapp_commerce:business_dashboard", args=[self.business.pk])
+		)
+		self.assertEqual(
+			response.context["whatsapp_connection_needs_signup"],
+			True,
+		)
+		self.assertEqual(
+			response.context["whatsapp_payment_verified"],
+			False,
+		)
+		self.assertIn(
+			"Payez d'abord pour débloquer la connexion WhatsApp officielle Meta",
+			response.content.decode(),
+		)
+		self.assertContains(response, "disabled")
+
+		connect_response = self.client.get(
+			reverse("whatsapp_commerce:business_connect", args=[self.business.pk])
+		)
+		self.assertRedirects(
+			connect_response,
+			f"{reverse('provider_special_offer')}?business={self.business.pk}",
+		)
 
 	@patch("whatsapp_commerce.onboarding._request_meta")
 	def test_get_assigned_applications_uses_meta_me_endpoint(self, meta_request):
@@ -1331,6 +1381,7 @@ class BusinessWhatsAppTests(TestCase):
 		self.assertContains(response, "Planifier la relance")
 
 	def test_signup_completion_rejects_invalid_session_state(self):
+		self.create_verified_provider_payment(self.business)
 		self.client.force_login(self.owner)
 		response = self.client.post(
 			reverse("whatsapp_commerce:business_connect_complete", args=[self.business.pk]),

@@ -11,6 +11,7 @@ from django.urls import reverse
 
 from accounts.admin import AppSubscriptionAdmin
 from accounts.models import AppPlan, AppSubscription, PaymentHistory
+from business.models import BusinessProfile
 from boutique.models import Commande
 from .campay import CampayClient, CampayError, reconcile_transaction
 from .models import Transaction
@@ -128,6 +129,99 @@ class CampayClientTests(TestCase):
 
         tx.refresh_from_db()
         self.assertEqual(tx.statut, "initie")
+
+    def test_verified_provider_whatsapp_payment_activates_plan_once(self):
+        user = get_user_model().objects.create_user(
+            username="provider-payer",
+            password="test-password",
+        )
+        business = BusinessProfile.objects.create(
+            owner=user,
+            module=BusinessProfile.Module.GENERAL,
+            name="Paid provider",
+        )
+        tx = self.make_transaction(
+            utilisateur=user,
+            type_tx="abonnement",
+            montant=Decimal("3000"),
+            ref_operateur="provider-ref-success",
+            metadata={
+                "product_type": "provider_whatsapp_onboarding",
+                "provider_whatsapp_business_id": business.pk,
+                "provider_whatsapp_plan_level": BusinessProfile.Plan.PRO,
+                "provider_whatsapp_duration_days": 30,
+                "provider_whatsapp_boost_days": 7,
+                "provider_whatsapp_amount_xaf": 3000,
+            },
+        )
+        provider = Mock(
+            mode="sandbox",
+            get_transaction=Mock(return_value={
+                "reference": "provider-ref-success",
+                "amount": 3000,
+                "currency": "XAF",
+                "status": "SUCCESSFUL",
+            }),
+        )
+
+        reconcile_transaction(tx, client=provider)
+
+        business.refresh_from_db()
+        tx.refresh_from_db()
+        self.assertEqual(business.plan, BusinessProfile.Plan.PRO)
+        self.assertEqual(business.activation_status, BusinessProfile.ActivationStatus.ACTIVE)
+        self.assertFalse(business.is_trial)
+        self.assertTrue(business.is_verified)
+        self.assertTrue(business.subscription_active)
+        self.assertTrue(business.boost_active)
+        self.assertEqual(tx.statut, "pending_awaiting_manual_validation")
+        self.assertTrue(tx.metadata["provider_whatsapp_activated_at"])
+
+        reconcile_transaction(tx, client=provider)
+        business.refresh_from_db()
+        self.assertEqual(business.ai_credits, 5)
+
+    def test_pending_provider_whatsapp_payment_does_not_activate_plan(self):
+        user = get_user_model().objects.create_user(
+            username="provider-payer-pending",
+            password="test-password",
+        )
+        business = BusinessProfile.objects.create(
+            owner=user,
+            module=BusinessProfile.Module.GENERAL,
+            name="Unpaid provider",
+        )
+        tx = self.make_transaction(
+            utilisateur=user,
+            type_tx="abonnement",
+            montant=Decimal("3000"),
+            ref_operateur="provider-ref-pending",
+            metadata={
+                "product_type": "provider_whatsapp_onboarding",
+                "provider_whatsapp_business_id": business.pk,
+                "provider_whatsapp_plan_level": BusinessProfile.Plan.PRO,
+                "provider_whatsapp_duration_days": 30,
+                "provider_whatsapp_amount_xaf": 3000,
+            },
+        )
+        provider = Mock(
+            mode="sandbox",
+            get_transaction=Mock(return_value={
+                "reference": "provider-ref-pending",
+                "amount": 3000,
+                "currency": "XAF",
+                "status": "PENDING",
+            }),
+        )
+
+        reconcile_transaction(tx, client=provider)
+
+        business.refresh_from_db()
+        tx.refresh_from_db()
+        self.assertEqual(tx.statut, "en_attente")
+        self.assertEqual(business.plan, BusinessProfile.Plan.FREE)
+        self.assertIsNone(business.subscription_expires_at)
+        self.assertNotIn("provider_whatsapp_activated_at", tx.metadata)
 
     @override_settings(
         CAMPAY_MODE="sandbox",

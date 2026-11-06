@@ -893,6 +893,7 @@ urlpatterns = [
         whatsapp_agent_views.api_business_campaign_audience,
         name="business_whatsapp_campaign_audience",
     ),
+    path("special-offer/", business_views.special_offer, name="provider_special_offer"),
     path("business/", include("business.urls", namespace="business")),
     path("api/tech-provider/status", whatsapp_commerce_views.tech_provider_status, name="tech_provider_status"),
     path("b/<slug:public_slug>/", business_views.public_profile, name="business_public_short"),

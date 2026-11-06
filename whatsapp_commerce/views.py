@@ -41,6 +41,8 @@ from .models import (
 	WhatsAppDraftOrder,
 )
 from .onboarding import (
+	EXISTING_WABA_ID,
+	EXISTING_WABA_TARGET_BUSINESS_ID,
 	EXISTING_WABA_TARGET_PUBLIC_SLUG,
 	MetaOnboardingError,
 	connect_business,
@@ -274,6 +276,16 @@ def _owned_business(request, business_id):
 	return get_object_or_404(BusinessProfile, pk=business_id, owner=request.user)
 
 
+def _verified_provider_payment(business):
+	from business.services import verified_provider_whatsapp_payment
+
+	return verified_provider_whatsapp_payment(business)
+
+
+def _provider_special_offer_url(business):
+	return f"{reverse('provider_special_offer')}?business={business.pk}"
+
+
 @login_required
 @require_GET
 def business_whatsapp_dashboard(request, business_id):
@@ -374,25 +386,27 @@ def business_whatsapp_dashboard(request, business_id):
 				and getattr(settings, "WHATSAPP_TECH_PROVIDER_APP_SECRET", "")
 				and getattr(settings, "WHATSAPP_EMBEDDED_SIGNUP_CONFIG_ID", "")
 			),
+			"whatsapp_payment_verified": bool(
+				_verified_provider_payment(business)
+				and entitlements["can_connect"]
+			),
+			"whatsapp_connection_needs_signup": bool(
+				not connection
+				or connection.status == BusinessWhatsAppConnection.Status.DISCONNECTED
+			),
 			"existing_waba_ids_configured": bool(
-				business.public_slug == EXISTING_WABA_TARGET_PUBLIC_SLUG
-				and getattr(settings, "WHATSAPP_WABA_ID", "")
-				and (
-					getattr(settings, "WHATSAPP_PHONE_NUMBER_ID", "")
-					or getattr(settings, "WHATSAPP_PHONE_ID", "")
-				)
+				business.pk == EXISTING_WABA_TARGET_BUSINESS_ID
+				and business.public_slug == EXISTING_WABA_TARGET_PUBLIC_SLUG
+				and connection
+				and connection.waba_id == EXISTING_WABA_ID
+				and bool(connection.access_token_encrypted)
 			),
 			"existing_waba_sync_available": bool(
-				business.public_slug == EXISTING_WABA_TARGET_PUBLIC_SLUG
-				and getattr(settings, "WHATSAPP_WABA_ID", "")
-				and (
-					getattr(settings, "WHATSAPP_PHONE_NUMBER_ID", "")
-					or getattr(settings, "WHATSAPP_PHONE_ID", "")
-				)
-				and (
-					getattr(settings, "WHATSAPP_ACCESS_TOKEN", "")
-					or getattr(settings, "WHATSAPP_TOKEN", "")
-				)
+				business.pk == EXISTING_WABA_TARGET_BUSINESS_ID
+				and business.public_slug == EXISTING_WABA_TARGET_PUBLIC_SLUG
+				and connection
+				and connection.waba_id == EXISTING_WABA_ID
+				and bool(connection.access_token_encrypted)
 			),
 		},
 	)
@@ -401,14 +415,17 @@ def business_whatsapp_dashboard(request, business_id):
 @login_required
 @require_POST
 def sync_existing_waba_for_business(request, business_id):
+	if business_id != EXISTING_WABA_TARGET_BUSINESS_ID:
+		return HttpResponse(status=404)
 	business = get_object_or_404(
 		BusinessProfile,
-		pk=business_id,
+		pk=EXISTING_WABA_TARGET_BUSINESS_ID,
 		owner=request.user,
 		public_slug=EXISTING_WABA_TARGET_PUBLIC_SLUG,
 	)
-	if not whatsapp_entitlements(business)["can_connect"]:
-		messages.error(request, "La synchronisation WhatsApp nécessite une formule Pro active ou l’essai Business.")
+	connection = BusinessWhatsAppConnection.objects.filter(business=business).first()
+	if not connection or connection.waba_id != EXISTING_WABA_ID:
+		messages.error(request, "La connexion WhatsApp dédiée à cette fiche est absente ou incorrecte.")
 		return redirect("whatsapp_commerce:business_dashboard", business_id=business.pk)
 	try:
 		connection = sync_existing_waba(business)
@@ -499,6 +516,12 @@ def business_whatsapp_inbox(request):
 @require_GET
 def start_business_connection(request, business_id):
 	business = _owned_business(request, business_id)
+	if not _verified_provider_payment(business):
+		messages.error(
+			request,
+			"Payez d'abord pour débloquer la connexion WhatsApp officielle Meta.",
+		)
+		return redirect(_provider_special_offer_url(business))
 	if not whatsapp_entitlements(business)["can_connect"]:
 		messages.error(request, "La connexion WhatsApp nécessite une formule Pro active ou l’essai Business.")
 		return redirect("whatsapp_commerce:business_dashboard", business_id=business.pk)
@@ -550,6 +573,11 @@ def start_business_connection(request, business_id):
 @require_POST
 def complete_business_connection(request, business_id):
 	business = _owned_business(request, business_id)
+	if not _verified_provider_payment(business):
+		return JsonResponse(
+			{"error": "Un paiement CamPay confirmé est requis avant la connexion WhatsApp."},
+			status=403,
+		)
 	if not whatsapp_entitlements(business)["can_connect"]:
 		return JsonResponse({"error": "Une formule Pro active est requise pour connecter WhatsApp."}, status=403)
 	if request.content_type != "application/json":
@@ -650,6 +678,12 @@ def complete_business_connection(request, business_id):
 @require_POST
 def retry_business_connection(request, business_id):
 	business = _owned_business(request, business_id)
+	if not _verified_provider_payment(business):
+		messages.error(
+			request,
+			"Un paiement CamPay confirmé est requis avant de reprendre la connexion WhatsApp.",
+		)
+		return redirect(_provider_special_offer_url(business))
 	if not whatsapp_entitlements(business)["can_connect"]:
 		messages.error(request, "Une formule Pro active est requise pour reprendre la connexion WhatsApp.")
 		return redirect("whatsapp_commerce:business_dashboard", business_id=business.pk)

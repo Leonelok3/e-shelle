@@ -554,9 +554,24 @@ def campay_return(request):
         )
         tx.refresh_from_db()
 
+    provider_business_id = (tx.metadata or {}).get("provider_whatsapp_business_id")
     return render(request, "payments/campay_result.html", {
         "transaction": tx,
         "verified": verified,
+        "is_provider_whatsapp_onboarding": (
+            (tx.metadata or {}).get("product_type") == "provider_whatsapp_onboarding"
+        ),
+        "provider_whatsapp_activated": bool(
+            (tx.metadata or {}).get("provider_whatsapp_activated_at")
+        ),
+        "provider_whatsapp_dashboard_url": (
+            reverse(
+                "whatsapp_commerce:business_dashboard",
+                args=[(tx.metadata or {}).get("provider_whatsapp_business_id")],
+            )
+            if isinstance(provider_business_id, int)
+            else ""
+        ),
         "is_immigration97_plan": (
             (tx.metadata or {}).get("immigration97_app_key") == "prep"
         ),

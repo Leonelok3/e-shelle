@@ -4,7 +4,7 @@ from django.contrib.admin.views.decorators import staff_member_required
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.contrib.auth.decorators import login_required
-from django.db import models
+from django.db import models, transaction as db_transaction
 from django.db.models import Avg, Count, F, Sum
 from django.http import HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
@@ -2266,8 +2266,16 @@ def partner_dashboard(request):
 @login_required
 def onboarding(request):
     """Creation rapide d'une fiche business adaptee au terrain."""
-    selected_plan = request.GET.get("plan") or request.POST.get("plan") or request.session.get("business_selected_plan", "free")
-    plan = ProviderPlan.objects.filter(code=selected_plan, is_active=True).first() or ProviderPlan.objects.filter(code="free").first()
+    selected_plan = (
+        request.GET.get("plan")
+        or request.POST.get("plan")
+        or request.session.get("business_selected_plan", "")
+    )
+    plan = ProviderPlan.objects.filter(
+        code=selected_plan,
+        is_active=True,
+        monthly_price_xaf__gt=0,
+    ).first()
 
     if request.method == "POST":
         name = request.POST.get("name", "").strip()
@@ -2315,22 +2323,18 @@ def onboarding(request):
                 plan=BusinessProfile.Plan.FREE,
                 is_active=True,
             )
-            # Essai Business gratuit de 7 jours a l'inscription : le prestataire
-            # goute a la vraie visibilite premium avant de decider de payer.
-            business.activate_plan(BusinessProfile.Plan.BUSINESS, days=7)
-            business.is_trial = True
-            business.save(update_fields=["is_trial", "updated_at"])
-
             request.session["current_business_id"] = business.id
             request.session.modified = True
             messages.success(
                 request,
-                "Votre fiche business a ete creee, avec 7 jours d'essai Business offerts ! "
-                "Profitez-en pour tester la visibilite premium.",
+                "Votre fiche est créée. Un paiement confirmé est nécessaire pour débloquer "
+                "la connexion WhatsApp officielle Meta.",
             )
-            if plan and plan.code != "free":
-                return redirect(f"/business/payment/request/{business.id}/?plan={plan.code}")
-            return redirect("business:dashboard")
+            if not plan:
+                return redirect("business:dashboard")
+            offer_url = reverse("provider_special_offer") + f"?business={business.pk}"
+            offer_url += f"&plan={plan.code}"
+            return redirect(offer_url)
 
     return render(
         request,
@@ -2339,6 +2343,104 @@ def onboarding(request):
             "plan": plan,
             "modules": BusinessProfile.Module.choices,
             "languages": BusinessProfile.Language.choices,
+        },
+    )
+
+
+@login_required
+def special_offer(request):
+    """Collect a verified Mobile Money payment before WhatsApp onboarding."""
+    from payments.models import Transaction
+    from .services import verified_provider_whatsapp_payment
+    from whatsapp_commerce.entitlements import whatsapp_entitlements
+
+    business_id = (
+        request.GET.get("business")
+        or request.POST.get("business")
+        or request.session.get("current_business_id")
+    )
+    business = get_object_or_404(
+        BusinessProfile,
+        pk=business_id,
+        owner=request.user,
+    )
+    paid = verified_provider_whatsapp_payment(business)
+    if paid and whatsapp_entitlements(business)["can_connect"]:
+        messages.success(
+            request,
+            "Paiement confirmé par CamPay. La connexion WhatsApp officielle est débloquée.",
+        )
+        return redirect("whatsapp_commerce:business_dashboard", business_id=business.pk)
+
+    plans = ProviderPlan.objects.filter(
+        is_active=True,
+        monthly_price_xaf__gt=0,
+        plan_level__in=[
+            BusinessProfile.Plan.PRO,
+            BusinessProfile.Plan.BUSINESS,
+            BusinessProfile.Plan.PREMIUM,
+        ],
+    ).order_by("order", "monthly_price_xaf")
+    selected_plan = None
+
+    if request.method == "POST":
+        selected_plan = get_object_or_404(
+            plans,
+            code=request.POST.get("plan", ""),
+        )
+        from payments.views import _start_campay_checkout
+
+        fallback_url = (
+            reverse("provider_special_offer")
+            + f"?business={business.pk}&plan={selected_plan.code}"
+        )
+        with db_transaction.atomic():
+            get_user_model().objects.select_for_update().get(pk=request.user.pk)
+            pending_payment = Transaction.objects.filter(
+                utilisateur=request.user,
+                type_tx="abonnement",
+                methode="campay",
+                statut="en_attente",
+                montant=selected_plan.monthly_price_xaf,
+                metadata__product_type="provider_whatsapp_onboarding",
+                metadata__provider_whatsapp_business_id=business.pk,
+                metadata__provider_whatsapp_plan_code=selected_plan.code,
+            ).order_by("-created_at").first()
+            if pending_payment and pending_payment.payment_link:
+                return redirect(pending_payment.payment_link)
+            payment = Transaction.objects.create(
+                utilisateur=request.user,
+                type_tx="abonnement",
+                methode="campay",
+                montant=selected_plan.monthly_price_xaf,
+                devise="XAF",
+                statut="initie",
+                metadata={
+                    "product_type": "provider_whatsapp_onboarding",
+                    "provider_whatsapp_business_id": business.pk,
+                    "provider_whatsapp_plan_code": selected_plan.code,
+                    "provider_whatsapp_plan_level": selected_plan.plan_level,
+                    "provider_whatsapp_duration_days": selected_plan.duration_days,
+                    "provider_whatsapp_boost_days": selected_plan.included_boost_days,
+                    "provider_whatsapp_amount_xaf": selected_plan.monthly_price_xaf,
+                },
+            )
+        return _start_campay_checkout(
+            request,
+            payment,
+            description=f"E-Shelle {selected_plan.name} — {business.name}",
+            fallback_url=fallback_url,
+        )
+
+    requested_plan = request.GET.get("plan", "")
+    selected_plan = plans.filter(code=requested_plan).first() or plans.first()
+    return render(
+        request,
+        "business/special_offer.html",
+        {
+            "business": business,
+            "plans": plans,
+            "selected_plan": selected_plan,
         },
     )
 

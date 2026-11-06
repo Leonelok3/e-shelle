@@ -10,31 +10,47 @@
         <div class="section-label">Paiement confirmé par CamPay</div>
         <h1 class="section-title" style="margin:.5rem 0 1rem">Paiement reçu</h1>
         <p class="section-subtitle">
-          {% if is_immigration97_plan %}
+          {% if is_provider_whatsapp_onboarding and provider_whatsapp_activated %}
+            Votre paiement Mobile Money a été vérifié directement auprès de CamPay. Votre formule est active et vous pouvez continuer la connexion WhatsApp officielle Meta.
+          {% elif is_immigration97_plan %}
             Votre paiement du pass Immigration97 Premium est enregistré. L’équipe doit encore valider manuellement l’activation de votre accès.
           {% else %}
             La référence de paiement est enregistrée. L’équipe E-Shelle doit encore
             valider manuellement la commande ou l’activation via WhatsApp.
           {% endif %}
         </p>
-        <a href="{{ whatsapp_payment_url }}" target="_blank" rel="noopener noreferrer"
-           class="btn btn-primary" style="margin-top:1.5rem">
-          Envoyer la référence à l’équipe sur WhatsApp
-        </a>
+        {% if is_provider_whatsapp_onboarding and provider_whatsapp_activated %}
+          <a href="{{ provider_whatsapp_dashboard_url }}" class="btn btn-primary" style="margin-top:1.5rem">
+            Continuer vers WhatsApp Business
+          </a>
+        {% else %}
+          <a href="{{ whatsapp_payment_url }}" target="_blank" rel="noopener noreferrer"
+             class="btn btn-primary" style="margin-top:1.5rem">
+            Envoyer la référence à l’équipe sur WhatsApp
+          </a>
+        {% endif %}
       {% elif verified and transaction.statut == "succes" %}
         <div class="section-label">Paiement confirmé par CamPay</div>
         <h1 class="section-title" style="margin:.5rem 0 1rem">Paiement reçu</h1>
         <p class="section-subtitle">
-          {% if is_immigration97_plan %}
+          {% if is_provider_whatsapp_onboarding and provider_whatsapp_activated %}
+            Votre paiement Mobile Money a été vérifié directement auprès de CamPay. Votre formule est active et vous pouvez continuer la connexion WhatsApp officielle Meta.
+          {% elif is_immigration97_plan %}
             Votre paiement est confirmé. L’accès au pass Immigration97 Premium reste soumis à la validation manuelle habituelle.
           {% else %}
             Votre paiement est confirmé. La commande ou l’accès est soumis à la validation manuelle habituelle.
           {% endif %}
         </p>
-        <a href="{{ whatsapp_payment_url }}" target="_blank" rel="noopener noreferrer"
-           class="btn btn-primary" style="margin-top:1.5rem">
-          Envoyer la référence à l’équipe sur WhatsApp
-        </a>
+        {% if is_provider_whatsapp_onboarding and provider_whatsapp_activated %}
+          <a href="{{ provider_whatsapp_dashboard_url }}" class="btn btn-primary" style="margin-top:1.5rem">
+            Continuer vers WhatsApp Business
+          </a>
+        {% else %}
+          <a href="{{ whatsapp_payment_url }}" target="_blank" rel="noopener noreferrer"
+             class="btn btn-primary" style="margin-top:1.5rem">
+            Envoyer la référence à l’équipe sur WhatsApp
+          </a>
+        {% endif %}
       {% elif verified and transaction.statut == "echec" %}
         <div class="section-label">Paiement non confirmé</div>
         <h1 class="section-title" style="margin:.5rem 0 1rem">Le paiement a échoué</h1>

@@ -14,7 +14,7 @@
           Connecté : {{ connection.meta_verified_name|default:business.name }} {{ connection.display_phone_number }}{% if meta_messaging_limit_display %} ({{ meta_messaging_limit_display }}){% endif %}
         </span>
       {% endif %}
-      {% if existing_waba_sync_available and entitlements.can_connect %}
+      {% if existing_waba_sync_available %}
         {% if not connection or connection.status != "active" %}
           <span style="padding:.55rem .85rem;border-radius:999px;background:rgba(34,197,94,.15);color:#86efac;font-weight:800">Compte Meta prêt à vérifier</span>
         {% endif %}
@@ -24,12 +24,20 @@
         </form>
       {% elif existing_waba_ids_configured %}
         <span style="padding:.55rem .85rem;border-radius:10px;background:rgba(250,204,21,.12);color:#fde68a">
-          Compte Meta préconfiguré ; accès serveur incomplet ou formule WhatsApp inactive.
+          La connexion WhatsApp dédiée à cette fiche est incomplète.
         </span>
-      {% elif entitlements.can_connect and not connection %}
-        <a href="{% url 'whatsapp_commerce:business_connect' business.id %}" style="padding:.8rem 1rem;border-radius:10px;background:#1877f2;color:white;text-decoration:none;font-weight:800">Connecter mon compte WhatsApp</a>
-      {% elif entitlements.can_connect and connection.status == "disconnected" %}
-        <a href="{% url 'whatsapp_commerce:business_connect' business.id %}" style="padding:.8rem 1rem;border-radius:10px;background:#1877f2;color:white;text-decoration:none;font-weight:800">Connecter mon compte WhatsApp</a>
+      {% elif whatsapp_connection_needs_signup %}
+        {% if entitlements.can_connect and whatsapp_payment_verified %}
+          <a href="{% url 'whatsapp_commerce:business_connect' business.id %}" style="padding:.8rem 1rem;border-radius:10px;background:#1877f2;color:white;text-decoration:none;font-weight:800">Connecter mon compte WhatsApp</a>
+        {% else %}
+          <button type="button" disabled aria-describedby="whatsapp-payment-required" style="padding:.8rem 1rem;border:0;border-radius:10px;background:#475569;color:#cbd5e1;font-weight:800;cursor:not-allowed">
+            Connecter mon compte WhatsApp
+          </button>
+          <p id="whatsapp-payment-required" style="flex-basis:100%;margin:0;color:#fde68a">
+            Payez d'abord pour débloquer la connexion WhatsApp officielle Meta
+            <a href="{% url 'provider_special_offer' %}?business={{ business.pk }}" style="color:#fff;text-decoration:underline">— choisir une offre</a>
+          </p>
+        {% endif %}
       {% endif %}
     </div>
     {% for message in messages %}

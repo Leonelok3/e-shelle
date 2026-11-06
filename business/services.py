@@ -804,6 +804,90 @@ def record_provider_plan_payment(
     return tx
 
 
+def activate_provider_whatsapp_payment(payment):
+    """Activate a provider plan only for its server-verified WhatsApp checkout."""
+    from decimal import Decimal, InvalidOperation
+
+    metadata = payment.metadata or {}
+    if metadata.get("product_type") != "provider_whatsapp_onboarding":
+        return False
+
+    business_id = metadata.get("provider_whatsapp_business_id")
+    plan_level = metadata.get("provider_whatsapp_plan_level")
+    duration_days = metadata.get("provider_whatsapp_duration_days")
+    expected_amount = metadata.get("provider_whatsapp_amount_xaf")
+    if (
+        not isinstance(business_id, int)
+        or isinstance(business_id, bool)
+        or not isinstance(plan_level, str)
+        or plan_level not in {
+            BusinessProfile.Plan.PRO,
+            BusinessProfile.Plan.BUSINESS,
+            BusinessProfile.Plan.PREMIUM,
+        }
+        or not isinstance(duration_days, int)
+        or isinstance(duration_days, bool)
+        or duration_days <= 0
+        or payment.utilisateur_id is None
+    ):
+        return False
+    try:
+        expected_amount = Decimal(str(expected_amount))
+    except (InvalidOperation, TypeError, ValueError):
+        return False
+    if (
+        payment.devise != "XAF"
+        or payment.montant != expected_amount
+        or payment.statut not in {"pending_awaiting_manual_validation", "succes"}
+    ):
+        return False
+
+    with transaction.atomic():
+        business = BusinessProfile.objects.select_for_update().filter(
+            pk=business_id,
+            owner_id=payment.utilisateur_id,
+        ).first()
+        if business is None:
+            return False
+
+        if metadata.get("provider_whatsapp_activated_at"):
+            return True
+
+        business.activate_plan(plan_level, days=duration_days)
+        business.is_trial = False
+        business.is_verified = True
+        fields = ["is_trial", "is_verified", "updated_at"]
+        boost_days = metadata.get("provider_whatsapp_boost_days", 0)
+        if isinstance(boost_days, int) and not isinstance(boost_days, bool) and boost_days > 0:
+            business.activate_boost(boost_days)
+        business.save(update_fields=fields)
+
+        metadata["provider_whatsapp_activated_at"] = timezone.now().isoformat()
+        payment.metadata = metadata
+        payment.save(update_fields=["metadata", "updated_at"])
+    return True
+
+
+def verified_provider_whatsapp_payment(business):
+    """Return a CamPay transaction whose successful status was verified server-side."""
+    from payments.models import Transaction
+
+    return (
+        Transaction.objects.filter(
+            utilisateur_id=business.owner_id,
+            type_tx="abonnement",
+            methode="campay",
+            statut__in=("pending_awaiting_manual_validation", "succes"),
+            metadata__product_type="provider_whatsapp_onboarding",
+            metadata__provider_whatsapp_business_id=business.pk,
+            metadata__provider_whatsapp_activated_at__isnull=False,
+            metadata__campay__provider_status="SUCCESSFUL",
+        )
+        .order_by("-created_at")
+        .first()
+    )
+
+
 def _read_attr(obj, *names, default=None):
     for name in names:
         if hasattr(obj, name):

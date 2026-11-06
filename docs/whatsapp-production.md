@@ -52,26 +52,44 @@ WHATSAPP_API_URL=https://graph.facebook.com/v19.0/123456789012345/messages
 
 Si `WHATSAPP_API_URL` n'est pas defini, Django le construit automatiquement depuis `WHATSAPP_PHONE_ID`.
 
-### Synchroniser un numero Cloud API deja connecte
+### Synchroniser le WABA dedie a Immigration Canada
 
-Pour rattacher le WABA deja configure a la fiche publique `immigration-canada-douala`,
-les variables habituelles `WHATSAPP_WABA_ID`, `WHATSAPP_PHONE_ID` et
-`WHATSAPP_TOKEN` suffisent. Les noms specifiques ci-dessous restent aussi acceptes :
+La fiche `immigration-canada-douala` conserve sa propre connexion WhatsApp en base :
+WABA `1415282143385478`, Phone Number ID et jeton chiffre. Son bouton
+**Synchroniser** relit ces valeurs depuis sa connexion en base; il ne reutilise
+pas et ne modifie pas le WABA principal `WHATSAPP_WABA_ID` / `WHATSAPP_PHONE_ID`
+du `.env`. La synchronisation verifie le numero et son appartenance au WABA avant
+de reabonner le webhook. Elle ne re-enregistre ni ne deregistre le numero et ne
+deplace jamais une connexion d'une autre fiche.
 
-```env
-WHATSAPP_WABA_ID=<ID du WABA>
-WHATSAPP_PHONE_NUMBER_ID=<Phone Number ID deja connecte>
-WHATSAPP_ACCESS_TOKEN=<jeton System User autorise pour ce WABA>
-WHATSAPP_BUSINESS_ID=<ID du portefeuille Meta, facultatif>
+Pour les nouvelles fiches, le parcours est pay-first : elles choisissent une
+formule payante sur `/special-offer/`, puis le serveur verifie l'etat CamPay
+directement avant d'activer la formule et d'autoriser Meta Embedded Signup.
+Un simple retour navigateur ou callback ne suffit pas a valider un paiement.
+MoMo / Orange Money sont proposes via le checkout Mobile Money CamPay. Le
+config ID Embedded Signup par defaut est `3123772387813404`; la variable
+`WHATSAPP_EMBEDDED_SIGNUP_CONFIG_ID` peut toujours la remplacer sans changement
+au `.env`.
+
+### Sauvegarde avant nettoyage des fiches de test
+
+`backup_db.py` exporte toutes les donnees Django, y compris les fiches et leurs
+donnees dependantes, dans un dossier prive hors du depot par defaut, puis ecrit
+un manifeste avec checksum SHA-256. `purge_provider_profiles.py` ne supprime
+rien sans `--execute`, une sauvegarde dont le checksum est correct, et la phrase
+de confirmation exacte. Son apercu affiche les cascades et verifie que la fiche
+44, son WABA dedie et le compte admin `leoneldjiala@gmail.com` sont presents.
+Ne pas lancer la commande de suppression avant d'avoir examine l'apercu et la
+sauvegarde; aucun `.env` n'est lu ou modifie par ces scripts.
+
+```bash
+python backup_db.py
+python purge_provider_profiles.py --backup /home/eshelle/e-shelle-backups/e-shelle-db-<timestamp>.json
+# Apres examen explicite de la sauvegarde et de l'apercu seulement :
+python purge_provider_profiles.py \
+  --backup /home/eshelle/e-shelle-backups/e-shelle-db-<timestamp>.json \
+  --execute --confirm PURGE_ALL_BUSINESS_PROFILES_EXCEPT_44
 ```
-
-`WHATSAPP_PHONE_NUMBER_ID` et `WHATSAPP_ACCESS_TOKEN` sont facultatives si
-`WHATSAPP_PHONE_ID` et `WHATSAPP_TOKEN` sont deja definies.
-Le tableau de bord ne propose cette synchronisation que pour cette fiche. Avant
-d'enregistrer la connexion, E-Shelle verifie dans Graph API que le numero est
-`CONNECTED` et appartient au WABA indique, puis abonne l'application aux webhooks.
-Cette operation ne re-enregistre ni ne deregistre le numero. Les autres fiches
-conservent leur parcours Embedded Signup. Ne jamais afficher ni committer le jeton.
 
 ## 3. Webhook Meta
 

@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+
+{% block title %}Offre spéciale prestataire — E-Shelle{% endblock %}
+
+{% block content %}
+<section class="section" style="padding-top:6rem">
+  <div class="container" style="max-width:760px">
+    <div class="glass-card" style="padding:2rem">
+      <div class="section-label">Meta Tech Provider — E-Shelle</div>
+      <h1 class="section-title" style="margin:.5rem 0 1rem">Débloquez WhatsApp officiel</h1>
+      <p class="section-subtitle">
+        Choisissez une formule pour <strong>{{ business.name }}</strong>. Le paiement est vérifié
+        directement auprès de CamPay avant l’activation de votre plan et l’accès à Meta Embedded Signup.
+        Le paiement Mobile Money accepte MoMo et Orange Money selon les options proposées par CamPay.
+      </p>
+
+      {% if messages %}
+        {% for message in messages %}
+          <p role="status" style="padding:.75rem 1rem;border-radius:10px;background:rgba(255,255,255,.08)">
+            {{ message }}
+          </p>
+        {% endfor %}
+      {% endif %}
+
+      {% if plans %}
+        <form method="post" style="display:grid;gap:1rem;margin-top:1.5rem">
+          {% csrf_token %}
+          <input type="hidden" name="business" value="{{ business.pk }}">
+          <label for="provider-plan"><strong>Votre formule</strong></label>
+          <select id="provider-plan" name="plan" required style="padding:.8rem;border-radius:8px">
+            {% for plan in plans %}
+              <option value="{{ plan.code }}" {% if plan.pk == selected_plan.pk %}selected{% endif %}>
+                {{ plan.display_name }} — {{ plan.monthly_price_xaf }} FCFA / {{ plan.duration_days }} jours
+              </option>
+            {% endfor %}
+          </select>
+          {% if selected_plan %}
+            <p style="margin:0;color:var(--text-muted)">{{ selected_plan.display_description }}</p>
+          {% endif %}
+          <button type="submit" class="btn btn-primary">
+            Payer par MoMo / Orange Money
+          </button>
+        </form>
+      {% else %}
+        <p role="alert">Aucune formule payante prestataire n’est actuellement disponible. Contactez E-Shelle.</p>
+      {% endif %}
+
+      <p style="margin-top:1.5rem;color:var(--text-muted)">
+        Votre bouton de connexion WhatsApp reste verrouillé tant que CamPay n’a pas confirmé le paiement.
+      </p>
+    </div>
+  </div>
+</section>
+{% endblock %}
