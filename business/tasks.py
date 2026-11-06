@@ -68,20 +68,20 @@ def downgrade_expired_businesses():
     """
     from business.models import BusinessProfile
 
+    from django.db.models import Q
+
     now = timezone.now()
     businesses = BusinessProfile.objects.filter(
-        subscription_expires_at__isnull=False,
-        subscription_expires_at__lte=now,
-    ).exclude(plan=BusinessProfile.Plan.FREE)
+        ~Q(plan=BusinessProfile.Plan.FREE)
+        & (
+            Q(subscription_expires_at__isnull=True)
+            | Q(subscription_expires_at__lte=now)
+        )
+    )
 
     count = 0
     for business in businesses:
-        business.plan = BusinessProfile.Plan.FREE
-        business.activation_status = BusinessProfile.ActivationStatus.DEMO
-        business.is_verified = False
-        business.is_trial = False
-        business.save(update_fields=["plan", "activation_status", "is_verified", "is_trial", "updated_at"])
-        count += 1
+        count += int(business.check_expiry())
 
     log.info(f"downgrade_expired_businesses: {count} fiche(s) retrogradee(s) en Gratuit.")
     return count

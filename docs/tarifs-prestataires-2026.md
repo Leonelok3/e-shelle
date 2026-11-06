@@ -8,8 +8,8 @@ Les prix sont affichés en FCFA, par fiche et pour 30 jours.
 |---|---:|---|
 | Gratuit | 0 FCFA | Fiche de base, lien de contact WhatsApp et jusqu'à 5 articles. Pas de CRM WhatsApp. |
 | Présence — Pro | 5 000 FCFA | Jusqu'à 20 articles, 2 photos supplémentaires par article, 5 crédits IA, connexion WhatsApp et CRM avec réponses dans la fenêtre de service. |
-| Croissance — Business | 15 000 FCFA | Jusqu'à 50 articles, 4 photos supplémentaires par article, 20 crédits IA, 7 jours de Boost E-Shelle et synchronisation au catalogue Meta associé. Relances individuelles seulement si la configuration est activée, avec modèle approuvé et consentement explicite. |
-| Premium | 30 000 FCFA | Catalogue sans plafond déclaré dans le code, 7 photos supplémentaires par article, 50 crédits IA et 15 jours de Boost E-Shelle. |
+| Croissance — Business | 15 000 FCFA | Jusqu'à 50 articles, 4 photos supplémentaires par article, vidéos du catalogue, 20 crédits IA, 7 jours de Boost E-Shelle et synchronisation au catalogue Meta associé. Relances individuelles seulement si la configuration est activée, avec modèle approuvé et consentement explicite. |
+| Premium | 30 000 FCFA | Catalogue sans plafond déclaré dans le code, 7 photos supplémentaires par article, vidéos du catalogue, 50 crédits IA et 15 jours de Boost E-Shelle. |
 
 ## Positionnement vendu
 
@@ -26,6 +26,8 @@ le client ne sont pas inclus dans Premium : ils font l'objet d'un devis séparé
 ## Conditions commerciales à afficher
 
 - L'abonnement est par fiche Business, pour 30 jours.
+- Les crédits IA inclus sont réinitialisés à chaque activation/renouvellement et
+  expirent avec l'abonnement.
 - Les frais de conversations et de messagerie WhatsApp Platform sont à la charge
   du client et facturés séparément par Meta.
 - Les réponses libres sont soumises à la fenêtre de service WhatsApp. Les

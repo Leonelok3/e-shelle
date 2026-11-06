@@ -1,10 +1,119 @@
+from datetime import timedelta
 from unittest.mock import patch
 
 from django.contrib.auth import get_user_model
 from django.test import TestCase, override_settings
 from django.urls import reverse
+from django.utils import timezone
 
-from .models import BusinessProfile, ProviderPlan
+from .models import BusinessCatalogItem, BusinessProfile, ProviderPlan
+from .services import collect_business_items, record_provider_plan_payment
+
+
+class ProviderPlanEntitlementTests(TestCase):
+    def setUp(self):
+        self.owner = get_user_model().objects.create_user(
+            username="plan-owner",
+            password="plan-owner-test-password",
+        )
+        self.business = BusinessProfile.objects.create(
+            owner=self.owner,
+            module=BusinessProfile.Module.GENERAL,
+            name="Business entitlement",
+        )
+
+    def test_expired_paid_plan_resets_paid_benefits_and_ai_credits(self):
+        self.business.plan = BusinessProfile.Plan.BUSINESS
+        self.business.subscription_expires_at = timezone.now()
+        self.business.ai_credits = 3
+        self.business.is_verified = True
+        self.business.is_trial = True
+        self.business.boost_expires_at = timezone.now()
+        self.business.save()
+
+        self.assertTrue(self.business.check_expiry())
+
+        self.business.refresh_from_db()
+        self.assertEqual(self.business.plan, BusinessProfile.Plan.FREE)
+        self.assertEqual(self.business.ai_credits, 0)
+        self.assertIsNone(self.business.boost_expires_at)
+        self.assertFalse(self.business.is_verified)
+        self.assertFalse(self.business.is_trial)
+
+    def test_paid_plan_without_expiration_is_downgraded(self):
+        self.business.plan = BusinessProfile.Plan.PRO
+        self.business.ai_credits = 5
+        self.business.save()
+
+        self.assertTrue(self.business.check_expiry())
+
+        self.business.refresh_from_db()
+        self.assertEqual(self.business.plan, BusinessProfile.Plan.FREE)
+        self.assertEqual(self.business.ai_credits, 0)
+
+    def test_provider_plan_payment_uses_configured_ai_credits_once(self):
+        plan = ProviderPlan.objects.create(
+            code="provider-business-custom",
+            name="Business",
+            plan_level=BusinessProfile.Plan.BUSINESS,
+            monthly_price_xaf=15000,
+            duration_days=30,
+            included_ai_credits=12,
+        )
+        self.business.ai_credits = 7
+        self.business.save(update_fields=["ai_credits"])
+
+        with patch("billing.affiliates.create_commission_for_transaction"):
+            record_provider_plan_payment(
+                business=self.business,
+                plan=plan,
+                paid_by=self.owner,
+                amount_xaf=plan.monthly_price_xaf,
+            )
+
+        self.business.refresh_from_db()
+        self.assertEqual(self.business.ai_credits, 12)
+
+    def test_pro_plan_cannot_add_or_publish_catalog_video(self):
+        self.business.plan = BusinessProfile.Plan.PRO
+        self.business.subscription_expires_at = timezone.now() + timedelta(days=30)
+        self.business.save(update_fields=["plan", "subscription_expires_at"])
+        self.client.force_login(self.owner)
+
+        self.client.post(
+            reverse("business:catalog_manage", kwargs={"business_id": self.business.pk}),
+            {"title": "Produit Pro", "video_url": "https://example.com/demo.mp4"},
+        )
+
+        item = BusinessCatalogItem.objects.get(business=self.business, title="Produit Pro")
+        self.assertEqual(item.video_url, "")
+
+        item.video_url = "https://example.com/existing.mp4"
+        item.save(update_fields=["video_url"])
+        public_items = collect_business_items(self.business)
+        self.assertEqual(public_items[0]["video"], "")
+
+    def test_pro_plan_cannot_replace_existing_catalog_video(self):
+        self.business.plan = BusinessProfile.Plan.PRO
+        self.business.subscription_expires_at = timezone.now() + timedelta(days=30)
+        self.business.save(update_fields=["plan", "subscription_expires_at"])
+        self.client.force_login(self.owner)
+        item = BusinessCatalogItem.objects.create(
+            business=self.business,
+            title="Produit existant",
+            video_url="https://example.com/existing.mp4",
+        )
+
+        self.client.post(
+            reverse(
+                "business:catalog_item_edit",
+                kwargs={"business_id": self.business.pk, "item_id": item.pk},
+            ),
+            {"title": item.title, "video_url": "https://example.com/replacement.mp4"},
+        )
+
+        item.refresh_from_db()
+        self.assertEqual(item.video_url, "https://example.com/existing.mp4")
 
 
 class ProviderOnboardingPaymentTests(TestCase):
@@ -98,6 +207,10 @@ class ProviderOnboardingPaymentTests(TestCase):
         self.assertEqual(
             payment.metadata["provider_whatsapp_business_id"],
             self.business.pk,
+        )
+        self.assertEqual(
+            payment.metadata["provider_whatsapp_ai_credits"],
+            self.plan.included_ai_credits,
         )
         self.assertEqual(
             campay_client.return_value.create_payment_link.call_args.kwargs[

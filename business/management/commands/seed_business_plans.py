@@ -40,7 +40,7 @@ class Command(BaseCommand):
                 "included_boost_days": 7,
                 "included_ai_credits": 20,
                 "order": 20,
-                "description": "Avantages Pro, visibilité prioritaire E-Shelle avec 7 jours de boost, jusqu'à 50 articles, 20 crédits IA, synchronisation du catalogue Meta et relances CRM individuelles sous réserve d'activation, de modèles approuvés et du consentement explicite.",
+                "description": "Avantages Pro, visibilité prioritaire E-Shelle avec 7 jours de boost, jusqu'à 50 articles, vidéo au catalogue, 20 crédits IA, synchronisation du catalogue Meta et relances CRM individuelles sous réserve d'activation, de modèles approuvés et du consentement explicite.",
             },
             {
                 "code": "premium",
@@ -51,7 +51,7 @@ class Command(BaseCommand):
                 "included_boost_days": 15,
                 "included_ai_credits": 50,
                 "order": 30,
-                "description": "Avantages Business, catalogue sans plafond déclaré dans le code, 15 jours de boost E-Shelle, 50 crédits IA et outils de visibilité locale. Aucun classement Google ou placement dans un assistant IA n'est garanti; accompagnement humain sur devis.",
+                "description": "Avantages Business, catalogue sans plafond déclaré dans le code, vidéo au catalogue, 15 jours de boost E-Shelle, 50 crédits IA et outils de visibilité locale. Aucun classement Google ou placement dans un assistant IA n'est garanti; accompagnement humain sur devis.",
             },
         ]
         created = 0

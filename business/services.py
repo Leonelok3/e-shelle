@@ -423,6 +423,9 @@ def collect_business_items(business: BusinessProfile, limit: int = 24) -> list[d
         item.to_public_item()
         for item in BusinessCatalogItem.objects.filter(business=business, is_active=True).order_by("order", "-created_at")[:limit]
     ]
+    if not business.catalog_video_enabled:
+        for item in manual_items:
+            item["video"] = ""
     remaining = max(limit - len(manual_items), 0)
     if remaining <= 0:
         return manual_items
@@ -789,11 +792,14 @@ def record_provider_plan_payment(
             "product_type": "provider_subscription",
         },
     )
-    business.activate_plan(plan.plan_level, plan.duration_days)
-    business.ai_credits += plan.included_ai_credits
+    business.activate_plan(
+        plan.plan_level,
+        plan.duration_days,
+        ai_credits=plan.included_ai_credits,
+    )
     if plan.included_boost_days:
         business.activate_boost(plan.included_boost_days)
-    update_fields = ["ai_credits", "updated_at"]
+    update_fields = ["updated_at"]
     if plan.monthly_price_xaf > 0:
         # Un vrai paiement confirme -> badge Verifie, ce n'est plus un essai gratuit.
         business.is_verified = True
@@ -815,6 +821,7 @@ def activate_provider_whatsapp_payment(payment):
     business_id = metadata.get("provider_whatsapp_business_id")
     plan_level = metadata.get("provider_whatsapp_plan_level")
     duration_days = metadata.get("provider_whatsapp_duration_days")
+    included_ai_credits = metadata.get("provider_whatsapp_ai_credits")
     expected_amount = metadata.get("provider_whatsapp_amount_xaf")
     if (
         not isinstance(business_id, int)
@@ -828,6 +835,14 @@ def activate_provider_whatsapp_payment(payment):
         or not isinstance(duration_days, int)
         or isinstance(duration_days, bool)
         or duration_days <= 0
+        or (
+            included_ai_credits is not None
+            and (
+                not isinstance(included_ai_credits, int)
+                or isinstance(included_ai_credits, bool)
+                or included_ai_credits < 0
+            )
+        )
         or payment.utilisateur_id is None
     ):
         return False
@@ -853,7 +868,11 @@ def activate_provider_whatsapp_payment(payment):
         if metadata.get("provider_whatsapp_activated_at"):
             return True
 
-        business.activate_plan(plan_level, days=duration_days)
+        business.activate_plan(
+            plan_level,
+            days=duration_days,
+            ai_credits=included_ai_credits,
+        )
         business.is_trial = False
         business.is_verified = True
         fields = ["is_trial", "is_verified", "updated_at"]

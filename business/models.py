@@ -261,22 +261,34 @@ class BusinessProfile(models.Model):
         """Nombre de photos supplementaires autorisees par produit/service pour ce plan."""
         return self.CATALOG_EXTRA_PHOTO_LIMITS.get(self.plan, 0)
 
+    @property
+    def catalog_video_enabled(self):
+        return self.plan in {self.Plan.BUSINESS, self.Plan.PREMIUM}
+
     def check_expiry(self):
         """
-        Retrograde la fiche vers le plan Gratuit si l'abonnement est expire.
+        Retrograde la fiche vers le plan Gratuit si l'abonnement est expire
+        ou si un plan payant n'a pas de date d'expiration.
         A appeler avant toute verification de limite ou d'affichage du plan.
         Retourne True si la fiche a ete retrogradee.
         """
         if (
             self.plan != self.Plan.FREE
-            and self.subscription_expires_at
-            and timezone.now() > self.subscription_expires_at
+            and (
+                not self.subscription_expires_at
+                or timezone.now() >= self.subscription_expires_at
+            )
         ):
             self.plan = self.Plan.FREE
             self.activation_status = self.ActivationStatus.DEMO
             self.is_verified = False
+            self.is_trial = False
             self.boost_expires_at = None
-            self.save(update_fields=["plan", "activation_status", "is_verified", "boost_expires_at", "updated_at"])
+            self.ai_credits = 0
+            self.save(update_fields=[
+                "plan", "activation_status", "is_verified", "is_trial",
+                "boost_expires_at", "ai_credits", "updated_at",
+            ])
             return True
         return False
 
@@ -308,18 +320,19 @@ class BusinessProfile(models.Model):
     def reviews_count(self):
         return self.approved_reviews.count()
 
-    def activate_plan(self, plan: str, days: int = 30):
+    def activate_plan(self, plan: str, days: int = 30, ai_credits: int | None = None):
         self.plan = plan
         self.activation_status = self.ActivationStatus.ACTIVE
         base = self.subscription_expires_at if self.subscription_active else timezone.now()
         self.subscription_expires_at = base + timedelta(days=days)
         self.expiry_reminder_sent_at = None
-        if plan == self.Plan.PRO:
-            self.ai_credits += 5
-        elif plan == self.Plan.BUSINESS:
-            self.ai_credits += 20
-        elif plan == self.Plan.PREMIUM:
-            self.ai_credits += 50
+        if ai_credits is None:
+            ai_credits = {
+                self.Plan.PRO: 5,
+                self.Plan.BUSINESS: 20,
+                self.Plan.PREMIUM: 50,
+            }.get(plan, 0)
+        self.ai_credits = ai_credits
         self.save(update_fields=[
             "plan", "activation_status", "subscription_expires_at",
             "expiry_reminder_sent_at", "ai_credits", "updated_at",
@@ -1502,4 +1515,3 @@ class FacebookShareLog(models.Model):
 
     def __str__(self):
         return f"Partage FB #{self.id} — {self.business.name} ({self.status})"
-

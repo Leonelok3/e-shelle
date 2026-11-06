@@ -151,6 +151,7 @@ class CampayClientTests(TestCase):
                 "provider_whatsapp_plan_level": BusinessProfile.Plan.PRO,
                 "provider_whatsapp_duration_days": 30,
                 "provider_whatsapp_boost_days": 7,
+                "provider_whatsapp_ai_credits": 11,
                 "provider_whatsapp_amount_xaf": 3000,
             },
         )
@@ -179,7 +180,7 @@ class CampayClientTests(TestCase):
 
         reconcile_transaction(tx, client=provider)
         business.refresh_from_db()
-        self.assertEqual(business.ai_credits, 5)
+        self.assertEqual(business.ai_credits, 11)
 
     def test_pending_provider_whatsapp_payment_does_not_activate_plan(self):
         user = get_user_model().objects.create_user(

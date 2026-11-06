@@ -2422,6 +2422,7 @@ def special_offer(request):
                     "provider_whatsapp_plan_level": selected_plan.plan_level,
                     "provider_whatsapp_duration_days": selected_plan.duration_days,
                     "provider_whatsapp_boost_days": selected_plan.included_boost_days,
+                    "provider_whatsapp_ai_credits": selected_plan.included_ai_credits,
                     "provider_whatsapp_amount_xaf": selected_plan.monthly_price_xaf,
                 },
             )
@@ -2541,7 +2542,7 @@ def catalog_manage(request, business_id):
                         messages.error(request, f"Votre formule actuelle est limitée à {item_limit} produits ou services. Passez à une formule supérieure pour en ajouter plus.")
                     return redirect("business:catalog_manage", business_id=business.id)
 
-            if business.plan == BusinessProfile.Plan.FREE:
+            if not business.catalog_video_enabled:
                 video_url = ""
             else:
                 video_url, video_warning = _clean_catalog_video_url(video_url)
@@ -3029,9 +3030,7 @@ def catalog_item_edit(request, business_id, item_id):
             item.description_en = description_en
             item.price_label = price_label
             item.price_label_en = price_label_en
-            if business.plan == BusinessProfile.Plan.FREE:
-                item.video_url = ""
-            else:
+            if business.catalog_video_enabled:
                 video_url, video_warning = _clean_catalog_video_url(video_url)
                 if video_warning:
                     messages.warning(request, video_warning)
