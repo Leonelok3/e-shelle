@@ -56,268 +56,496 @@
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/home.css' %}">
 <style>
+  /* ============================================================
+     E-SHELLE HOME — DESIGN SYSTÈME OFFICIEL META TECH PROVIDER
+     Palette : Vert Émeraude / WhatsApp + Orange Vif + Blanc Pur
+     ============================================================ */
+
+  /* Badges & Trust */
+  .esh-meta-provider-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 16px;
+    border-radius: 999px;
+    background: rgba(34, 197, 94, 0.12);
+    border: 1px solid rgba(74, 222, 128, 0.35);
+    color: #86efac;
+    font-size: 0.78rem;
+    font-weight: 800;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    margin-bottom: 1.25rem;
+    box-shadow: 0 4px 20px rgba(34, 197, 94, 0.15);
+  }
+  .esh-meta-provider-badge .esh-logos {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .esh-meta-provider-badge .esh-divider {
+    color: rgba(255, 255, 255, 0.25);
+  }
+  .esh-meta-provider-badge strong {
+    color: #ffffff;
+    font-weight: 800;
+  }
+
+  /* Hero Immersif */
+  .esh-hero {
+    min-height: auto;
+    padding: 5rem 0 2rem;
+    position: relative;
+    background: radial-gradient(circle at 18% 20%, rgba(34, 197, 94, 0.12), transparent 45%),
+                radial-gradient(circle at 82% 25%, rgba(249, 115, 22, 0.09), transparent 45%),
+                radial-gradient(circle at 50% 90%, rgba(34, 197, 94, 0.08), transparent 50%),
+                #061109;
+  }
+  .esh-hero-copy {
+    width: min(100%, 1420px) !important;
+    max-width: 1420px !important;
+    margin: 0 auto;
+    text-align: center;
+    position: relative;
+    isolation: isolate;
+    padding: clamp(2.5rem, 5vw, 4rem) clamp(1.25rem, 3.5vw, 3.5rem) !important;
+    border-radius: 28px !important;
+    background: linear-gradient(165deg, rgba(14, 34, 23, 0.82) 0%, rgba(7, 18, 12, 0.94) 100%) !important;
+    border: 1px solid rgba(74, 222, 128, 0.25) !important;
+    box-shadow: 0 35px 100px rgba(0, 0, 0, 0.55), 0 0 0 1px rgba(255, 255, 255, 0.06) inset !important;
+    backdrop-filter: blur(16px);
+  }
+  .esh-hero-copy .esh-hero-title {
+    font-family: 'Outfit', sans-serif !important;
+    font-weight: 900 !important;
+    font-size: clamp(2.2rem, 4.2vw, 3.6rem) !important;
+    line-height: 1.15 !important;
+    color: #ffffff !important;
+    max-width: 1020px !important;
+    margin: 0 auto 1.25rem !important;
+    letter-spacing: -0.025em !important;
+  }
+  .text-gradient-green {
+    background: linear-gradient(135deg, #4ade80 0%, #22c55e 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  .text-gradient-orange {
+    background: linear-gradient(135deg, #fb923c 0%, #f97316 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  .esh-hero-copy .esh-lead {
+    color: #cbd5e1 !important;
+    font-size: clamp(1.05rem, 1.35vw, 1.22rem) !important;
+    line-height: 1.65 !important;
+    max-width: 860px !important;
+    margin: 0 auto 2rem !important;
+  }
+
+  /* Formulaire Hero CTA */
+  .esh-hero-copy .esh-business-signup {
+    max-width: 760px;
+    margin: 0 auto 1.25rem;
+    display: flex;
+    gap: 0.5rem;
+    padding: 0.45rem;
+    background: #08160d;
+    border: 1px solid rgba(74, 222, 128, 0.35);
+    border-radius: 16px;
+    box-shadow: 0 12px 36px rgba(0, 0, 0, 0.4);
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+  .esh-hero-copy .esh-business-signup:focus-within {
+    border-color: #22c55e;
+    box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.25), 0 14px 40px rgba(0, 0, 0, 0.5);
+  }
+  .esh-hero-copy .esh-business-signup input {
+    flex: 1;
+    min-width: 0;
+    padding: 0.9rem 1.25rem;
+    background: transparent;
+    border: none;
+    color: #ffffff;
+    font-size: 1rem;
+    outline: none;
+  }
+  .esh-hero-copy .esh-business-signup input::placeholder {
+    color: #94a3b8;
+  }
+  .esh-hero-copy .esh-business-signup button {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 0.9rem 1.85rem;
+    background: linear-gradient(135deg, #16a34a, #15803d);
+    color: #ffffff;
+    font-weight: 800;
+    font-size: 0.98rem;
+    border: none;
+    border-radius: 12px;
+    cursor: pointer;
+    box-shadow: 0 4px 16px rgba(22, 163, 74, 0.4);
+    transition: transform 0.2s, box-shadow 0.2s;
+    white-space: nowrap;
+  }
+  .esh-hero-copy .esh-business-signup button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 22px rgba(22, 163, 74, 0.55);
+  }
+
+  /* Boutons d'action Hero */
+  .home-hero-actions {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 0.85rem;
+    margin: 1.25rem 0 1.5rem;
+  }
+  .home-hero-action {
+    display: inline-flex;
+    min-height: 48px;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 0.75rem 1.4rem;
+    border-radius: 12px;
+    font-size: 0.92rem;
+    font-weight: 800;
+    text-decoration: none;
+    transition: all 0.2s ease;
+  }
+  .home-hero-action.is-whatsapp {
+    background: linear-gradient(135deg, #16a34a, #15803d);
+    color: #ffffff !important;
+    border: 1px solid rgba(74, 222, 128, 0.4);
+    box-shadow: 0 4px 16px rgba(22, 163, 74, 0.35);
+  }
+  .home-hero-action.is-whatsapp:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(22, 163, 74, 0.5);
+  }
+  .home-hero-action.is-pricing {
+    background: rgba(249, 115, 22, 0.12);
+    color: #fb923c !important;
+    border: 1px solid rgba(249, 115, 22, 0.4);
+    box-shadow: 0 4px 14px rgba(249, 115, 22, 0.2);
+  }
+  .home-hero-action.is-pricing:hover {
+    background: rgba(249, 115, 22, 0.22);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(249, 115, 22, 0.35);
+  }
+
+  /* Barre de réassurance (Trust Strip 4 colonnes) */
+  .esh-hero-trust-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1rem;
+    margin-top: 2rem;
+    padding-top: 1.75rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    text-align: left;
+  }
+  .esh-trust-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+    padding: 0.75rem 0.9rem;
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+  }
+  .esh-trust-icon {
+    font-size: 1.35rem;
+    line-height: 1;
+    flex-shrink: 0;
+  }
+  .esh-trust-item strong {
+    display: block;
+    color: #ffffff;
+    font-size: 0.88rem;
+    font-weight: 700;
+    line-height: 1.25;
+  }
+  .esh-trust-item small {
+    display: block;
+    color: #94a3b8;
+    font-size: 0.76rem;
+    margin-top: 2px;
+    line-height: 1.35;
+  }
+
+  /* Section Croissance / Fonctionnalités */
   .home-growth-section {
-    padding: clamp(2rem, 4vw, 3.5rem) 0;
-    background: linear-gradient(180deg, rgba(5, 10, 17, .98), rgba(8, 24, 17, .94));
-    border-top: 1px solid rgba(125, 236, 108, .14);
-    border-bottom: 1px solid rgba(125, 236, 108, .14);
+    padding: clamp(3rem, 6vw, 5rem) 0;
+    background: #061109;
+    border-top: 1px solid rgba(74, 222, 128, 0.18);
+    border-bottom: 1px solid rgba(74, 222, 128, 0.18);
+    position: relative;
   }
   .home-growth-heading {
-    max-width: 760px;
-    margin: 0 auto 1.4rem;
+    max-width: 820px;
+    margin: 0 auto 2.5rem;
     text-align: center;
   }
   .home-growth-heading h2 {
-    margin: 0;
-    color: #fff;
-    font: 850 clamp(1.45rem, 3vw, 2.1rem)/1.15 'Outfit', sans-serif;
+    margin: 0 0 0.75rem;
+    color: #ffffff;
+    font: 900 clamp(1.8rem, 3.5vw, 2.6rem)/1.15 'Outfit', sans-serif;
   }
   .home-growth-heading p {
-    margin: .55rem 0 0;
-    color: rgba(255,255,255,.66);
-    font-size: .92rem;
-    line-height: 1.55;
+    margin: 0;
+    color: #cbd5e1;
+    font-size: 1.05rem;
+    line-height: 1.6;
   }
   .home-growth-grid {
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: .9rem;
+    gap: 1.25rem;
   }
   .home-growth-card {
     display: flex;
-    min-height: 190px;
+    min-height: 220px;
     flex-direction: column;
-    padding: 1.15rem;
-    border: 1px solid rgba(255,255,255,.12);
-    border-radius: 16px;
-    background: rgba(255,255,255,.045);
-    color: #fff;
+    padding: 1.65rem 1.45rem;
+    border: 1px solid rgba(74, 222, 128, 0.18);
+    border-radius: 18px;
+    background: linear-gradient(165deg, rgba(14, 34, 23, 0.75), rgba(7, 18, 12, 0.9));
+    backdrop-filter: blur(12px);
+    color: #ffffff;
     text-decoration: none;
-    transition: transform .2s ease, border-color .2s ease, background .2s ease;
+    transition: transform 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
   }
   .home-growth-card:hover {
-    transform: translateY(-3px);
-    border-color: rgba(125,236,108,.45);
-    background: rgba(255,255,255,.075);
+    transform: translateY(-4px);
+    border-color: rgba(74, 222, 128, 0.45);
+    box-shadow: 0 18px 40px rgba(0, 0, 0, 0.45);
   }
-  .home-growth-icon { margin-bottom: .65rem; font-size: 1.35rem; }
-  .home-growth-card strong { font-size: 1rem; font-weight: 850; }
+  .home-growth-icon {
+    font-size: 1.75rem;
+    margin-bottom: 0.85rem;
+  }
+  .home-growth-card strong {
+    font-size: 1.15rem;
+    font-weight: 800;
+    color: #ffffff;
+    margin-bottom: 0.45rem;
+    line-height: 1.25;
+  }
   .home-growth-card p {
-    margin: .45rem 0 .8rem;
-    color: rgba(255,255,255,.68);
-    font-size: .82rem;
+    margin: 0 0 1.25rem;
+    color: #cbd5e1;
+    font-size: 0.88rem;
     line-height: 1.55;
+    flex-grow: 1;
   }
   .home-growth-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    color: #4ade80;
+    font-size: 0.85rem;
+    font-weight: 800;
     margin-top: auto;
-    color: #a8ff84;
-    font-size: .8rem;
-    font-weight: 850;
   }
-  .home-growth-note {
-    margin: 1rem auto 0;
-    max-width: 900px;
-    color: rgba(255,255,255,.48);
-    font-size: .72rem;
-    line-height: 1.5;
-    text-align: center;
+  .home-growth-card:hover .home-growth-link {
+    color: #86efac;
+    text-decoration: underline;
   }
+
+  /* Section Tarifs sur l'accueil */
   .home-pricing-section {
-    padding: clamp(2.5rem, 5vw, 4.5rem) 0;
-    background:
-      radial-gradient(circle at 12% 18%, rgba(125,236,108,.08), transparent 28%),
-      radial-gradient(circle at 88% 60%, rgba(245,158,11,.07), transparent 28%),
-      #070d12;
-    border-bottom: 1px solid rgba(255,255,255,.08);
+    padding: clamp(3rem, 6vw, 5.5rem) 0;
+    background: radial-gradient(circle at 15% 20%, rgba(34, 197, 94, 0.1), transparent 45%),
+                radial-gradient(circle at 85% 80%, rgba(249, 115, 22, 0.08), transparent 45%),
+                #061109;
+    border-bottom: 1px solid rgba(74, 222, 128, 0.18);
   }
   .home-pricing-heading {
-    max-width: 760px;
-    margin: 0 auto 1.6rem;
+    max-width: 820px;
+    margin: 0 auto 2.75rem;
     text-align: center;
   }
   .home-pricing-heading h2 {
-    margin: 0;
-    color: #fff;
-    font: 850 clamp(1.6rem, 3.3vw, 2.45rem)/1.12 'Outfit', sans-serif;
+    margin: 0 0 0.75rem;
+    color: #ffffff;
+    font: 900 clamp(1.8rem, 3.5vw, 2.6rem)/1.15 'Outfit', sans-serif;
   }
   .home-pricing-heading p {
-    margin: .65rem 0 0;
-    color: rgba(255,255,255,.66);
-    font-size: .92rem;
+    margin: 0;
+    color: #cbd5e1;
+    font-size: 1.05rem;
     line-height: 1.6;
   }
   .home-plan-grid {
     display: grid;
     grid-template-columns: repeat(4, minmax(0, 1fr));
-    gap: .85rem;
+    gap: 1.25rem;
   }
   .home-plan-card {
     display: flex;
-    min-height: 270px;
+    min-height: 340px;
     flex-direction: column;
-    padding: 1.15rem;
-    border: 1px solid rgba(255,255,255,.13);
-    border-radius: 16px;
-    background: linear-gradient(160deg, rgba(255,255,255,.09), rgba(255,255,255,.035));
+    padding: 1.75rem 1.4rem;
+    border: 1px solid rgba(74, 222, 128, 0.18);
+    border-radius: 18px;
+    background: linear-gradient(165deg, rgba(14, 34, 23, 0.82), rgba(7, 18, 12, 0.94));
+    backdrop-filter: blur(12px);
+    transition: transform 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+  }
+  .home-plan-card:hover {
+    transform: translateY(-4px);
+    border-color: rgba(74, 222, 128, 0.4);
+    box-shadow: 0 18px 45px rgba(0, 0, 0, 0.45);
   }
   .home-plan-card.is-featured {
-    border-color: rgba(125,236,108,.62);
-    background: linear-gradient(160deg, rgba(35,91,48,.48), rgba(255,255,255,.045));
-    box-shadow: 0 12px 34px rgba(30,120,54,.12);
+    border: 2px solid #22c55e;
+    background: linear-gradient(165deg, rgba(20, 52, 34, 0.92), rgba(11, 28, 19, 0.98));
+    box-shadow: 0 0 35px rgba(34, 197, 94, 0.22), 0 20px 50px rgba(0, 0, 0, 0.45);
+    transform: scale(1.02);
+  }
+  .home-plan-card.is-featured:hover {
+    transform: scale(1.02) translateY(-4px);
+    box-shadow: 0 0 45px rgba(34, 197, 94, 0.35), 0 25px 60px rgba(0, 0, 0, 0.5);
   }
   .home-plan-label {
-    color: #a8ff84;
-    font-size: .7rem;
-    font-weight: 900;
-    letter-spacing: .07em;
+    align-self: flex-start;
+    padding: 3px 10px;
+    border-radius: 999px;
+    font-size: 0.72rem;
+    font-weight: 800;
     text-transform: uppercase;
+    letter-spacing: .06em;
+    margin-bottom: 0.85rem;
+    background: rgba(255, 255, 255, 0.08);
+    color: #cbd5e1;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+  }
+  .home-plan-card.is-featured .home-plan-label {
+    background: rgba(34, 197, 94, 0.2);
+    color: #4ade80;
+    border-color: rgba(34, 197, 94, 0.4);
   }
   .home-plan-card h3 {
-    margin: .45rem 0 .25rem;
-    color: #fff;
-    font-size: 1rem;
-    font-weight: 850;
+    margin: 0 0 0.5rem;
+    color: #ffffff;
+    font-size: 1.25rem;
+    font-weight: 800;
   }
   .home-plan-price {
-    margin: .15rem 0 .65rem;
-    color: #fff;
-    font: 900 1.48rem/1.1 'Outfit', sans-serif;
+    margin: 0 0 0.85rem;
+    color: #ffffff;
+    font: 900 1.75rem/1.1 'Outfit', sans-serif;
   }
   .home-plan-price small {
-    color: rgba(255,255,255,.58);
-    font: 600 .7rem/1.2 'Plus Jakarta Sans', sans-serif;
+    color: #86efac;
+    font: 600 0.8rem/1.2 'Plus Jakarta Sans', sans-serif;
   }
   .home-plan-card p {
-    margin: 0 0 1rem;
-    color: rgba(255,255,255,.68);
-    font-size: .79rem;
-    line-height: 1.55;
+    margin: 0 0 1.25rem;
+    color: #cbd5e1;
+    font-size: 0.84rem;
+    line-height: 1.5;
+    flex-grow: 1;
   }
   .home-plan-link {
     display: inline-flex;
     justify-content: center;
     align-items: center;
-    min-height: 39px;
+    min-height: 44px;
     margin-top: auto;
-    padding: .5rem .75rem;
-    border: 1px solid rgba(255,255,255,.2);
+    padding: 0.65rem 1rem;
     border-radius: 10px;
-    color: #fff;
-    font-size: .78rem;
-    font-weight: 850;
+    font-size: 0.88rem;
+    font-weight: 800;
     text-align: center;
     text-decoration: none;
+    transition: all 0.2s ease;
   }
-  .home-plan-card.is-featured .home-plan-link {
-    border-color: transparent;
-    background: linear-gradient(120deg, #7dec6c, #f9c332);
-    color: #10170d;
+  .home-plan-link-free {
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: #ffffff !important;
   }
-  .home-plan-link:hover { filter: brightness(1.08); }
+  .home-plan-link-free:hover {
+    background: rgba(34, 197, 94, 0.2);
+    border-color: #22c55e;
+    color: #4ade80 !important;
+  }
+  .home-plan-link-pro {
+    background: linear-gradient(135deg, #16a34a, #15803d);
+    color: #ffffff !important;
+    border: 1px solid rgba(74, 222, 128, 0.4);
+    box-shadow: 0 4px 16px rgba(22, 163, 74, 0.35);
+  }
+  .home-plan-link-pro:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 22px rgba(22, 163, 74, 0.5);
+  }
+  .home-plan-link-business {
+    background: linear-gradient(135deg, #f97316, #ea580c);
+    color: #ffffff !important;
+    border: 1px solid rgba(249, 115, 22, 0.4);
+    box-shadow: 0 4px 16px rgba(249, 115, 22, 0.35);
+  }
+  .home-plan-link-business:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 22px rgba(249, 115, 22, 0.5);
+  }
+  .home-plan-link-premium {
+    background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+    color: #ffffff !important;
+    border: 1px solid rgba(74, 222, 128, 0.4);
+    box-shadow: 0 4px 16px rgba(34, 197, 94, 0.35);
+  }
+  .home-plan-link-premium:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 22px rgba(34, 197, 94, 0.5);
+  }
+
+  /* WABA Offer Banner */
   .home-waba-offer {
     display: grid;
     grid-template-columns: minmax(0, 1fr) auto;
-    gap: 1.2rem;
+    gap: 1.5rem;
     align-items: center;
-    margin-top: 1rem;
-    padding: 1.1rem 1.25rem;
-    border: 1px solid rgba(245,158,11,.28);
-    border-radius: 16px;
-    background: linear-gradient(100deg, rgba(245,158,11,.08), rgba(125,236,108,.06));
+    margin-top: 1.75rem;
+    padding: 1.4rem 1.6rem;
+    border: 1px solid rgba(74, 222, 128, 0.28);
+    border-left: 5px solid #f97316;
+    border-radius: 18px;
+    background: linear-gradient(100deg, rgba(14, 34, 23, 0.88), rgba(9, 23, 15, 0.95));
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
   }
   .home-waba-offer strong {
-    color: #fff;
-    font-size: .96rem;
-    font-weight: 850;
+    color: #ffffff;
+    font-size: 1.05rem;
+    font-weight: 800;
   }
   .home-waba-offer p {
-    margin: .3rem 0 0;
-    color: rgba(255,255,255,.68);
-    font-size: .79rem;
+    margin: 0.35rem 0 0;
+    color: #cbd5e1;
+    font-size: 0.86rem;
     line-height: 1.55;
   }
-  .home-waba-price {
-    display: block;
-    margin-bottom: .15rem;
-    color: #ffd166;
-    font: 900 1.18rem/1.2 'Outfit', sans-serif;
+
+  /* Responsive */
+  @media (max-width: 1100px) {
+    .esh-hero-trust-grid { grid-template-columns: repeat(2, 1fr); }
+    .home-plan-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   }
-  .home-pricing-footnote {
-    margin: 1rem auto 0;
-    max-width: 950px;
-    color: rgba(255,255,255,.48);
-    font-size: .7rem;
-    line-height: 1.55;
-    text-align: center;
-  }
-  .home-hero-actions {
-    display: flex;
-    flex-wrap: wrap;
-    gap: .65rem;
-    margin-top: .8rem;
-  }
-  .home-hero-action {
-    display: inline-flex;
-    min-height: 42px;
-    align-items: center;
-    justify-content: center;
-    padding: .6rem .9rem;
-    border: 1px solid rgba(255,255,255,.2);
-    border-radius: 12px;
-    color: #f8fafc;
-    font-size: .82rem;
-    font-weight: 850;
-    text-decoration: none;
-    transition: border-color .2s ease, background .2s ease, transform .2s ease;
-  }
-  .home-hero-action:hover {
-    transform: translateY(-1px);
-    border-color: rgba(125,236,108,.55);
-    background: rgba(125,236,108,.08);
-  }
-  .home-hero-action.is-primary {
-    border-color: transparent;
-    background: linear-gradient(120deg, #7dec6c, #f9c332);
-    color: #10170d;
-  }
-  .home-hero-terms {
-    margin: .55rem 0 0;
-    color: rgba(255,255,255,.52);
-    font-size: .7rem;
-    line-height: 1.5;
-  }
-  .home-hero-proof {
-    margin: .8rem 0 0;
-    color: rgba(255,255,255,.72);
-    font-size: .76rem;
-    font-weight: 700;
-  }
-  .home-apps-link-section {
-    padding: 1.15rem 0;
-    background: rgba(255,255,255,.025);
-    border-top: 1px solid rgba(255,255,255,.07);
-    border-bottom: 1px solid rgba(255,255,255,.07);
-    text-align: center;
-  }
-  .home-apps-link-section p {
-    margin: 0 0 .35rem;
-    color: rgba(255,255,255,.62);
-    font-size: .82rem;
-  }
-  .home-apps-link-section a {
-    color: #a8ff84;
-    font-size: .88rem;
-    font-weight: 850;
-    text-decoration: none;
-  }
-  .home-apps-link-section a:hover { text-decoration: underline; }
   @media (max-width: 760px) {
     .home-growth-grid { grid-template-columns: 1fr; }
-    .home-growth-card { min-height: 0; }
-    .home-plan-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .esh-hero-trust-grid { grid-template-columns: 1fr; }
     .home-waba-offer { grid-template-columns: 1fr; }
+    .esh-hero-copy .esh-business-signup { flex-direction: column; }
+    .esh-hero-copy .esh-business-signup button { width: 100%; justify-content: center; }
   }
-  @media (max-width: 460px) {
+  @media (max-width: 480px) {
     .home-plan-grid { grid-template-columns: 1fr; }
   }
   /* Pulse Animation for Status Dots in Badges */
@@ -1040,31 +1268,86 @@
     <div class="esh-shell esh-hero-grid">
 
       <div class="esh-hero-copy">
-        <div class="esh-pill">{% if LANGUAGE_CODE == 'en' %}Visibility · AI tools · WhatsApp Business{% else %}Visibilité · outils IA · WhatsApp Business{% endif %}</div>
+        <div class="esh-meta-provider-badge">
+          <span class="esh-logos">
+            <!-- Meta SVG -->
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" style="color:#0081fb"><path d="M16.96 4C14.71 4 12.83 5.4 12 7.39 11.17 5.4 9.29 4 7.04 4 3.15 4 0 7.15 0 11.04c0 4.96 4.38 8.87 9.87 11.44.7.33 1.49.52 2.13.52.64 0 1.43-.19 2.13-.52C19.62 19.91 24 16 24 11.04 24 7.15 20.85 4 16.96 4zm-9.92 9.54c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5zm9.84 0c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
+            <!-- WhatsApp SVG -->
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" style="color:#25d366"><path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981z"/></svg>
+          </span>
+          <span class="esh-live-dot" style="background:#22c55e"></span>
+          <strong>{% if LANGUAGE_CODE == 'en' %}CERTIFIED META TECH PROVIDER{% else %}FOURNISSEUR CERTIFIÉ META TECH PROVIDER{% endif %}</strong>
+          <span class="esh-divider">·</span>
+          <span>WhatsApp Cloud API &amp; Commerce</span>
+        </div>
+
         <h1 class="esh-hero-title">
-          <span class="esh-title-line esh-animated-gradient-text">{% if LANGUAGE_CODE == 'en' %}Be easier to find{% else %}Soyez plus facile à trouver{% endif %}</span>
-          <span class="esh-title-line" style="color: #f59e0b;">{% if LANGUAGE_CODE == 'en' %}and simpler to contact.{% else %}et plus simple à contacter.{% endif %}</span>
-        </h1>
-        <p class="esh-lead" style="max-width: 820px; margin: 0 auto 1.5rem;">
           {% if LANGUAGE_CODE == 'en' %}
-          Present your <span style="color: #7dec6c; font-weight: 700;">business and offers</span>, use AI tools to prepare your content, and connect WhatsApp Business to manage customer conversations — all from one platform.
+            Supercharge your sales with AI &amp; <span class="text-gradient-green">Official WhatsApp API</span> <span class="text-gradient-orange">Meta Tech Provider</span>
           {% else %}
-          Présentez votre <span style="color: #7dec6c; font-weight: 700;">activité et vos offres</span>, préparez vos contenus avec des outils IA et connectez WhatsApp Business pour gérer les échanges clients — depuis une seule plateforme.
+            Vendez en continu avec l’IA &amp; <span class="text-gradient-green">l’API WhatsApp officielle</span> <span class="text-gradient-orange">Meta Tech Provider</span>
+          {% endif %}
+        </h1>
+
+        <p class="esh-lead">
+          {% if LANGUAGE_CODE == 'en' %}
+            Connect your official WhatsApp Business account via Meta Embedded Signup in 2 minutes. Deploy a 24/7 AI Sales Agent that showcases your products, answers clients, and collects Mobile Money payments securely.
+          {% else %}
+            Connectez votre compte officiel WhatsApp Business en 2 minutes via Meta Embedded Signup. Déployez un agent commercial IA qui répond à vos clients, présente votre catalogue et encaisse vos paiements Mobile Money 24h/24 en toute sécurité.
           {% endif %}
         </p>
+
         <form class="esh-ai-search esh-business-signup" action="{% url 'business:onboarding' %}" method="get">
-          <input name="business_hint" type="search" placeholder="{% if LANGUAGE_CODE == 'en' %}e.g. Dry cleaner in Douala, restaurant in Abidjan, boutique, electrician...{% else %}Ex : Pressing à Douala, restaurant à Abidjan, boutique cosmétique, électricien...{% endif %}" aria-label="{% if LANGUAGE_CODE == 'en' %}Your business{% else %}Votre business{% endif %}">
+          <input name="business_hint" type="search" placeholder="{% if LANGUAGE_CODE == 'en' %}Enter your business name or activity (e.g. Fashion store, restaurant, clinic...){% else %}Entrez le nom ou l’activité de votre entreprise (ex : Boutique de mode, restaurant, clinique...){% endif %}" aria-label="{% if LANGUAGE_CODE == 'en' %}Your business{% else %}Votre business{% endif %}">
           <input type="hidden" name="source" value="home_hero_business">
-          <button type="submit">{% if LANGUAGE_CODE == 'en' %}Create my free business listing{% else %}Créer ma fiche business gratuite{% endif %} <span style="display:inline-block;margin-left:4px;transition:transform .2s ease;">→</span></button>
+          <button type="submit">
+            {% if LANGUAGE_CODE == 'en' %}Start free &amp; Connect WhatsApp{% else %}Démarrer gratuitement &amp; Connecter WhatsApp{% endif %}
+            <span style="display:inline-block;margin-left:4px;transition:transform .2s ease;">→</span>
+          </button>
         </form>
+
         <div class="home-hero-actions">
-          <a class="home-hero-action" href="{% url 'tarifs' %}#merchant-plans-title">{% if LANGUAGE_CODE == 'en' %}Compare plans{% else %}Comparer les offres{% endif %}</a>
-          <a class="home-hero-action is-primary" href="{% url 'services:whatsapp-business' %}">{% if LANGUAGE_CODE == 'en' %}Connect WhatsApp Business{% else %}Connecter WhatsApp Business{% endif %} →</a>
+          <a class="home-hero-action is-whatsapp" href="{% url 'services:whatsapp-business' %}">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981z"/></svg>
+            {% if LANGUAGE_CODE == 'en' %}Official WhatsApp Business Platform{% else %}WhatsApp Business Platform Officielle{% endif %} →
+          </a>
+          <a class="home-hero-action is-pricing" href="{% url 'tarifs' %}#merchant-plans-title">
+            {% if LANGUAGE_CODE == 'en' %}Compare pricing &amp; plans{% else %}Comparer nos plans &amp; tarifs{% endif %}
+          </a>
         </div>
-        <p class="home-hero-terms">
-          {% if LANGUAGE_CODE == 'en' %}WhatsApp setup is 25,000 FCFA once; the 5,000 FCFA / 30-day Pro plan is required to use it in E-Shelle. Meta fees are separate.{% else %}Mise en service WhatsApp : 25 000 FCFA une fois ; le plan Pro à 5 000 FCFA / 30 jours est requis pour l’utiliser dans E-Shelle. Frais Meta en supplément.{% endif %}
-        </p>
-        <p class="home-hero-proof">{{ META_TECH_PROVIDER_LABEL }}</p>
+
+        <!-- 4 Piliers de Réassurance -->
+        <div class="esh-hero-trust-grid">
+          <div class="esh-trust-item">
+            <span class="esh-trust-icon">🛡️</span>
+            <div>
+              <strong>{% if LANGUAGE_CODE == 'en' %}Meta Certified Provider{% else %}Certifié Meta Tech Provider{% endif %}</strong>
+              <small>{% if LANGUAGE_CODE == 'en' %}App ID 1841260056892991 · Direct Cloud API{% else %}App ID 1841260056892991 · API Cloud directe{% endif %}</small>
+            </div>
+          </div>
+          <div class="esh-trust-item">
+            <span class="esh-trust-icon">⚡</span>
+            <div>
+              <strong>{% if LANGUAGE_CODE == 'en' %}Embedded Signup in 2 min{% else %}Embedded Signup en 2 min{% endif %}</strong>
+              <small>{% if LANGUAGE_CODE == 'en' %}Zero code, instant official connection{% else %}Zéro code, liaison officielle immédiate{% endif %}</small>
+            </div>
+          </div>
+          <div class="esh-trust-item">
+            <span class="esh-trust-icon">🤖</span>
+            <div>
+              <strong>{% if LANGUAGE_CODE == 'en' %}24/7 AI Sales Agent{% else %}Agent Vendeur IA 24h/24{% endif %}</strong>
+              <small>{% if LANGUAGE_CODE == 'en' %}Answers, advises and takes orders{% else %}Répond, conseille et prend les commandes{% endif %}</small>
+            </div>
+          </div>
+          <div class="esh-trust-item">
+            <span class="esh-trust-icon">💳</span>
+            <div>
+              <strong>{% if LANGUAGE_CODE == 'en' %}Mobile Money Checkout{% else %}Paiement Mobile Money Direct{% endif %}</strong>
+              <small>{% if LANGUAGE_CODE == 'en' %}Orange Money, MTN MoMo &amp; Cards{% else %}Orange Money, MTN MoMo &amp; Cartes{% endif %}</small>
+            </div>
+          </div>
+        </div>
+
       </div>
     </div>
   </section>
@@ -1074,11 +1357,7 @@
     <div class="wa-academy-inner">
       <header class="wa-academy-head">
         <div class="wa-academy-tag">
-          {% if LANGUAGE_CODE == 'en' %}
           {{ META_TECH_PROVIDER_LABEL }}
-          {% else %}
-          {{ META_TECH_PROVIDER_LABEL }}
-          {% endif %}
         </div>
         <h2 id="wa-academy-title">
           {% if LANGUAGE_CODE == 'en' %}
@@ -1113,18 +1392,15 @@
           <p>
             {% if LANGUAGE_CODE == 'en' %}
             An AI agent configured with your catalog can help answer recurring questions
-            about prices, availability and delivery. Its responses depend on your business,
-            configuration and the information available in your catalog.
+            about prices, availability and delivery.
             {% else %}
             Un agent IA configuré avec votre catalogue peut aider à répondre aux questions
-            récurrentes sur les prix, les disponibilités et les livraisons. Ses réponses
-            dépendent de votre activité, de la configuration et des informations disponibles
-            dans votre catalogue.
+            récurrentes sur les prix, les disponibilités et les livraisons.
             {% endif %}
           </p>
-          <div class="wa-academy-chat" aria-label="{% if LANGUAGE_CODE == 'en' %}Preview of a reply in progress{% else %}Aperçu d'une réponse en cours{% endif %}">
+          <div class="wa-academy-chat" aria-label="Aperçu">
             <span class="wa-academy-dots" aria-hidden="true"><i></i><i></i><i></i></span>
-            <span>{% if LANGUAGE_CODE == 'en' %}E-Shelle AI is replying{% else %}E-Shelle IA vous répond{% endif %}</span>
+            <span>E-Shelle IA vous répond</span>
             <span class="wa-academy-checks" aria-hidden="true">✓✓</span>
           </div>
         </article>
@@ -1132,178 +1408,172 @@
         <article class="wa-academy-card">
           <div class="wa-academy-icon" aria-hidden="true">🚀</div>
           <h3>
-            {% if LANGUAGE_CODE == 'en' %}
-            WhatsApp campaign tools
-            {% else %}
-            Outils de campagnes WhatsApp
-            {% endif %}
+            {% if LANGUAGE_CODE == 'en' %}WhatsApp campaign tools{% else %}Outils de campagnes WhatsApp{% endif %}
           </h3>
           <p>
-            {% if LANGUAGE_CODE == 'en' %}
-            Prepare and manage your campaigns from
-            {% else %}
-            Préparez et gérez vos campagnes depuis
-            {% endif %}
+            {% if LANGUAGE_CODE == 'en' %}Prepare and manage your campaigns from{% else %}Préparez et gérez vos campagnes depuis{% endif %}
             <a href="/whatsapp/campagnes/" style="color:#c7ff91;text-decoration:underline;text-underline-offset:3px">E-Shelle WhatsApp Campaigns</a>.
-            {% if LANGUAGE_CODE == 'en' %}
-            Sending volume depends on Meta quotas, contact consent and approved templates.
-            Any WhatsApp fees and open rates depend on Meta and recipients.
-            {% else %}
-            Le volume d’envoi dépend de vos quotas Meta, du consentement des contacts
-            et des modèles approuvés. Les frais WhatsApp éventuels et les résultats
-            d’ouverture dépendent de Meta et des destinataires.
-            {% endif %}
           </p>
         </article>
 
         <article class="wa-academy-card">
           <div class="wa-academy-icon" aria-hidden="true">🛒</div>
           <h3>
-            {% if LANGUAGE_CODE == 'en' %}
-            Catalog + integrated payment
-            {% else %}
-            Catalogue + Paiement intégré
-            {% endif %}
+            {% if LANGUAGE_CODE == 'en' %}Catalog + integrated payment{% else %}Catalogue + Paiement intégré{% endif %}
           </h3>
           <p>
             {% if LANGUAGE_CODE == 'en' %}
-            Showcase your E-Shelle products in a catalog and let customers start an
-            order via WhatsApp. Payments can then be offered through available methods,
-            such as Mobile Money or CamPay, in the secure payment flow.
+            Showcase your E-Shelle products in a catalog and let customers start an order via WhatsApp with Mobile Money or CamPay.
             {% else %}
-            Présentez vos produits E-Shelle dans un catalogue et permettez aux clients
-            de démarrer une commande sur WhatsApp. Le règlement peut ensuite être
-            proposé via les moyens activés, comme Mobile Money ou CamPay, dans le
-            parcours de paiement sécurisé.
+            Présentez vos produits E-Shelle dans un catalogue et permettez aux clients de commander sur WhatsApp avec Mobile Money ou CamPay.
             {% endif %}
           </p>
         </article>
       </div>
-
-      <p class="wa-academy-note">
-        {% if LANGUAGE_CODE == 'en' %}
-        WhatsApp Business Platform features depend on account eligibility, Meta approvals,
-        approved templates, quotas and applicable fees. Business results are not guaranteed.
-        {% else %}
-        Les fonctionnalités WhatsApp Business Platform dépendent de l’éligibilité du compte,
-        des validations Meta, des modèles approuvés, des quotas et des frais applicables.
-        Les résultats commerciaux ne sont pas garantis.
-        {% endif %}
-      </p>
-
-      <div class="wa-academy-cta-wrap">
-        <a class="wa-academy-cta" href="{% url 'formation' %}">
-          {% if LANGUAGE_CODE == 'en' %}
-          Join WhatsApp Business Training — 10,000 FCFA
-          {% else %}
-          Rejoindre la formation WhatsApp Business — 10 000 FCFA
-          {% endif %}
-          <span aria-hidden="true">→</span>
-        </a>
-      </div>
-      <p class="wa-academy-meta">
-        {% if LANGUAGE_CODE == 'en' %}
-        E-Shelle · Business ID: 1837509733943082 · {{ META_TECH_PROVIDER_LABEL }}.
-        Features depend on account eligibility, Meta permissions and configuration.
-        {% else %}
-        E-Shelle · Business ID : 1837509733943082 · {{ META_TECH_PROVIDER_LABEL }}.
-        Les fonctionnalités dépendent de l’éligibilité du compte, des autorisations Meta
-        et de la configuration.
-        {% endif %}
-      </p>
     </div>
   </section>
   {% else %}
   <section class="home-growth-section" aria-labelledby="home-growth-title">
     <div class="esh-shell">
       <header class="home-growth-heading">
-        <h2 id="home-growth-title">{% if LANGUAGE_CODE == 'en' %}Get found. Automate. Connect on WhatsApp.{% else %}Gagnez en visibilité. Automatisez. Connectez WhatsApp.{% endif %}</h2>
-        <p>{% if LANGUAGE_CODE == 'en' %}Practical digital tools to help your business get discovered and manage customer conversations.{% else %}Des outils numériques concrets pour aider vos clients à vous trouver et mieux gérer leurs échanges.{% endif %}</p>
+        <h2 id="home-growth-title">
+          {% if LANGUAGE_CODE == 'en' %}
+            Why Leading Businesses Choose <span class="text-gradient-green">E-Shelle &amp; Meta</span>
+          {% else %}
+            Pourquoi les Entreprises Leaders Choisissent <span class="text-gradient-green">E-Shelle &amp; Meta</span>
+          {% endif %}
+        </h2>
+        <p>
+          {% if LANGUAGE_CODE == 'en' %}
+            Stop losing customers on cluttered messaging. Combine official WhatsApp Cloud API deliverability with AI automation to close sales round the clock.
+          {% else %}
+            Arrêtez de perdre des clients sur des messageries saturées. Associez la puissance de l'API WhatsApp officielle à nos agents IA pour convertir vos prospects en clients fidèles.
+          {% endif %}
+        </p>
       </header>
+
       <div class="home-growth-grid">
-        <a class="home-growth-card" href="{% url 'business:onboarding' %}">
-          <span class="home-growth-icon" aria-hidden="true">📍</span>
-          <strong>{% if LANGUAGE_CODE == 'en' %}Local visibility{% else %}Visibilité locale{% endif %}</strong>
-          <p>{% if LANGUAGE_CODE == 'en' %}Present your business, services and products in a structured profile customers can find.{% else %}Présentez votre activité, vos services et vos produits dans une fiche structurée et consultable.{% endif %}</p>
-          <span class="home-growth-link">{% if LANGUAGE_CODE == 'en' %}Create my business profile{% else %}Créer ma fiche business{% endif %} →</span>
-        </a>
-        <a class="home-growth-card" href="/business/arsenal-ia/">
-          <span class="home-growth-icon" aria-hidden="true">🤖</span>
-          <strong>{% if LANGUAGE_CODE == 'en' %}AI and automation{% else %}IA et automatisations{% endif %}</strong>
-          <p>{% if LANGUAGE_CODE == 'en' %}Explore AI tools that can help prepare content and support recurring customer tasks, depending on your setup.{% else %}Découvrez des outils IA pour préparer vos contenus et accompagner certaines tâches récurrentes, selon votre configuration.{% endif %}</p>
-          <span class="home-growth-link">{% if LANGUAGE_CODE == 'en' %}Explore AI tools{% else %}Découvrir les outils IA{% endif %} →</span>
-        </a>
         <a class="home-growth-card" href="{% url 'services:whatsapp-business' %}">
           <span class="home-growth-icon" aria-hidden="true">💬</span>
-          <strong>{% if LANGUAGE_CODE == 'en' %}WhatsApp Business API{% else %}Connexion WhatsApp Business API{% endif %}</strong>
-          <p>{% if LANGUAGE_CODE == 'en' %}Get support connecting your eligible business account to the official WhatsApp Business Platform.{% else %}Faites-vous accompagner pour connecter un compte professionnel éligible à la plateforme officielle WhatsApp Business.{% endif %}</p>
-          <span class="home-growth-link">{% if LANGUAGE_CODE == 'en' %}Discover the setup{% else %}Découvrir l’accompagnement{% endif %} →</span>
+          <strong>{% if LANGUAGE_CODE == 'en' %}Official WhatsApp Cloud API{% else %}Connexion WhatsApp Cloud API Officielle{% endif %}</strong>
+          <p>{% if LANGUAGE_CODE == 'en' %}Onboard in 2 minutes via Embedded Signup. Zero ban risk, verified business identity, and maximum Meta deliverability.{% else %}Liaison en 2 minutes via Embedded Signup. Zéro risque de bannissement, identité professionnelle vérifiée et délivrabilité Meta maximale.{% endif %}</p>
+          <span class="home-growth-link">{% if LANGUAGE_CODE == 'en' %}Connect my WhatsApp number{% else %}Connecter mon numéro WhatsApp{% endif %} →</span>
         </a>
+
+        <a class="home-growth-card" href="/business/arsenal-ia/">
+          <span class="home-growth-icon" aria-hidden="true">🤖</span>
+          <strong>{% if LANGUAGE_CODE == 'en' %}24/7 AI Sales &amp; CRM Agent{% else %}Agent IA Vendeur &amp; CRM 24h/24{% endif %}</strong>
+          <p>{% if LANGUAGE_CODE == 'en' %}An intelligent agent that speaks your customers' language, recommends items from your catalog, and never sleeps.{% else %}Un agent intelligent qui répond immédiatement, présente vos articles du catalogue et conclut les ventes même pendant vos heures de fermeture.{% endif %}</p>
+          <span class="home-growth-link">{% if LANGUAGE_CODE == 'en' %}Discover AI tools{% else %}Découvrir nos agents IA{% endif %} →</span>
+        </a>
+
+        <a class="home-growth-card" href="{% url 'business:onboarding' %}">
+          <span class="home-growth-icon" aria-hidden="true">📍</span>
+          <strong>{% if LANGUAGE_CODE == 'en' %}Local Visibility &amp; Google SEO{% else %}Visibilité Locale &amp; SEO Google{% endif %}</strong>
+          <p>{% if LANGUAGE_CODE == 'en' %}Structured, fast public business profile optimized for local search in Douala, Yaoundé, and across Cameroon.{% else %}Fiche publique ultra-rapide optimisée pour être trouvée immédiatement sur Google et dans l'annuaire local à Douala et Yaoundé.{% endif %}</p>
+          <span class="home-growth-link">{% if LANGUAGE_CODE == 'en' %}Create my business profile{% else %}Créer ma fiche entreprise{% endif %} →</span>
+        </a>
+
         <a class="home-growth-card" href="{% url 'business:restaurant_sales' %}">
           <span class="home-growth-icon" aria-hidden="true">🍽️</span>
-          <strong>{% if LANGUAGE_CODE == 'en' %}For restaurants{% else %}Pour les restaurants{% endif %}</strong>
-          <p>{% if LANGUAGE_CODE == 'en' %}Organize your menu, show dish availability and let customers contact you on WhatsApp.{% else %}Organisez votre menu, indiquez la disponibilité des plats et laissez vos clients vous contacter sur WhatsApp.{% endif %}</p>
-          <span class="home-growth-link">{% if LANGUAGE_CODE == 'en' %}See restaurant tools{% else %}Voir les outils restaurant{% endif %} →</span>
+          <strong>{% if LANGUAGE_CODE == 'en' %}For Restaurants &amp; Food Delivery{% else %}Spécial Restaurants &amp; Fast-Food{% endif %}</strong>
+          <p>{% if LANGUAGE_CODE == 'en' %}Digital menus with photos, direct dish ordering via WhatsApp, and instant Mobile Money order confirmations.{% else %}Menus digitaux avec photos, commandes directes sur WhatsApp et confirmation instantanée avec paiement Mobile Money.{% endif %}</p>
+          <span class="home-growth-link">{% if LANGUAGE_CODE == 'en' %}See restaurant solutions{% else %}Voir les outils restaurant{% endif %} →</span>
         </a>
+
         <a class="home-growth-card" href="{% url 'business:wholesale_sales' %}">
           <span class="home-growth-icon" aria-hidden="true">📦</span>
-          <strong>{% if LANGUAGE_CODE == 'en' %}For wholesalers and large stores{% else %}Pour les grossistes et grandes boutiques{% endif %}</strong>
-          <p>{% if LANGUAGE_CODE == 'en' %}Keep product references, wholesale prices and stock organized, including by CSV import.{% else %}Organisez vos références, prix de gros et stocks, notamment par import CSV.{% endif %}</p>
-          <span class="home-growth-link">{% if LANGUAGE_CODE == 'en' %}See catalogue tools{% else %}Voir les outils catalogue{% endif %} →</span>
+          <strong>{% if LANGUAGE_CODE == 'en' %}Wholesalers, Boutiques &amp; Stores{% else %}Boutiques, Grossistes &amp; Magasins{% endif %}</strong>
+          <p>{% if LANGUAGE_CODE == 'en' %}Catalog synchronization, wholesale tier pricing, CSV batch imports, and automated stock inquiries.{% else %}Synchronisation au catalogue Meta Commerce, gestion des tarifs de gros, imports CSV et relances automatiques.{% endif %}</p>
+          <span class="home-growth-link">{% if LANGUAGE_CODE == 'en' %}See catalogue solutions{% else %}Voir les outils catalogue{% endif %} →</span>
+        </a>
+
+        <a class="home-growth-card" href="/tarifs/">
+          <span class="home-growth-icon" aria-hidden="true">⚡</span>
+          <strong>{% if LANGUAGE_CODE == 'en' %}E-Shelle Business Key &amp; Affiliation{% else %}E-Shelle Business Key &amp; Affiliation{% endif %}</strong>
+          <p>{% if LANGUAGE_CODE == 'en' %}Earn recurring commissions up to 50% by distributing E-Shelle solutions to merchants in your network.{% else %}Touchez jusqu'à 50% de commission immédiate et récurrente en apportant des fiches et des abonnements dans votre réseau.{% endif %}</p>
+          <span class="home-growth-link">{% if LANGUAGE_CODE == 'en' %}Explore Partner Program{% else %}Découvrir le programme partenaire{% endif %} →</span>
         </a>
       </div>
-      <p class="home-growth-note">
-        {% if LANGUAGE_CODE == 'en' %}Search ranking is not guaranteed. WhatsApp features depend on Meta eligibility, approval, quotas and fees; Meta fees are billed separately.{% else %}Aucune position dans les résultats n’est garantie. Les fonctions WhatsApp dépendent de l’éligibilité, des validations et des quotas Meta ; les frais Meta sont facturés séparément.{% endif %}
-      </p>
     </div>
   </section>
   {% endif %}
 
+  <!-- Section Tarifs sur l'accueil -->
   <section class="home-pricing-section" aria-labelledby="home-pricing-title">
     <div class="esh-shell">
       <header class="home-pricing-heading">
-        <h2 id="home-pricing-title">{% if LANGUAGE_CODE == 'en' %}Start small. Grow with the tools you need.{% else %}Commencez simplement. Évoluez avec les bons outils.{% endif %}</h2>
-        <p>{% if LANGUAGE_CODE == 'en' %}Choose a 30-day business listing plan. Start free, then add visibility, catalogue and AI features as your needs grow.{% else %}Choisissez une formule de 30 jours pour votre fiche business. Commencez gratuitement, puis ajoutez visibilité, catalogue et outils IA selon vos besoins.{% endif %}</p>
+        <h2 id="home-pricing-title">
+          {% if LANGUAGE_CODE == 'en' %}
+            Transparent Plans to <span class="text-gradient-green">Accelerate</span> Your <span class="text-gradient-orange">Revenue</span>
+          {% else %}
+            Des Formules Claires pour <span class="text-gradient-green">Propulser</span> Vos <span class="text-gradient-orange">Revenus</span>
+          {% endif %}
+        </h2>
+        <p>
+          {% if LANGUAGE_CODE == 'en' %}
+            Start free, then unlock official WhatsApp Business API connection, AI credits and local boosts as your sales expand.
+          {% else %}
+            Démarrez gratuitement, puis activez la connexion officielle WhatsApp Business, nos agents IA et le boost local dès que vous êtes prêt à accélérer.
+          {% endif %}
+        </p>
       </header>
+
       <div class="home-plan-grid">
+        <!-- 1. GRATUIT -->
         <article class="home-plan-card">
-          <span class="home-plan-label">{% if LANGUAGE_CODE == 'en' %}Start here{% else %}Pour commencer{% endif %}</span>
-          <h3>{% if LANGUAGE_CODE == 'en' %}Free listing{% else %}Fiche gratuite{% endif %}</h3>
-          <div class="home-plan-price">0 FCFA <small>/ {% if LANGUAGE_CODE == 'en' %}free{% else %}gratuit{% endif %}</small></div>
-          <p>{% if LANGUAGE_CODE == 'en' %}Create a basic business profile, publish up to 5 items and share a direct WhatsApp contact link.{% else %}Créez une fiche de base, publiez jusqu’à 5 articles et partagez un lien de contact WhatsApp direct.{% endif %}</p>
-          <a class="home-plan-link" href="{% url 'business:onboarding' %}">{% if LANGUAGE_CODE == 'en' %}Create my free listing{% else %}Créer ma fiche gratuite{% endif %} →</a>
+          <span class="home-plan-label">{% if LANGUAGE_CODE == 'en' %}Free Plan{% else %}Fiche Gratuite{% endif %}</span>
+          <h3>{% if LANGUAGE_CODE == 'en' %}Free listing{% else %}Gratuit{% endif %}</h3>
+          <div class="home-plan-price">0 FCFA <small>/ {% if LANGUAGE_CODE == 'en' %}month{% else %}mois{% endif %}</small></div>
+          <p>{% if LANGUAGE_CODE == 'en' %}Create a basic business profile, publish up to 5 items and share a direct WhatsApp contact link.{% else %}Créez votre fiche de base, publiez vos premiers articles et recevez des contacts directs via WhatsApp.{% endif %}</p>
+          <a class="home-plan-link home-plan-link-free" href="{% url 'business:onboarding' %}">{% if LANGUAGE_CODE == 'en' %}Get started &rarr;{% else %}Commencer gratuitement &rarr;{% endif %}</a>
         </article>
+
+        <!-- 2. PRO (FEATURED) -->
         <article class="home-plan-card is-featured">
-          <span class="home-plan-label">{% if LANGUAGE_CODE == 'en' %}A strong starting point{% else %}Pour gagner en présence{% endif %}</span>
+          <span class="home-plan-label">{% if LANGUAGE_CODE == 'en' %}Recommended · Most Popular{% else %}Recommandé · Le Plus Choisi{% endif %}</span>
           <h3>Présence — Pro</h3>
           <div class="home-plan-price">5 000 FCFA <small>/ 30 {% if LANGUAGE_CODE == 'en' %}days{% else %}jours{% endif %}</small></div>
-          <p>{% if LANGUAGE_CODE == 'en' %}Up to 20 items, 2 extra photos per item, WhatsApp connection and CRM for replies within the service window, plus 5 AI credits.{% else %}Jusqu’à 20 articles, 2 photos supplémentaires par article, connexion WhatsApp et CRM pour répondre dans la fenêtre de service, plus 5 crédits IA.{% endif %}</p>
-          <a class="home-plan-link" href="{% url 'tarifs' %}#merchant-plans-title">{% if LANGUAGE_CODE == 'en' %}See Pro plan{% else %}Choisir Présence Pro{% endif %} →</a>
+          <p>{% if LANGUAGE_CODE == 'en' %}Catalogue up to 20 items, 2 extra photos per item, WhatsApp Business Platform official connection, CRM inbox and 5 AI credits.{% else %}Catalogue jusqu'à 20 articles, 2 photos par article, connexion officielle WhatsApp Cloud API, CRM de conversation et 5 crédits IA.{% endif %}</p>
+          <a class="home-plan-link home-plan-link-pro" href="{% url 'tarifs' %}#merchant-plans-title">{% if LANGUAGE_CODE == 'en' %}Choose Pro &rarr;{% else %}Choisir Présence Pro &rarr;{% endif %}</a>
         </article>
+
+        <!-- 3. BUSINESS -->
         <article class="home-plan-card">
-          <span class="home-plan-label">{% if LANGUAGE_CODE == 'en' %}For active businesses{% else %}Pour développer votre activité{% endif %}</span>
+          <span class="home-plan-label" style="background:rgba(249,115,22,.18);color:#fb923c;border-color:rgba(249,115,22,.35)">{% if LANGUAGE_CODE == 'en' %}Growth Engine{% else %}Vitesse Supérieure{% endif %}</span>
           <h3>{% if LANGUAGE_CODE == 'en' %}Growth — Business{% else %}Croissance — Business{% endif %}</h3>
           <div class="home-plan-price">15 000 FCFA <small>/ 30 {% if LANGUAGE_CODE == 'en' %}days{% else %}jours{% endif %}</small></div>
-          <p>{% if LANGUAGE_CODE == 'en' %}Up to 50 items, 4 extra photos per item, 20 AI credits, 7 days of E-Shelle Boost and Meta catalogue sync. Individual WhatsApp follow-ups depend on setup and require consent and approved templates.{% else %}Jusqu’à 50 articles, 4 photos supplémentaires par article, 20 crédits IA, 7 jours de Boost E-Shelle et synchronisation au catalogue Meta. Les relances WhatsApp individuelles dépendent de la configuration et exigent consentement et modèles approuvés.{% endif %}</p>
-          <a class="home-plan-link" href="{% url 'tarifs' %}#merchant-plans-title">{% if LANGUAGE_CODE == 'en' %}Explore Growth{% else %}Découvrir Croissance{% endif %} →</a>
+          <p>{% if LANGUAGE_CODE == 'en' %}Up to 50 items, Meta catalogue sync, 7 days of local Boost, 20 AI credits, and targeted WhatsApp follow-ups.{% else %}Jusqu'à 50 articles, synchronisation au catalogue Meta Commerce, 7 jours de Boost local inclus, 20 crédits IA et relances ciblées.{% endif %}</p>
+          <a class="home-plan-link home-plan-link-business" href="{% url 'tarifs' %}#merchant-plans-title">{% if LANGUAGE_CODE == 'en' %}Explore Growth &rarr;{% else %}Découvrir Croissance &rarr;{% endif %}</a>
         </article>
+
+        <!-- 4. PREMIUM -->
         <article class="home-plan-card">
-          <span class="home-plan-label">{% if LANGUAGE_CODE == 'en' %}More room to grow{% else %}Pour aller plus loin{% endif %}</span>
+          <span class="home-plan-label" style="background:rgba(234,179,8,.18);color:#fde047;border-color:rgba(234,179,8,.35)">{% if LANGUAGE_CODE == 'en' %}VIP Enterprise{% else %}Performance VIP{% endif %}</span>
           <h3>Premium</h3>
           <div class="home-plan-price">30 000 FCFA <small>/ 30 {% if LANGUAGE_CODE == 'en' %}days{% else %}jours{% endif %}</small></div>
-          <p>{% if LANGUAGE_CODE == 'en' %}7 additional photos per item, 50 AI credits and 15 days of E-Shelle Boost.{% else %}7 photos supplémentaires par article, 50 crédits IA et 15 jours de Boost E-Shelle.{% endif %}</p>
-          <a class="home-plan-link" href="{% url 'tarifs' %}#merchant-plans-title">{% if LANGUAGE_CODE == 'en' %}Compare all plans{% else %}Comparer les offres{% endif %} →</a>
+          <p>{% if LANGUAGE_CODE == 'en' %}Catalogue without limit, 7 photos per item, 15 days of local Boost, 50 AI credits, homepage carousel, and VIP account manager.{% else %}Catalogue étendu sans plafond, 7 photos par article, 15 jours de Boost local, 50 crédits IA et carrousel sur la page d'accueil.{% endif %}</p>
+          <a class="home-plan-link home-plan-link-premium" href="{% url 'tarifs' %}#merchant-plans-title">{% if LANGUAGE_CODE == 'en' %}Choose Premium &rarr;{% else %}Choisir Premium &rarr;{% endif %}</a>
         </article>
       </div>
+
+      <!-- Offre WABA Mise en service -->
       <aside class="home-waba-offer">
         <div>
-          <strong>{% if LANGUAGE_CODE == 'en' %}Need WhatsApp Business Platform connected?{% else %}Besoin de connecter WhatsApp Business Platform ?{% endif %}</strong>
-          <p>{% if LANGUAGE_CODE == 'en' %}E-Shelle setup: 25,000 FCFA one time. The Presence — Pro plan (5,000 FCFA / 30 days) is required to use the connection in E-Shelle, making the first month at least 30,000 FCFA.{% else %}Mise en service E-Shelle : 25 000 FCFA une seule fois. Le plan Présence — Pro (5 000 FCFA / 30 jours) est requis pour utiliser la connexion dans E-Shelle, soit un minimum de 30 000 FCFA le premier mois.{% endif %}</p>
+          <strong>{% if LANGUAGE_CODE == 'en' %}Ready to connect your official WhatsApp Business Platform?{% else %}Besoin de connecter WhatsApp Business Platform à votre numéro officiel ?{% endif %}</strong>
+          <p>{% if LANGUAGE_CODE == 'en' %}Setup by our certified team is 25,000 FCFA one-time. Coupled with the 5,000 FCFA Pro plan, your business is live with official Meta Cloud API from 30,000 FCFA the first month.{% else %}Mise en service par notre équipe certifiée : 25 000 FCFA une seule fois. Avec le plan Pro (5 000 FCFA / 30j), votre entreprise dispose de l'API officielle Meta dès 30 000 FCFA le premier mois.{% endif %}</p>
         </div>
-        <a class="home-plan-link" href="{% url 'services:whatsapp-business' %}">{% if LANGUAGE_CODE == 'en' %}See WhatsApp setup{% else %}Voir l’offre WhatsApp API{% endif %} →</a>
+        <a class="home-hero-action is-whatsapp" style="white-space:nowrap;margin:0" href="{% url 'services:whatsapp-business' %}">
+          {% if LANGUAGE_CODE == 'en' %}See WhatsApp Setup{% else %}Activer WhatsApp Officiel{% endif %} →
+        </a>
       </aside>
+
       <p class="home-pricing-footnote">
-        {% if LANGUAGE_CODE == 'en' %}Meta fees are separate. WhatsApp connection is subject to Meta account eligibility and configuration. E-Shelle does not promise that an account or number will never be restricted. Search positions and business results are not guaranteed.{% else %}Les frais Meta sont distincts. La connexion WhatsApp dépend de l’éligibilité du compte et de la configuration Meta. E-Shelle ne garantit pas qu’un compte ou numéro ne sera jamais limité. Les positions dans les résultats et les résultats commerciaux ne sont pas garantis.{% endif %}
+        {% if LANGUAGE_CODE == 'en' %}
+          E-Shelle is a certified Meta Tech Provider (App ID 1841260056892991). Meta usage fees are billed separately according to WhatsApp Business pricing. Connection requires account eligibility and Meta verification.
+        {% else %}
+          E-Shelle est Fournisseur Certifié Meta Tech Provider (App ID 1841260056892991). Les frais de messagerie Meta sont facturés directement selon les barèmes officiels WhatsApp. La connexion nécessite l'éligibilité et la validation Meta de l'entreprise.
+        {% endif %}
       </p>
     </div>
   </section>
@@ -1694,10 +1964,10 @@
   </section>
 
   {# 2.2. Agence Digitale & Académie E-Shelle (Création Sites Web, Agents IA, Automatisation & Formations) #}
-  <section class="esh-section esh-tech-training-hub" style="background: linear-gradient(135deg, #020617 0%, #0b1528 100%); padding: 5rem 0; border-top: 1px solid rgba(255,255,255,0.05); font-family: 'Plus Jakarta Sans', sans-serif; position: relative; overflow: hidden;">
+  <section class="esh-section esh-tech-training-hub" style="background: linear-gradient(135deg, #04140a 0%, #081d12 100%); padding: 5rem 0; border-top: 1px solid rgba(74,222,128,0.15); font-family: 'Plus Jakarta Sans', sans-serif; position: relative; overflow: hidden;">
     <!-- Effets d'ambiance lumineuse -->
-    <div style="position: absolute; top: 20%; right: -10%; width: 350px; height: 350px; background: radial-gradient(circle, rgba(22, 163, 74, 0.05) 0%, transparent 70%); pointer-events: none;"></div>
-    <div style="position: absolute; bottom: 10%; left: -5%; width: 300px; height: 300px; background: radial-gradient(circle, rgba(245, 158, 11, 0.04) 0%, transparent 70%); pointer-events: none;"></div>
+    <div style="position: absolute; top: 20%; right: -10%; width: 350px; height: 350px; background: radial-gradient(circle, rgba(22, 163, 74, 0.08) 0%, transparent 70%); pointer-events: none;"></div>
+    <div style="position: absolute; bottom: 10%; left: -5%; width: 300px; height: 300px; background: radial-gradient(circle, rgba(245, 158, 11, 0.05) 0%, transparent 70%); pointer-events: none;"></div>
 
     <div class="esh-shell">
       <div style="text-align: center; max-width: 800px; margin: 0 auto 3.5rem;">
@@ -1705,7 +1975,7 @@
         <h2 class="esh-section-title" style="font-family: 'Outfit', sans-serif; font-size: clamp(2rem, 3.5vw, 2.8rem); font-weight: 900; color: #ffffff; margin-top: 1rem; line-height: 1.15;">
           {% if LANGUAGE_CODE == 'en' %}Scale your business with our <span style="color: #7dec6c;">AI Solutions</span> &amp; <span style="color: #f59e0b;">Web</span>{% else %}Propulsez votre activité avec nos <span style="color: #7dec6c;">Solutions IA</span> &amp; <span style="color: #f59e0b;">Web</span>{% endif %}
         </h2>
-        <div style="background: linear-gradient(135deg, #091322 0%, #030712 100%); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 16px; padding: 1.2rem 2rem; max-width: 680px; margin: 1.5rem auto 0; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.45);">
+        <div style="background: linear-gradient(135deg, #0b2214 0%, #061109 100%); border: 1px solid rgba(74, 222, 128, 0.2); border-radius: 16px; padding: 1.2rem 2rem; max-width: 680px; margin: 1.5rem auto 0; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.45);">
           <p style="font-size: 1rem; line-height: 1.6; font-family: 'Plus Jakarta Sans', sans-serif; color: #f3f4f6; margin: 0;">
             {% if LANGUAGE_CODE == 'en' %}
             From custom <span style="color: #7dec6c; font-weight: 700;">website creation</span> to autonomous <span style="color: #7dec6c; font-weight: 700;">AI agents</span>, E-Shelle supports you in scaling your business across <span style="color: #f59e0b; font-weight: 700;">Cameroon</span> and <span style="color: #f59e0b; font-weight: 700;">Africa</span>.
@@ -1898,7 +2168,7 @@
         <h2 style="font-family: 'Outfit', sans-serif; font-size: clamp(1.8rem, 3vw, 2.4rem); font-weight: 900; color: #0f172a; margin-top: 0.5rem; line-height: 1.15;">
           📍           {% if LANGUAGE_CODE == 'en' %}Local Directory &amp; City Discovery{% else %}Annuaire &amp; découverte locale par ville{% endif %}
         </h2>
-        <div style="background: linear-gradient(135deg, #091322 0%, #030712 100%); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 16px; padding: 1.2rem 2rem; max-width: 680px; margin: 1.5rem auto 0; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);">
+        <div style="background: linear-gradient(135deg, #0b2214 0%, #061109 100%); border: 1px solid rgba(74, 222, 128, 0.25); border-radius: 16px; padding: 1.2rem 2rem; max-width: 680px; margin: 1.5rem auto 0; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);">
           <p style="font-size: 1rem; line-height: 1.6; font-family: 'Plus Jakarta Sans', sans-serif; color: #f3f4f6; margin: 0;">
             {% if LANGUAGE_CODE == 'en' %}
             Find and contact top <span style="color: #7dec6c; font-weight: 700;">qualified providers</span> and <span style="color: #7dec6c; font-weight: 700;">local businesses</span> near you across <span style="color: #f59e0b; font-weight: 700;">Francophone Africa</span>.
@@ -1981,7 +2251,7 @@
         <h2 class="esh-section-title" style="font-family: 'Outfit', sans-serif; font-size: clamp(2rem, 3.5vw, 2.8rem); font-weight: 900; color: #ffffff; margin-top: 0.5rem; line-height: 1.15;">
           {% if LANGUAGE_CODE == 'en' %}The entire <span style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">E-Shelle</span> ecosystem{% else %}Tout l'écosystème <span style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">E-Shelle</span>{% endif %}
         </h2>
-        <div style="background: linear-gradient(135deg, #091322 0%, #030712 100%); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 16px; padding: 1.2rem 2rem; max-width: 680px; margin: 1.5rem auto 0; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.45);">
+        <div style="background: linear-gradient(135deg, #0b2214 0%, #061109 100%); border: 1px solid rgba(74, 222, 128, 0.25); border-radius: 16px; padding: 1.2rem 2rem; max-width: 680px; margin: 1.5rem auto 0; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.45);">
           <p style="font-size: 1rem; line-height: 1.6; font-family: 'Plus Jakarta Sans', sans-serif; color: #f3f4f6; margin: 0;">
             {% if LANGUAGE_CODE == 'en' %}
             A single platform with <span style="color: #7dec6c; font-weight: 700;">essential apps</span> to transform daily life and business in <span style="color: #f59e0b; font-weight: 700;">Cameroon</span> and <span style="color: #f59e0b; font-weight: 700;">Africa</span>.
@@ -2042,7 +2312,7 @@
   {% endif %}
 
   {# 5. Section Référencement, Copywriting & Géo-Visibilité (SEO-Booster) #}
-  <section class="esh-section esh-seo-booster-section" style="padding: 6rem 0; background: #030712; border-top: 1px solid rgba(255, 255, 255, 0.05); position: relative; overflow: hidden; font-family: 'Plus Jakarta Sans', sans-serif;">
+  <section class="esh-section esh-seo-booster-section" style="padding: 6rem 0; background: #061109; border-top: 1px solid rgba(74, 222, 128, 0.18); position: relative; overflow: hidden; font-family: 'Plus Jakarta Sans', sans-serif;">
     <!-- Décorations lumineuses en arrière-plan -->
     <div style="position: absolute; top: 10%; left: -10%; width: 400px; height: 400px; background: radial-gradient(circle, rgba(22, 163, 74, 0.05) 0%, transparent 70%); pointer-events: none;"></div>
     <div style="position: absolute; bottom: 10%; right: -10%; width: 500px; height: 500px; background: radial-gradient(circle, rgba(217, 119, 6, 0.03) 0%, transparent 70%); pointer-events: none;"></div>
@@ -2156,7 +2426,7 @@
   </section>
 
   <!-- Section E-Shelle Business Key (Programme Partenaire / Affiliation) -->
-  <section class="esh-section esh-business-key-section" style="padding: 6.5rem 0; background: #030712; border-top: 1px solid rgba(255,255,255,0.05); position: relative; overflow: hidden; font-family: 'Plus Jakarta Sans', sans-serif;">
+  <section class="esh-section esh-business-key-section" style="padding: 6.5rem 0; background: #061109; border-top: 1px solid rgba(74, 222, 128, 0.18); position: relative; overflow: hidden; font-family: 'Plus Jakarta Sans', sans-serif;">
     <!-- Effets de lumière diffuse en arrière-plan -->
     <div style="position: absolute; top: -10%; left: -10%; width: 450px; height: 450px; background: radial-gradient(circle, rgba(22, 163, 74, 0.04) 0%, transparent 70%); pointer-events: none;"></div>
     <div style="position: absolute; bottom: -10%; right: -10%; width: 450px; height: 450px; background: radial-gradient(circle, rgba(245, 158, 11, 0.03) 0%, transparent 70%); pointer-events: none;"></div>
@@ -2218,7 +2488,7 @@
           <!-- Effet halo lumineux arrière-plan de la carte -->
           <div style="position: absolute; inset: -4px; background: linear-gradient(135deg, #16a34a 0%, #f59e0b 100%); border-radius: 28px; filter: blur(12px); opacity: 0.25; z-index: 1;"></div>
           
-          <div style="position: relative; z-index: 2; background: linear-gradient(135deg, #0a1324 0%, #030712 100%); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 24px; padding: 2.8rem 2.5rem; display: flex; flex-direction: column; gap: 2rem; box-shadow: 0 20px 50px rgba(0,0,0,0.5);">
+          <div style="position: relative; z-index: 2; background: linear-gradient(135deg, #0d2416 0%, #061109 100%); border: 1px solid rgba(74, 222, 128, 0.28); border-radius: 24px; padding: 2.8rem 2.5rem; display: flex; flex-direction: column; gap: 2rem; box-shadow: 0 20px 50px rgba(0,0,0,0.5);">
             <div>
               <span style="font-family: 'Plus Jakarta Sans', sans-serif; font-size: 0.72rem; font-weight: 800; letter-spacing: 1.5px; text-transform: uppercase; color: #f59e0b; background: rgba(245, 158, 11, 0.1); padding: 5px 12px; border-radius: 30px; display: inline-block; margin-bottom: 1rem;">{% if LANGUAGE_CODE == 'en' %}🔥 RECOMMENDED{% else %}🔥 RECOMMANDÉ{% endif %}</span>
               <h3 style="font-family: 'Outfit', sans-serif; font-size: 1.6rem; font-weight: 900; color: #ffffff; margin: 0; line-height: 1.25;">{% if LANGUAGE_CODE == 'en' %}Become a Partner{% else %}Devenez Partenaire{% endif %}</h3>
@@ -2528,7 +2798,7 @@
             Ils réussissent avec <span style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">E-Shelle</span>
           {% endif %}
         </h2>
-        <div style="background: linear-gradient(135deg, #091322 0%, #030712 100%); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 16px; padding: 1.2rem 2rem; max-width: 680px; margin: 1.5rem auto 0; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);">
+        <div style="background: linear-gradient(135deg, #0b2214 0%, #061109 100%); border: 1px solid rgba(74, 222, 128, 0.25); border-radius: 16px; padding: 1.2rem 2rem; max-width: 680px; margin: 1.5rem auto 0; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);">
           <p style="font-size: 1rem; line-height: 1.6; font-family: 'Plus Jakarta Sans', sans-serif; color: #f3f4f6; margin: 0;">
             {% if LANGUAGE_CODE == 'en' %}
               Discover how <span style="color: #7dec6c; font-weight: 700;">entrepreneurs</span>, <span style="color: #7dec6c; font-weight: 700;">merchants</span> and <span style="color: #7dec6c; font-weight: 700;">professionals</span> in <span style="color: #f59e0b; font-weight: 700;">Cameroon</span> accelerate their growth thanks to our <span style="color: #7dec6c; font-weight: 700;">ecosystem</span>.
