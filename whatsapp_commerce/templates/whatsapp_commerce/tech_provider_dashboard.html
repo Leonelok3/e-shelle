@@ -1,136 +1,545 @@
 {% extends "base.html" %}
 {% block title %}Clients WhatsApp Business Platform | E-Shelle{% endblock %}
+
+{% block extra_css %}
+<style>
+  /* ============================================================
+     E-SHELLE TECH PROVIDER DASHBOARD
+     Thème Brandé : Vert Émeraude / WhatsApp + Orange Vif + Blanc
+     ============================================================ */
+  .tp-dashboard-page {
+    min-height: 80vh;
+    padding: 7rem 1.25rem 4rem;
+    background: radial-gradient(circle at 15% 15%, rgba(34, 197, 94, 0.08) 0%, transparent 45%),
+                radial-gradient(circle at 85% 75%, rgba(249, 115, 22, 0.06) 0%, transparent 45%),
+                #061109;
+    color: #f8fafc;
+    font-family: var(--font-body, 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif);
+  }
+  .tp-container {
+    max-width: 1450px;
+    margin: 0 auto;
+  }
+  .tp-badge-provider {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 5px 14px;
+    border-radius: 999px;
+    background: rgba(34, 197, 94, 0.12);
+    border: 1px solid rgba(74, 222, 128, 0.3);
+    color: #86efac;
+    font-weight: 800;
+    font-size: 0.78rem;
+    text-transform: uppercase;
+    letter-spacing: .08em;
+  }
+  .tp-badge-provider .tp-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #f97316;
+    box-shadow: 0 0 8px #f97316;
+  }
+  .tp-title {
+    margin: 0.4rem 0 0.25rem;
+    font-size: 2.1rem;
+    font-weight: 800;
+    color: #ffffff;
+    letter-spacing: -0.02em;
+  }
+  .tp-subtitle {
+    margin: 0;
+    color: #cbd5e1;
+    font-size: 0.98rem;
+  }
+  .tp-btn-sales {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 0.75rem 1.35rem;
+    border-radius: 12px;
+    background: linear-gradient(135deg, #16a34a, #15803d);
+    color: #ffffff !important;
+    text-decoration: none;
+    font-weight: 700;
+    font-size: 0.92rem;
+    border: 1px solid rgba(74, 222, 128, 0.35);
+    box-shadow: 0 4px 16px rgba(22, 163, 74, 0.3);
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
+  .tp-btn-sales:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 22px rgba(22, 163, 74, 0.45);
+  }
+  .tp-info-banner {
+    margin: 1.25rem 0;
+    padding: 1.1rem 1.35rem;
+    border: 1px solid rgba(74, 222, 128, 0.25);
+    border-left: 5px solid #f97316;
+    border-radius: 12px;
+    background: rgba(14, 34, 22, 0.75);
+    color: #e2e8f0;
+    line-height: 1.65;
+    font-size: 0.92rem;
+    backdrop-filter: blur(8px);
+  }
+  .tp-info-banner a {
+    color: #fb923c;
+    font-weight: 700;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+  .tp-info-banner a:hover {
+    color: #fdba74;
+  }
+  .tp-stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+    gap: 1rem;
+    margin: 1.75rem 0;
+  }
+  .tp-stat-card {
+    padding: 1.25rem 1.4rem;
+    border: 1px solid rgba(74, 222, 128, 0.16);
+    border-radius: 14px;
+    background: rgba(14, 34, 23, 0.75);
+    backdrop-filter: blur(10px);
+    position: relative;
+    overflow: hidden;
+    transition: transform 0.2s, border-color 0.2s;
+  }
+  .tp-stat-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: rgba(255, 255, 255, 0.18);
+  }
+  .tp-stat-card.tp-stat-total::before {
+    background: linear-gradient(90deg, #ffffff, #86efac);
+  }
+  .tp-stat-card.tp-stat-active::before {
+    background: linear-gradient(90deg, #22c55e, #4ade80);
+  }
+  .tp-stat-card.tp-stat-warning::before {
+    background: linear-gradient(90deg, #f97316, #fb923c);
+  }
+  .tp-stat-card.tp-stat-referrals::before {
+    background: linear-gradient(90deg, #f59e0b, #f97316);
+  }
+  .tp-stat-card:hover {
+    transform: translateY(-2px);
+    border-color: rgba(74, 222, 128, 0.35);
+  }
+  .tp-stat-number {
+    font-size: 2.1rem;
+    font-weight: 800;
+    color: #ffffff;
+    line-height: 1.1;
+    display: block;
+    margin-bottom: 0.35rem;
+  }
+  .tp-stat-number.tp-text-green {
+    color: #4ade80;
+    text-shadow: 0 0 16px rgba(74, 222, 128, 0.3);
+  }
+  .tp-stat-number.tp-text-orange {
+    color: #fb923c;
+    text-shadow: 0 0 16px rgba(249, 115, 22, 0.35);
+  }
+  .tp-stat-label {
+    display: block;
+    color: #cbd5e1;
+    font-size: 0.88rem;
+    font-weight: 500;
+  }
+  .tp-panel {
+    margin: 1.75rem 0;
+    padding: 1.5rem;
+    border: 1px solid rgba(74, 222, 128, 0.18);
+    border-radius: 16px;
+    background: rgba(12, 29, 19, 0.82);
+    backdrop-filter: blur(12px);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+  }
+  .tp-panel-title {
+    margin: 0 0 1.2rem;
+    font-size: 1.35rem;
+    font-weight: 700;
+    color: #ffffff;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .tp-panel-title::before {
+    content: '';
+    display: inline-block;
+    width: 4px;
+    height: 18px;
+    border-radius: 2px;
+    background: #f97316;
+  }
+  .tp-filter-bar {
+    display: flex;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+    margin-bottom: 1.25rem;
+  }
+  .tp-input {
+    min-width: min(100%, 340px);
+    padding: 0.7rem 1rem;
+    border: 1px solid rgba(74, 222, 128, 0.25);
+    border-radius: 10px;
+    background: #08160d;
+    color: #ffffff;
+    font-size: 0.9rem;
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+  .tp-input:focus {
+    border-color: #22c55e;
+    box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.2);
+  }
+  .tp-select {
+    padding: 0.7rem 1rem;
+    border: 1px solid rgba(74, 222, 128, 0.25);
+    border-radius: 10px;
+    background: #08160d;
+    color: #ffffff;
+    font-size: 0.9rem;
+    outline: none;
+    cursor: pointer;
+  }
+  .tp-btn-filter {
+    padding: 0.7rem 1.4rem;
+    border: 0;
+    border-radius: 10px;
+    background: linear-gradient(135deg, #f97316, #ea580c);
+    color: #ffffff;
+    font-weight: 700;
+    font-size: 0.9rem;
+    cursor: pointer;
+    box-shadow: 0 4px 14px rgba(249, 115, 22, 0.35);
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
+  .tp-btn-filter:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 18px rgba(249, 115, 22, 0.45);
+  }
+  .tp-table-wrap {
+    overflow-x: auto;
+    border-radius: 12px;
+    border: 1px solid rgba(74, 222, 128, 0.12);
+  }
+  .tp-table {
+    width: 100%;
+    min-width: 1100px;
+    border-collapse: separate;
+    border-spacing: 0;
+    font-size: 0.9rem;
+  }
+  .tp-table th {
+    padding: 0.9rem 1rem;
+    background: rgba(8, 22, 14, 0.9);
+    color: #a7f3d0;
+    text-align: left;
+    font-weight: 600;
+    font-size: 0.82rem;
+    text-transform: uppercase;
+    letter-spacing: .05em;
+    border-bottom: 2px solid rgba(74, 222, 128, 0.25);
+  }
+  .tp-table td {
+    padding: 1rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+    vertical-align: middle;
+    background: rgba(10, 25, 16, 0.4);
+  }
+  .tp-table tbody tr {
+    transition: background-color 0.15s;
+  }
+  .tp-table tbody tr:hover td {
+    background: rgba(34, 197, 94, 0.07);
+  }
+  .tp-btn-refresh {
+    width: 100%;
+    padding: 0.55rem 0.85rem;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.06);
+    color: #ffffff;
+    font-weight: 600;
+    font-size: 0.82rem;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .tp-btn-refresh:hover:not(:disabled) {
+    background: rgba(34, 197, 94, 0.15);
+    border-color: #4ade80;
+    color: #4ade80;
+  }
+  .tp-btn-resubscribe {
+    width: 100%;
+    padding: 0.55rem 0.85rem;
+    border: 1px solid rgba(74, 222, 128, 0.35);
+    border-radius: 8px;
+    background: linear-gradient(135deg, #16a34a, #15803d);
+    color: #ffffff;
+    font-weight: 700;
+    font-size: 0.82rem;
+    cursor: pointer;
+    box-shadow: 0 2px 10px rgba(22, 163, 74, 0.3);
+    transition: transform 0.15s;
+  }
+  .tp-btn-resubscribe:hover:not(:disabled) {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 14px rgba(22, 163, 74, 0.4);
+  }
+  .tp-badge-status {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 999px;
+    font-size: 0.78rem;
+    font-weight: 700;
+  }
+  .tp-badge-connected {
+    background: rgba(34, 197, 94, 0.18);
+    color: #4ade80;
+    border: 1px solid rgba(34, 197, 94, 0.35);
+  }
+  .tp-badge-pending {
+    background: rgba(249, 115, 22, 0.18);
+    color: #fb923c;
+    border: 1px solid rgba(249, 115, 22, 0.35);
+  }
+  .tp-badge-subscribed {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    color: #4ade80;
+    font-weight: 700;
+  }
+  .tp-badge-unsubscribed {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    color: #fb923c;
+    font-weight: 700;
+  }
+  .tp-chip-mono {
+    display: inline-block;
+    padding: 2px 7px;
+    border-radius: 6px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: #e2e8f0;
+    font-family: var(--font-mono, 'JetBrains Mono', monospace);
+    font-size: 0.8rem;
+  }
+</style>
+{% endblock %}
+
 {% block content %}
-<main style="min-height:75vh;padding:7rem 1rem 3rem;background:#07101b;color:#f8fafc">
-  <div style="max-width:1450px;margin:auto">
-    <header style="display:flex;justify-content:space-between;align-items:flex-start;gap:1rem;flex-wrap:wrap">
+<main class="tp-dashboard-page">
+  <div class="tp-container">
+    <header style="display:flex;justify-content:space-between;align-items:flex-start;gap:1.5rem;flex-wrap:wrap">
       <div>
-        <p style="margin:0;color:#86efac;font-weight:800;text-transform:uppercase;letter-spacing:.08em">E-Shelle Tech Provider</p>
-        <h1 style="margin:.4rem 0">Clients WhatsApp Business</h1>
-        <p style="margin:0;color:#cbd5e1">Suivez les comptes reliés via Embedded Signup et contrôlez leur état Meta.</p>
+        <div class="tp-badge-provider">
+          <span class="tp-dot"></span>
+          E-Shelle Tech Provider
+        </div>
+        <h1 class="tp-title">Clients WhatsApp Business</h1>
+        <p class="tp-subtitle">Suivez les comptes reliés via Embedded Signup et contrôlez leur état Meta.</p>
       </div>
-      <a href="{% url 'services:whatsapp-business' %}" style="padding:.7rem 1rem;border-radius:10px;background:#14532d;color:#dcfce7;text-decoration:none;font-weight:800">Voir la page de vente</a>
+      <a href="{% url 'services:whatsapp-business' %}" class="tp-btn-sales">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
+        Voir la page de vente
+      </a>
     </header>
 
     {% for message in messages %}
-      <p role="status" style="margin:1rem 0;padding:.8rem 1rem;border-radius:10px;background:rgba(255,255,255,.08)">{{ message }}</p>
+      <p role="status" style="margin:1.25rem 0;padding:.85rem 1.25rem;border-radius:12px;background:rgba(34,197,94,.12);border:1px solid rgba(74,222,128,.3);color:#dcfce7;font-weight:600">{{ message }}</p>
     {% endfor %}
 
     {% if not whatsapp_enabled %}
-      <div role="alert" style="margin:1rem 0;padding:1rem;border-radius:12px;background:rgba(248,113,113,.12);color:#fecaca">
+      <div role="alert" style="margin:1.25rem 0;padding:1.1rem 1.35rem;border-radius:12px;background:rgba(239,68,68,.12);border:1px solid rgba(239,68,68,.3);color:#fecaca">
         Les opérations WhatsApp Meta sont désactivées par <code>WHATSAPP_COMMERCE_ENABLED</code>. Le tableau reste consultable, mais les actions Meta sont bloquées.
       </div>
     {% endif %}
-    <aside style="margin:1rem 0;padding:1rem;border:1px solid rgba(134,239,172,.25);border-radius:12px;background:rgba(34,197,94,.06);color:#d1fae5;line-height:1.6">
-      <strong>Pour relier une WABA existante, par exemple Immigration97 :</strong>
-      elle doit être associée à une fiche Business E-Shelle. Le propriétaire de la fiche lance la connexion WhatsApp et autorise Embedded Signup avec le compte Meta qui administre cette WABA. Si Immigration97 n’a pas encore de fiche, <a href="{% url 'business:onboarding' %}" style="color:#86efac;font-weight:800">créez d’abord sa fiche Business</a>. La WABA apparaîtra ici après la connexion autorisée ; aucun jeton ne doit être copié manuellement.
+
+    <aside class="tp-info-banner">
+      <strong style="color:#ffffff">Pour relier une WABA existante, par exemple Immigration97 :</strong>
+      elle doit être associée à une fiche Business E-Shelle. Le propriétaire de la fiche lance la connexion WhatsApp et autorise Embedded Signup avec le compte Meta qui administre cette WABA. Si Immigration97 n’a pas encore de fiche, <a href="{% url 'business:onboarding' %}">créez d’abord sa fiche Business</a>. La WABA apparaîtra ici après la connexion autorisée ; aucun jeton ne doit être copié manuellement.
     </aside>
 
-    <section aria-label="Indicateurs" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:.8rem;margin:1.5rem 0">
-      <div style="padding:1rem;border:1px solid #334155;border-radius:12px;background:#0f1b2d"><strong style="font-size:1.6rem">{{ counts.total }}</strong><span style="display:block;color:#cbd5e1">WABA reliées</span></div>
-      <div style="padding:1rem;border:1px solid #334155;border-radius:12px;background:#0f1b2d"><strong style="font-size:1.6rem;color:#86efac">{{ counts.active }}</strong><span style="display:block;color:#cbd5e1">Actives dans E-Shelle</span></div>
-      <div style="padding:1rem;border:1px solid #334155;border-radius:12px;background:#0f1b2d"><strong style="font-size:1.6rem;color:#fde68a">{{ counts.action_required }}</strong><span style="display:block;color:#cbd5e1">Action requise</span></div>
-      <div style="padding:1rem;border:1px solid #334155;border-radius:12px;background:#0f1b2d"><strong style="font-size:1.6rem">{{ counts.referrals }}</strong><span style="display:block;color:#cbd5e1">Clics de la page de vente</span></div>
+    <!-- Indicateurs clés -->
+    <section aria-label="Indicateurs" class="tp-stats-grid">
+      <div class="tp-stat-card tp-stat-total">
+        <strong class="tp-stat-number">{{ counts.total }}</strong>
+        <span class="tp-stat-label">WABA reliées</span>
+      </div>
+      <div class="tp-stat-card tp-stat-active">
+        <strong class="tp-stat-number tp-text-green">{{ counts.active }}</strong>
+        <span class="tp-stat-label">Actives dans E-Shelle</span>
+      </div>
+      <div class="tp-stat-card tp-stat-warning">
+        <strong class="tp-stat-number tp-text-orange">{{ counts.action_required }}</strong>
+        <span class="tp-stat-label">Action requise</span>
+      </div>
+      <div class="tp-stat-card tp-stat-referrals">
+        <strong class="tp-stat-number">{{ counts.referrals }}</strong>
+        <span class="tp-stat-label">Clics de la page de vente</span>
+      </div>
     </section>
 
-    <section style="margin:1.5rem 0;padding:1rem;border:1px solid #263449;border-radius:14px;background:#0b1728">
-      <h2 style="margin:.2rem 0 1rem;font-size:1.25rem">Comptes connectés</h2>
-      <form method="get" style="display:flex;gap:.6rem;flex-wrap:wrap;margin-bottom:1rem">
-        <input name="q" value="{{ query }}" placeholder="Entreprise, propriétaire, numéro ou WABA" style="min-width:min(100%,320px);padding:.65rem .8rem;border:1px solid #475569;border-radius:8px;background:#07101b;color:white">
-        <select name="status" style="padding:.65rem .8rem;border:1px solid #475569;border-radius:8px;background:#07101b;color:white">
+    <!-- Comptes connectés -->
+    <section class="tp-panel">
+      <h2 class="tp-panel-title">Comptes connectés</h2>
+      <form method="get" class="tp-filter-bar">
+        <input name="q" value="{{ query }}" placeholder="Entreprise, propriétaire, numéro ou WABA" class="tp-input">
+        <select name="status" class="tp-select">
           <option value="">Tous les statuts</option>
           {% for value, label in status_choices %}<option value="{{ value }}" {% if status_filter == value %}selected{% endif %}>{{ label }}</option>{% endfor %}
         </select>
-        <button type="submit" style="padding:.65rem 1rem;border:0;border-radius:8px;background:#1e293b;color:white;font-weight:700">Filtrer</button>
+        <button type="submit" class="tp-btn-filter">Filtrer</button>
       </form>
 
-      <div style="overflow-x:auto">
-        <table style="width:100%;min-width:1100px;border-collapse:collapse;font-size:.9rem">
-          <thead><tr style="color:#94a3b8;text-align:left">
-            <th style="padding:.7rem;border-bottom:1px solid #334155">Entreprise / propriétaire</th>
-            <th style="padding:.7rem;border-bottom:1px solid #334155">Numéro / état Meta</th>
-            <th style="padding:.7rem;border-bottom:1px solid #334155">WABA / Phone ID</th>
-            <th style="padding:.7rem;border-bottom:1px solid #334155">Connexion E-Shelle</th>
-            <th style="padding:.7rem;border-bottom:1px solid #334155">Webhook</th>
-            <th style="padding:.7rem;border-bottom:1px solid #334155">Actions</th>
-          </tr></thead>
+      <div class="tp-table-wrap">
+        <table class="tp-table">
+          <thead>
+            <tr>
+              <th>Entreprise / propriétaire</th>
+              <th>Numéro / état Meta</th>
+              <th>WABA / Phone ID</th>
+              <th>Connexion E-Shelle</th>
+              <th>Webhook</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
           <tbody>
           {% for connection in connections %}
             <tr>
-              <td style="padding:.8rem .7rem;border-bottom:1px solid #1e293b">
-                <strong>{{ connection.business.name }}</strong>
-                <small style="display:block;color:#94a3b8">{% if connection.business.owner %}{{ connection.business.owner.get_username }}{% if connection.business.owner.email %} · {{ connection.business.owner.email }}{% endif %}{% else %}Propriétaire non défini{% endif %}</small>
-                <small style="display:block;color:#64748b">Fiche #{{ connection.business_id }} · Meta Business {{ connection.meta_business_id|default:"—" }}</small>
+              <td>
+                <strong style="color:#ffffff;font-size:1rem;display:block">{{ connection.business.name }}</strong>
+                <small style="display:block;color:#cbd5e1;margin-top:2px">{% if connection.business.owner %}{{ connection.business.owner.get_username }}{% if connection.business.owner.email %} · {{ connection.business.owner.email }}{% endif %}{% else %}Propriétaire non défini{% endif %}</small>
+                <small style="display:block;color:#94a3b8;margin-top:2px">Fiche #{{ connection.business_id }} · Meta Business {{ connection.meta_business_id|default:"—" }}</small>
               </td>
-              <td style="padding:.8rem .7rem;border-bottom:1px solid #1e293b">
-                <strong>{{ connection.display_phone_number|default:"Numéro non chargé" }}</strong>
-                {% if connection.meta_verified_name %}<small style="display:block;color:#94a3b8">Nom Meta : {{ connection.meta_verified_name }}</small>{% endif %}
-                <small style="display:block;color:#cbd5e1">Meta : {{ connection.meta_phone_status|default:"À actualiser" }}</small>
-                <small style="display:block;color:#94a3b8">Qualité : {{ connection.meta_quality_rating|default:"—" }} · Limite : {{ connection.meta_messaging_limit|default:"—" }}</small>
-                {% if connection.last_meta_sync_at %}<small style="display:block;color:#64748b">Actualisé {{ connection.last_meta_sync_at|date:"d/m/Y H:i" }}</small>{% endif %}
+              <td>
+                <strong style="color:#ffffff;display:block">{{ connection.display_phone_number|default:"Numéro non chargé" }}</strong>
+                {% if connection.meta_verified_name %}<small style="display:block;color:#86efac;font-weight:600">Nom Meta : {{ connection.meta_verified_name }}</small>{% endif %}
+                <small style="display:block;color:#e2e8f0;margin-top:2px">Meta : {{ connection.meta_phone_status|default:"À actualiser" }}</small>
+                <small style="display:block;color:#94a3b8;margin-top:2px">Qualité : {{ connection.meta_quality_rating|default:"—" }} · Limite : {{ connection.meta_messaging_limit|default:"—" }}</small>
+                {% if connection.last_meta_sync_at %}<small style="display:block;color:#6ee7b7;margin-top:2px">Actualisé {{ connection.last_meta_sync_at|date:"d/m/Y H:i" }}</small>{% endif %}
               </td>
-              <td style="padding:.8rem .7rem;border-bottom:1px solid #1e293b">
-                <small style="display:block">WABA {{ connection.waba_id }}</small>
-                <small style="display:block;color:#94a3b8">Phone ID {{ connection.phone_number_id }}</small>
+              <td>
+                <div style="display:grid;gap:4px">
+                  <span class="tp-chip-mono">WABA: {{ connection.waba_id }}</span>
+                  <span class="tp-chip-mono" style="color:#94a3b8">Phone: {{ connection.phone_number_id }}</span>
+                </div>
               </td>
-              <td style="padding:.8rem .7rem;border-bottom:1px solid #1e293b">
-                <span>{{ connection.get_status_display }}</span>
-                <small style="display:block;color:#94a3b8">{% if connection.connected_at %}Connectée {{ connection.connected_at|date:"d/m/Y H:i" }}{% else %}Créée {{ connection.created_at|date:"d/m/Y H:i" }}{% endif %}</small>
-                {% if connection.last_error %}<small style="display:block;color:#fde68a">{{ connection.last_error }}</small>{% endif %}
+              <td>
+                <span class="tp-badge-status {% if connection.status == 'active' or connection.status == 'connected' %}tp-badge-connected{% else %}tp-badge-pending{% endif %}">
+                  {{ connection.get_status_display }}
+                </span>
+                <small style="display:block;color:#cbd5e1;margin-top:4px">{% if connection.connected_at %}Connectée {{ connection.connected_at|date:"d/m/Y H:i" }}{% else %}Créée {{ connection.created_at|date:"d/m/Y H:i" }}{% endif %}</small>
+                {% if connection.last_error %}<small style="display:block;color:#fb923c;margin-top:2px">{{ connection.last_error }}</small>{% endif %}
               </td>
-              <td style="padding:.8rem .7rem;border-bottom:1px solid #1e293b">
-                {% if connection.webhook_subscribed %}<span style="color:#86efac">Abonné</span>{% else %}<span style="color:#fde68a">Non abonné</span>{% endif %}
-                {% if not connection.phone_registered %}<small style="display:block;color:#fca5a5">Numéro non enregistré Cloud API</small>{% endif %}
+              <td>
+                {% if connection.webhook_subscribed %}
+                  <span class="tp-badge-subscribed">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                    Abonné
+                  </span>
+                {% else %}
+                  <span class="tp-badge-unsubscribed">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></polyline><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+                    Non abonné
+                  </span>
+                {% endif %}
+                {% if not connection.phone_registered %}<small style="display:block;color:#fca5a5;margin-top:3px">Numéro non enregistré Cloud API</small>{% endif %}
               </td>
-              <td style="padding:.8rem .7rem;border-bottom:1px solid #1e293b">
-                <div style="display:grid;gap:.45rem;min-width:190px">
-                  <form method="post" action="{% url 'whatsapp_commerce:tech_provider_refresh' connection.pk %}">{% csrf_token %}<button type="submit" {% if not whatsapp_enabled %}disabled{% endif %} style="width:100%;padding:.5rem;border:1px solid #475569;border-radius:7px;background:#172338;color:white;cursor:pointer">Actualiser depuis Meta</button></form>
+              <td>
+                <div style="display:grid;gap:.5rem;min-width:190px">
+                  <form method="post" action="{% url 'whatsapp_commerce:tech_provider_refresh' connection.pk %}">
+                    {% csrf_token %}
+                    <button type="submit" {% if not whatsapp_enabled %}disabled{% endif %} class="tp-btn-refresh">Actualiser depuis Meta</button>
+                  </form>
                   {% if not connection.webhook_subscribed %}
                     <form method="post" action="{% url 'whatsapp_commerce:tech_provider_resubscribe' connection.pk %}" onsubmit="return confirm('Réactiver le webhook E-Shelle pour le WABA de {{ connection.business.name|escapejs }} ?')">
-                      {% csrf_token %}<input type="hidden" name="confirm" value="RESUBSCRIBE"><button type="submit" {% if not whatsapp_enabled %}disabled{% endif %} style="width:100%;padding:.5rem;border:1px solid #166534;border-radius:7px;background:#14532d;color:#dcfce7;cursor:pointer">Réactiver le webhook</button>
+                      {% csrf_token %}
+                      <input type="hidden" name="confirm" value="RESUBSCRIBE">
+                      <button type="submit" {% if not whatsapp_enabled %}disabled{% endif %} class="tp-btn-resubscribe">Réactiver le webhook</button>
                     </form>
                   {% endif %}
                   {% if connection.phone_registered %}
-                    <details>
-                      <summary style="padding:.5rem;color:#fca5a5;cursor:pointer">Désenregistrer le numéro…</summary>
-                      <p style="font-size:.78rem;color:#fecaca;line-height:1.5">Action perturbatrice : le numéro sera désactivé sur Cloud API. Les messages ne pourront plus être envoyés via ce numéro jusqu’à sa réinscription. Cela ne supprime pas le WABA, mais une réinscription et le PIN du client seront nécessaires.</p>
-                      <form method="post" action="{% url 'whatsapp_commerce:tech_provider_deregister' connection.pk %}">
-                        {% csrf_token %}
-                        <input type="hidden" name="confirm" value="DEREGISTER">
-                        <label style="display:block;font-size:.78rem;margin-bottom:.3rem">Saisir exactement : <strong>{{ connection.business.name }}</strong></label>
-                        <input name="business_name" required autocomplete="off" style="width:100%;box-sizing:border-box;padding:.5rem;border:1px solid #7f1d1d;border-radius:7px;background:#1c1219;color:white">
-                        <button type="submit" {% if not whatsapp_enabled %}disabled{% endif %} style="width:100%;margin-top:.45rem;padding:.55rem;border:0;border-radius:7px;background:#991b1b;color:white;font-weight:800;cursor:pointer">Confirmer le désenregistrement Meta</button>
-                      </form>
+                    <details style="margin-top:4px">
+                      <summary style="padding:.4rem 0;color:#fca5a5;font-size:0.8rem;cursor:pointer">Désenregistrer le numéro…</summary>
+                      <div style="padding:0.75rem;border:1px solid rgba(239,68,68,0.3);border-radius:8px;background:rgba(239,68,68,0.08);margin-top:6px">
+                        <p style="font-size:.76rem;color:#fecaca;line-height:1.5;margin:0 0 .5rem">Action perturbatrice : le numéro sera désactivé sur Cloud API. Les messages ne pourront plus être envoyés via ce numéro jusqu’à sa réinscription.</p>
+                        <form method="post" action="{% url 'whatsapp_commerce:tech_provider_deregister' connection.pk %}">
+                          {% csrf_token %}
+                          <input type="hidden" name="confirm" value="DEREGISTER">
+                          <label style="display:block;font-size:.76rem;margin-bottom:.3rem;color:#fecaca">Saisir exactement : <strong>{{ connection.business.name }}</strong></label>
+                          <input name="business_name" required autocomplete="off" style="width:100%;box-sizing:border-box;padding:.45rem .6rem;border:1px solid #b91c1c;border-radius:6px;background:#1a0b0d;color:white;font-size:0.82rem">
+                          <button type="submit" {% if not whatsapp_enabled %}disabled{% endif %} style="width:100%;margin-top:.5rem;padding:.5rem;border:0;border-radius:6px;background:#dc2626;color:white;font-weight:700;font-size:0.8rem;cursor:pointer">Confirmer le désenregistrement</button>
+                        </form>
+                      </div>
                     </details>
                   {% endif %}
                 </div>
               </td>
             </tr>
           {% empty %}
-            <tr><td colspan="6" style="padding:1.5rem;color:#94a3b8;text-align:center">Aucune WABA n’est encore reliée à une fiche E-Shelle. Une WABA visible dans Meta Business Manager n’apparaît ici qu’après connexion autorisée par son entreprise via Embedded Signup.</td></tr>
+            <tr><td colspan="6" style="padding:2.5rem 1rem;color:#cbd5e1;text-align:center;font-size:0.95rem">Aucune WABA n’est encore reliée à une fiche E-Shelle. Une WABA visible dans Meta Business Manager n’apparaît ici qu’après connexion autorisée par son entreprise via Embedded Signup.</td></tr>
           {% endfor %}
           </tbody>
         </table>
       </div>
     </section>
 
-    <section style="margin:1.5rem 0;padding:1rem;border:1px solid #263449;border-radius:14px;background:#0b1728">
-      <h2 style="margin:.2rem 0 .4rem;font-size:1.25rem">Parcours de la page de vente</h2>
-      <p style="color:#94a3b8;font-size:.88rem">Les clics WhatsApp sont comptés sans enregistrer le contenu des conversations. Un clic est relié à une fiche si la même session du navigateur démarre ensuite Embedded Signup.</p>
-      <div style="overflow-x:auto">
-        <table style="width:100%;min-width:700px;border-collapse:collapse;font-size:.88rem">
-          <thead><tr style="color:#94a3b8;text-align:left"><th style="padding:.6rem;border-bottom:1px solid #334155">Date du clic</th><th style="padding:.6rem;border-bottom:1px solid #334155">Étape</th><th style="padding:.6rem;border-bottom:1px solid #334155">Fiche Business</th><th style="padding:.6rem;border-bottom:1px solid #334155">Connexion</th></tr></thead>
+    <!-- Parcours de la page de vente -->
+    <section class="tp-panel">
+      <h2 class="tp-panel-title">Parcours de la page de vente</h2>
+      <p style="color:#cbd5e1;font-size:.9rem;margin:0 0 1.25rem">Les clics WhatsApp sont comptés sans enregistrer le contenu des conversations. Un clic est relié à une fiche si la même session du navigateur démarre ensuite Embedded Signup.</p>
+      
+      <div class="tp-table-wrap">
+        <table class="tp-table">
+          <thead>
+            <tr>
+              <th>Date du clic</th>
+              <th>Étape</th>
+              <th>Fiche Business</th>
+              <th>Connexion</th>
+            </tr>
+          </thead>
           <tbody>
             {% for referral in referrals %}
-              <tr><td style="padding:.65rem;border-bottom:1px solid #1e293b">{{ referral.clicked_at|date:"d/m/Y H:i" }}</td><td style="padding:.65rem;border-bottom:1px solid #1e293b">{{ referral.get_status_display }}</td><td style="padding:.65rem;border-bottom:1px solid #1e293b">{{ referral.business.name|default:"Pas encore reliée" }}</td><td style="padding:.65rem;border-bottom:1px solid #1e293b">{% if referral.connection %}{{ referral.connection.display_phone_number|default:referral.connection.phone_number_id }}{% else %}—{% endif %}</td></tr>
+              <tr>
+                <td style="color:#e2e8f0">{{ referral.clicked_at|date:"d/m/Y H:i" }}</td>
+                <td>
+                  <span class="tp-badge-status tp-badge-connected">{{ referral.get_status_display }}</span>
+                </td>
+                <td style="color:#ffffff;font-weight:600">{{ referral.business.name|default:"Pas encore reliée" }}</td>
+                <td>
+                  {% if referral.connection %}
+                    <span class="tp-chip-mono" style="color:#4ade80">{{ referral.connection.display_phone_number|default:referral.connection.phone_number_id }}</span>
+                  {% else %}
+                    <span style="color:#94a3b8">—</span>
+                  {% endif %}
+                </td>
+              </tr>
             {% empty %}
-              <tr><td colspan="4" style="padding:1rem;color:#94a3b8">Aucun clic enregistré pour le moment.</td></tr>
+              <tr><td colspan="4" style="padding:1.5rem;color:#94a3b8;text-align:center">Aucun clic enregistré pour le moment.</td></tr>
             {% endfor %}
           </tbody>
         </table>
       </div>
     </section>
-    <p style="color:#94a3b8;font-size:.82rem;line-height:1.6">Les données affichées viennent des connexions stockées par E-Shelle et de la dernière lecture Meta. Elles ne représentent pas toutes les WABA du Business Manager. Les opérations utilisent le jeton accordé pour chaque entreprise et sont consignées dans l’audit WABA.</p>
+
+    <p style="color:#94a3b8;font-size:.82rem;line-height:1.6;margin-top:1.5rem">Les données affichées viennent des connexions stockées par E-Shelle et de la dernière lecture Meta. Elles ne représentent pas toutes les WABA du Business Manager. Les opérations utilisent le jeton accordé pour chaque entreprise et sont consignées dans l’audit WABA.</p>
   </div>
 </main>
 {% endblock %}

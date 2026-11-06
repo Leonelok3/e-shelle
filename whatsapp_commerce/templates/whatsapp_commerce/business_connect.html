@@ -1,22 +1,142 @@
 {% extends "base.html" %}
 {% block title %}Connecter WhatsApp Business — {{ business.name }} | E-Shelle{% endblock %}
+
+{% block extra_css %}
+<style>
+  .wa-connect-page {
+    min-height: 80vh;
+    padding: 7rem 1.25rem 4rem;
+    background: radial-gradient(circle at 20% 15%, rgba(34, 197, 94, 0.08) 0%, transparent 45%),
+                radial-gradient(circle at 80% 85%, rgba(249, 115, 22, 0.06) 0%, transparent 45%),
+                #061109;
+    color: #f8fafc;
+    font-family: var(--font-body, 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif);
+  }
+  .wa-connect-card {
+    max-width: 760px;
+    margin: auto;
+    padding: clamp(1.5rem, 5vw, 2.75rem);
+    border: 1px solid rgba(74, 222, 128, 0.2);
+    border-radius: 20px;
+    background: rgba(14, 34, 23, 0.78);
+    backdrop-filter: blur(14px);
+    box-shadow: 0 16px 45px rgba(0, 0, 0, 0.4);
+  }
+  .wa-back-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    color: #4ade80;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 0.92rem;
+    transition: color 0.15s;
+  }
+  .wa-back-link:hover {
+    color: #86efac;
+    text-decoration: underline;
+  }
+  .wa-connect-title {
+    margin: 1.25rem 0 .5rem;
+    font-size: 1.85rem;
+    font-weight: 800;
+    color: #ffffff;
+    letter-spacing: -0.02em;
+  }
+  .wa-connect-subtitle {
+    color: #cbd5e1;
+    font-size: 0.95rem;
+    line-height: 1.5;
+    margin-bottom: 1.25rem;
+  }
+  .wa-notice-box {
+    margin: 1.25rem 0;
+    padding: 1.1rem 1.3rem;
+    border-radius: 12px;
+    background: rgba(17, 39, 26, 0.65);
+    border: 1px solid rgba(74, 222, 128, 0.22);
+    border-left: 4px solid #f97316;
+    color: #e2e8f0;
+    line-height: 1.65;
+    font-size: 0.9rem;
+  }
+  .wa-pin-input {
+    width: 100%;
+    max-width: 280px;
+    padding: 0.85rem 1rem;
+    border-radius: 10px;
+    border: 1px solid rgba(74, 222, 128, 0.3);
+    background: #08160d;
+    color: #ffffff;
+    font-size: 1.3rem;
+    font-weight: 700;
+    letter-spacing: 0.35em;
+    text-align: center;
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+  .wa-pin-input:focus {
+    border-color: #22c55e;
+    box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.25);
+  }
+  .wa-btn-connect {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 0.85rem 1.6rem;
+    border: 0;
+    border-radius: 10px;
+    background: linear-gradient(135deg, #16a34a, #15803d);
+    color: #ffffff;
+    font-weight: 800;
+    font-size: 0.95rem;
+    cursor: pointer;
+    box-shadow: 0 4px 16px rgba(22, 163, 74, 0.35);
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
+  .wa-btn-connect:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 22px rgba(22, 163, 74, 0.45);
+  }
+  .wa-btn-connect:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+  .wa-status-text {
+    margin-top: 1rem;
+    color: #fb923c;
+    font-weight: 600;
+    font-size: 0.92rem;
+  }
+</style>
+{% endblock %}
+
 {% block content %}
-<section style="min-height:75vh;padding:7rem 1rem 3rem;background:#0a1628;color:#fff">
-  <div style="max-width:760px;margin:auto;padding:clamp(1.25rem,4vw,2.5rem);border:1px solid rgba(255,255,255,.12);border-radius:20px;background:rgba(255,255,255,.05)">
-    <a href="{% url 'whatsapp_commerce:business_dashboard' business.id %}" style="color:#86efac">← Retour au tableau WhatsApp</a>
-    <h1 style="margin:1.25rem 0 .5rem">Connecter {{ business.name }} à WhatsApp</h1>
-    <p style="color:rgba(255,255,255,.72)">Vous gardez la propriété de vos comptes et numéros. E-Shelle ne demande jamais votre mot de passe Meta.</p>
-    <div style="margin:1.25rem 0;padding:1rem;border-radius:12px;background:rgba(34,197,94,.08);line-height:1.6">
+<section class="wa-connect-page">
+  <div class="wa-connect-card">
+    <a href="{% url 'whatsapp_commerce:business_dashboard' business.id %}" class="wa-back-link">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+      Retour au tableau WhatsApp
+    </a>
+    <h1 class="wa-connect-title">Connecter {{ business.name }} à WhatsApp</h1>
+    <p class="wa-connect-subtitle">Vous gardez la propriété de vos comptes et numéros. E-Shelle ne demande jamais votre mot de passe Meta.</p>
+    
+    <div class="wa-notice-box">
       Après la connexion Meta, votre compte WhatsApp Business doit avoir un moyen de paiement ajouté à Meta avant de pouvoir envoyer des messages. Les frais d’usage WhatsApp sont facturés par Meta à votre entreprise ; l’abonnement E-Shelle est séparé.
     </div>
 
     {% if signup_configured %}
-      <label for="wa-pin" style="display:block;margin:1.2rem 0 .4rem">PIN de vérification en deux étapes WhatsApp (6 chiffres)</label>
-      <input id="wa-pin" type="password" inputmode="numeric" autocomplete="new-password" maxlength="6" pattern="[0-9]{6}" required
-             style="padding:.8rem;border-radius:9px;border:1px solid #64748b;background:#101c33;color:#fff">
-      <p style="color:rgba(255,255,255,.65);font-size:.9rem">Choisissez ou saisissez le PIN à 6 chiffres demandé pour enregistrer le numéro sur Cloud API. Il ne sera pas conservé après la configuration.</p>
-      <button id="wa-connect" type="button" style="padding:.8rem 1.2rem;border:0;border-radius:10px;background:#1877f2;color:#fff;font-weight:800;cursor:pointer">Continuer avec Meta</button>
-      <p id="wa-status" role="status" aria-live="polite" style="margin-top:1rem;color:#fde68a"></p>
+      <label for="wa-pin" style="display:block;margin:1.4rem 0 .5rem;font-weight:600;color:#ffffff">PIN de vérification en deux étapes WhatsApp (6 chiffres)</label>
+      <input id="wa-pin" type="password" inputmode="numeric" autocomplete="new-password" maxlength="6" pattern="[0-9]{6}" required class="wa-pin-input">
+      <p style="color:#cbd5e1;font-size:.88rem;margin:.6rem 0 1.25rem">Choisissez ou saisissez le PIN à 6 chiffres demandé pour enregistrer le numéro sur Cloud API. Il ne sera pas conservé après la configuration.</p>
+      
+      <button id="wa-connect" type="button" class="wa-btn-connect">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
+        Continuer avec Meta
+      </button>
+      
+      <p id="wa-status" role="status" aria-live="polite" class="wa-status-text"></p>
       {% csrf_token %}
       <script async defer crossorigin="anonymous" src="https://connect.facebook.net/en_US/sdk.js"></script>
       <script>
@@ -125,7 +245,7 @@
         })();
       </script>
     {% else %}
-      <div role="status" style="padding:1rem;border-radius:12px;background:rgba(250,204,21,.12);color:#fde68a">
+      <div role="status" style="padding:1.1rem 1.3rem;border-radius:12px;background:rgba(249,115,22,.12);border:1px solid rgba(249,115,22,.35);color:#fed7aa;line-height:1.6">
         La connexion libre-service n’est pas encore configurée. E-Shelle doit terminer l’examen Meta et définir côté serveur l’ID d’application, le secret et la configuration Embedded Signup v4. Aucun identifiant sensible ne doit être ajouté dans le navigateur.
       </div>
     {% endif %}
