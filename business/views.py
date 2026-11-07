@@ -2388,6 +2388,35 @@ def special_offer(request):
             plans,
             code=request.POST.get("plan", ""),
         )
+        if request.POST.get("payment_method") == "whatsapp":
+            amount = f"{selected_plan.monthly_price_xaf:,}".replace(",", " ")
+            offer_url = request.build_absolute_uri(
+                f"{reverse('provider_special_offer')}?"
+                + urllib.parse.urlencode(
+                    {"business": business.pk, "plan": selected_plan.code}
+                )
+            )
+            if request.LANGUAGE_CODE == "en":
+                whatsapp_message = (
+                    f"Hello E-Shelle, I would like to pay manually and activate the "
+                    f"{selected_plan.display_name} plan ({amount} XAF) for "
+                    f"{business.name}. Please confirm the Mobile Money payment details "
+                    f"and send me an activation code after payment. Offer: {offer_url}"
+                )
+            else:
+                whatsapp_message = (
+                    f"Bonjour E-Shelle, je souhaite payer manuellement et activer le "
+                    f"plan {selected_plan.display_name} ({amount} FCFA) pour "
+                    f"{business.name}. Merci de me confirmer les modalités Mobile "
+                    f"Money et de m'envoyer un code d'activation après paiement. "
+                    f"Offre : {offer_url}"
+                )
+            whatsapp_url = (
+                "https://wa.me/237680625082?"
+                + urllib.parse.urlencode({"text": whatsapp_message})
+            )
+            return redirect(whatsapp_url)
+
         from payments.views import _start_campay_checkout
 
         fallback_url = (

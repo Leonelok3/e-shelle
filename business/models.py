@@ -5,7 +5,7 @@ from datetime import timedelta
 from django.conf import settings
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
-from django.db import models
+from django.db import models, transaction as db_transaction
 from django.urls import NoReverseMatch, reverse
 from django.utils import timezone
 from django.utils.translation import get_language
@@ -903,6 +903,11 @@ class BusinessActivationCode(models.Model):
     payment_method = models.CharField(
         max_length=20, choices=PaymentMethod.choices, default=PaymentMethod.MTN_MOMO,
     )
+    unlocks_whatsapp_onboarding = models.BooleanField(
+        default=False,
+        verbose_name="Débloquer aussi WhatsApp officiel",
+        help_text="À cocher uniquement après vérification manuelle du paiement de l'offre WhatsApp officiel.",
+    )
     notes = models.TextField(blank=True, help_text="Reference de transaction, remarques...")
 
     is_used = models.BooleanField(default=False)
@@ -952,32 +957,61 @@ class BusinessActivationCode(models.Model):
     def is_expired(self):
         return bool(self.expires_at and self.expires_at < timezone.now())
 
+    @db_transaction.atomic
     def redeem(self, user):
         """Active le plan sur la fiche liee. Leve ValueError si le code est invalide."""
         from .services import record_provider_plan_payment
 
-        if self.is_used:
+        code = type(self).objects.select_for_update().select_related(
+            "business", "plan"
+        ).get(pk=self.pk)
+        if code.is_used:
             raise ValueError("Ce code a deja ete utilise.")
-        if self.is_expired:
+        if code.is_expired:
             raise ValueError("Ce code a expire. Contactez E-Shelle sur WhatsApp pour un nouveau code.")
-        if self.business.owner_id != user.id:
+        if code.business.owner_id != user.id:
             raise ValueError("Ce code est lie a une autre fiche business que la votre.")
 
-        amount = self.amount_paid_xaf or self.plan.monthly_price_xaf
+        amount = code.amount_paid_xaf or code.plan.monthly_price_xaf
         record_provider_plan_payment(
-            business=self.business,
-            plan=self.plan,
+            business=code.business,
+            plan=code.plan,
             paid_by=user,
             amount_xaf=amount,
             payment_method="CODE",
         )
-        self.is_used = True
-        self.used_at = timezone.now()
-        self.used_by = user
-        self.save(update_fields=["is_used", "used_at", "used_by"])
-        if self.business.activation_status != BusinessProfile.ActivationStatus.ACTIVE:
-            self.business.activation_status = BusinessProfile.ActivationStatus.ACTIVE
-            self.business.save(update_fields=["activation_status", "updated_at"])
+        if code.unlocks_whatsapp_onboarding:
+            from payments.models import Transaction
+
+            activated_at = timezone.now().isoformat()
+            Transaction.objects.create(
+                utilisateur=user,
+                type_tx="abonnement",
+                methode="manual",
+                montant=amount,
+                devise="XAF",
+                statut="succes",
+                metadata={
+                    "product_type": "provider_whatsapp_onboarding",
+                    "provider_whatsapp_business_id": code.business_id,
+                    "provider_whatsapp_plan_code": code.plan.code,
+                    "provider_whatsapp_plan_level": code.plan.plan_level,
+                    "provider_whatsapp_duration_days": code.plan.duration_days,
+                    "provider_whatsapp_boost_days": code.plan.included_boost_days,
+                    "provider_whatsapp_ai_credits": code.plan.included_ai_credits,
+                    "provider_whatsapp_amount_xaf": amount,
+                    "provider_whatsapp_activation_code_id": code.pk,
+                    "provider_whatsapp_manual_approved_at": activated_at,
+                    "provider_whatsapp_activated_at": activated_at,
+                },
+            )
+        code.is_used = True
+        code.used_at = timezone.now()
+        code.used_by = user
+        code.save(update_fields=["is_used", "used_at", "used_by"])
+        self.is_used = code.is_used
+        self.used_at = code.used_at
+        self.used_by = code.used_by
 
 
 class BusinessKeyAccount(models.Model):

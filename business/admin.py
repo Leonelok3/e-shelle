@@ -294,17 +294,21 @@ class BusinessActivationCodeAdmin(admin.ModelAdmin):
     Cree un code apres avoir reçu le paiement d'un client par WhatsApp : choisis
     sa fiche (business), le plan paye, et le montant/moyen de paiement. Le code
     est genere automatiquement — transmets-le ensuite au client sur WhatsApp.
+    Pour une offre WhatsApp officiel, coche le champ de validation dédié après
+    avoir confirmé le paiement afin que le code débloque aussi Meta Embedded Signup.
     """
     list_display = (
         "code", "business", "plan", "amount_paid_xaf", "payment_method",
-        "is_used", "used_at", "expires_at", "whatsapp_send", "created_at",
+        "unlocks_whatsapp_onboarding", "is_used", "used_at", "expires_at",
+        "whatsapp_send", "created_at",
     )
-    list_filter = ("is_used", "payment_method", "plan")
+    list_filter = ("unlocks_whatsapp_onboarding", "is_used", "payment_method", "plan")
     search_fields = ("code", "business__name")
     autocomplete_fields = ("business", "plan")
     readonly_fields = ("code", "is_used", "used_at", "used_by", "created_by", "created_at")
     fields = (
-        "business", "plan", "amount_paid_xaf", "payment_method", "notes",
+        "business", "plan", "amount_paid_xaf", "payment_method",
+        "unlocks_whatsapp_onboarding", "notes",
         "expires_at", "code", "is_used", "used_at", "used_by", "created_by", "created_at",
     )
 

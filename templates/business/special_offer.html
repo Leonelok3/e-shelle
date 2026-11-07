@@ -10,8 +10,9 @@
       <h1 class="section-title" style="margin:.5rem 0 1rem">Débloquez WhatsApp officiel</h1>
       <p class="section-subtitle">
         Choisissez une formule pour <strong>{{ business.name }}</strong>. Le paiement est vérifié
-        directement auprès de CamPay avant l’activation de votre plan et l’accès à Meta Embedded Signup.
-        Le paiement Mobile Money accepte MoMo et Orange Money selon les options proposées par CamPay.
+        par CamPay ou confirmé manuellement par E-Shelle avant l’activation de votre plan et l’accès
+        à Meta Embedded Signup. Le paiement Mobile Money accepte MoMo et Orange Money selon les
+        options proposées par CamPay.
       </p>
 
       {% if messages %}
@@ -37,16 +38,35 @@
           {% if selected_plan %}
             <p style="margin:0;color:var(--text-muted)">{{ selected_plan.display_description }}</p>
           {% endif %}
-          <button type="submit" class="btn btn-primary">
+          <button type="submit" class="btn btn-primary" name="payment_method" value="campay">
             Payer par MoMo / Orange Money
           </button>
+
+          <div style="display:grid;gap:.7rem;margin-top:1.25rem;padding:1rem 1.1rem;border:1px solid rgba(37,211,102,.3);border-radius:14px;background:rgba(37,211,102,.07)">
+            <strong>{% if LANGUAGE_CODE == 'en' %}Prefer to pay directly with E-Shelle?{% else %}Vous préférez payer directement avec E-Shelle ?{% endif %}</strong>
+            <p style="margin:0;color:var(--text-muted)">
+              {% if LANGUAGE_CODE == 'en' %}
+                Contact us on WhatsApp for Mobile Money instructions. After we confirm your payment, we will activate your offer with a code to enter in your Business dashboard.
+              {% else %}
+                Écrivez-nous sur WhatsApp pour recevoir les modalités Mobile Money. Après vérification du paiement, nous activerons votre offre avec un code à saisir dans votre tableau de bord Business.
+              {% endif %}
+            </p>
+            <button type="submit" name="payment_method" value="whatsapp"
+                    style="display:inline-flex;align-items:center;justify-content:center;min-height:46px;padding:.7rem 1rem;border:0;border-radius:10px;background:#25d366;color:#062b16;font-weight:800;cursor:pointer">
+              {% if LANGUAGE_CODE == 'en' %}Contact E-Shelle on WhatsApp{% else %}Contacter E-Shelle sur WhatsApp{% endif %}
+            </button>
+          </div>
         </form>
       {% else %}
         <p role="alert">Aucune formule payante prestataire n’est actuellement disponible. Contactez E-Shelle.</p>
       {% endif %}
 
       <p style="margin-top:1.5rem;color:var(--text-muted)">
-        Votre bouton de connexion WhatsApp reste verrouillé tant que CamPay n’a pas confirmé le paiement.
+        {% if LANGUAGE_CODE == 'en' %}
+          Official WhatsApp connection remains locked until CamPay confirms payment or E-Shelle validates your manual activation code.
+        {% else %}
+          La connexion WhatsApp officielle reste verrouillée jusqu’à la confirmation du paiement par CamPay ou à la validation de votre code d’activation manuel par E-Shelle.
+        {% endif %}
       </p>
     </div>
   </div>

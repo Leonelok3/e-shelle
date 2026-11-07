@@ -1,13 +1,23 @@
 from datetime import timedelta
 from unittest.mock import patch
+from urllib.parse import parse_qs, urlparse
 
 from django.contrib.auth import get_user_model
 from django.test import TestCase, override_settings
 from django.urls import reverse
 from django.utils import timezone
 
-from .models import BusinessCatalogItem, BusinessProfile, ProviderPlan
-from .services import collect_business_items, record_provider_plan_payment
+from .models import (
+    BusinessActivationCode,
+    BusinessCatalogItem,
+    BusinessProfile,
+    ProviderPlan,
+)
+from .services import (
+    collect_business_items,
+    record_provider_plan_payment,
+    verified_provider_whatsapp_payment,
+)
 
 
 class ProviderPlanEntitlementTests(TestCase):
@@ -218,6 +228,81 @@ class ProviderOnboardingPaymentTests(TestCase):
             ],
             f"E-Shelle Pro — {self.business.name}",
         )
+
+    def test_special_offer_provides_manual_whatsapp_payment_option(self):
+        page = self.client.get(
+            reverse("provider_special_offer"),
+            {"business": self.business.pk, "plan": self.plan.code},
+        )
+
+        self.assertEqual(page.status_code, 200)
+        self.assertContains(page, "Contacter E-Shelle sur WhatsApp")
+        self.assertContains(page, "code à saisir")
+        self.assertContains(page, "Payer par MoMo / Orange Money")
+
+        response = self.client.post(
+            reverse("provider_special_offer"),
+            {
+                "business": self.business.pk,
+                "plan": self.plan.code,
+                "payment_method": "whatsapp",
+            },
+        )
+        self.assertEqual(response.status_code, 302)
+        parsed_url = urlparse(response["Location"])
+        self.assertEqual(parsed_url.netloc, "wa.me")
+        self.assertEqual(parsed_url.path, "/237680625082")
+        message = parse_qs(parsed_url.query)["text"][0]
+        self.assertIn(self.business.name, message)
+        self.assertIn(self.plan.name, message)
+        self.assertIn("3 000 FCFA", message)
+
+    def test_admin_issued_whatsapp_activation_code_unlocks_manual_payment_path(self):
+        code = BusinessActivationCode.objects.create(
+            business=self.business,
+            plan=self.plan,
+            amount_paid_xaf=self.plan.monthly_price_xaf,
+            payment_method=BusinessActivationCode.PaymentMethod.MTN_MOMO,
+            unlocks_whatsapp_onboarding=True,
+        )
+
+        with patch("billing.affiliates.create_commission_for_transaction"):
+            code.redeem(self.owner)
+
+        from payments.models import Transaction
+        from whatsapp_commerce.entitlements import whatsapp_entitlements
+
+        payment = Transaction.objects.get(
+            metadata__provider_whatsapp_activation_code_id=code.pk,
+        )
+        self.assertEqual(payment.methode, "manual")
+        self.assertEqual(payment.statut, "succes")
+        self.assertIsNotNone(verified_provider_whatsapp_payment(self.business))
+        self.business.refresh_from_db()
+        self.assertTrue(whatsapp_entitlements(self.business)["can_connect"])
+        self.assertRedirects(
+            self.client.get(
+                reverse("provider_special_offer"),
+                {"business": self.business.pk},
+            ),
+            reverse(
+                "whatsapp_commerce:business_dashboard",
+                kwargs={"business_id": self.business.pk},
+            ),
+            fetch_redirect_response=False,
+        )
+
+    def test_regular_business_activation_code_does_not_verify_meta_payment(self):
+        code = BusinessActivationCode.objects.create(
+            business=self.business,
+            plan=self.plan,
+            amount_paid_xaf=self.plan.monthly_price_xaf,
+        )
+
+        with patch("billing.affiliates.create_commission_for_transaction"):
+            code.redeem(self.owner)
+
+        self.assertIsNone(verified_provider_whatsapp_payment(self.business))
 
     def test_special_offer_rejects_another_users_business(self):
         other_owner = get_user_model().objects.create_user(

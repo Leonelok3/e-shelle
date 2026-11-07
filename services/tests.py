@@ -11,6 +11,10 @@ class PublicMetaReviewPagesTests(TestCase):
         self.assertContains(response, "Connecter WhatsApp")
         self.assertContains(response, 'href="/business/restaurants/"')
         self.assertContains(response, 'href="/business/grossistes/"')
+        self.assertContains(response, "home-apps-link-card")
+        self.assertContains(response, "Vous cherchez un autre service E-Shelle ?")
+        self.assertContains(response, "Voir toutes les applications E-Shelle")
+        self.assertNotContains(response, "home-catalog-section")
         for unpublished_text in (
             "VERCEL",
             "Marcelle Kenfack",

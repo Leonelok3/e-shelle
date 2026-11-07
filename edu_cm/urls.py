@@ -187,11 +187,6 @@ def home_view(request):
                     "description": business.display_description or business.display_promo_offer or ("Provider listed on E-Shelle." if request.LANGUAGE_CODE == "en" else "Prestataire disponible sur E-Shelle."),
                 }
             )
-        home_catalog_items = list(
-            BusinessCatalogItem.objects.filter(is_active=True, business__is_active=True)
-            .select_related("business")
-            .order_by("-created_at")[:8]
-        )
         premium_showcase_items = []
         home_ad_slides = list(
             HomeAdSlide.objects.filter(is_active=True)
@@ -258,7 +253,6 @@ def home_view(request):
             paginated_items = paginator.page(paginator.num_pages)
 
         ctx["premium_showcase_items"] = paginated_items
-        ctx["home_catalog_items"] = home_catalog_items
         ctx["business_slides"] = business_slides
         ctx["business_slides_dup"] = business_slides + business_slides
         ctx["home_ad_slides"] = merged_slides[:10]
@@ -285,7 +279,6 @@ def home_view(request):
     except Exception:
         ctx["premium_businesses"] = []
         ctx["premium_showcase_items"] = []
-        ctx["home_catalog_items"] = []
         ctx["business_slides"] = []
         ctx["business_slides_dup"] = []
         ctx["home_ad_slides"] = []

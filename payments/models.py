@@ -15,6 +15,7 @@ class Transaction(models.Model):
         ("orange",     "Orange Money"),
         ("carte",      "Carte bancaire"),
         ("virement",   "Virement bancaire"),
+        ("manual",     "Paiement manuel vérifié"),
         ("gratuit",    "Gratuit (coupon)"),
     ]
     STATUTS = [

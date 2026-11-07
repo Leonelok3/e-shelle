@@ -888,19 +888,28 @@ def activate_provider_whatsapp_payment(payment):
 
 
 def verified_provider_whatsapp_payment(business):
-    """Return a CamPay transaction whose successful status was verified server-side."""
+    """Return a successful CamPay payment or an admin-issued manual activation code."""
     from payments.models import Transaction
 
     return (
         Transaction.objects.filter(
             utilisateur_id=business.owner_id,
             type_tx="abonnement",
-            methode="campay",
             statut__in=("pending_awaiting_manual_validation", "succes"),
             metadata__product_type="provider_whatsapp_onboarding",
             metadata__provider_whatsapp_business_id=business.pk,
             metadata__provider_whatsapp_activated_at__isnull=False,
-            metadata__campay__provider_status="SUCCESSFUL",
+        )
+        .filter(
+            Q(
+                methode="campay",
+                metadata__campay__provider_status="SUCCESSFUL",
+            )
+            | Q(
+                methode="manual",
+                metadata__provider_whatsapp_manual_approved_at__isnull=False,
+                metadata__provider_whatsapp_activation_code_id__isnull=False,
+            )
         )
         .order_by("-created_at")
         .first()
