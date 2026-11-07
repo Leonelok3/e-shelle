@@ -8,12 +8,17 @@ from django.utils import timezone
 from whatsapp_agent.meta_templates import message_parameters
 from whatsapp_agent.models import MessageEnvoi
 
+from .entitlements import require_whatsapp_entitlement
 from .inbox import normalize_phone
 from .models import BusinessWhatsAppConnection, BusinessWhatsAppMessage
 from .onboarding import MetaOnboardingError, _request_meta
 
 
 def _connection_for_business(business):
+    if not require_whatsapp_entitlement(business, "can_use_crm"):
+        raise MetaOnboardingError(
+            "La connexion WhatsApp Business officielle est réservée à Croissance — Business et Premium."
+        )
     connection = BusinessWhatsAppConnection.objects.filter(
         business=business,
         status=BusinessWhatsAppConnection.Status.ACTIVE,
@@ -346,6 +351,9 @@ def lancer_njangi_achat(njangi_id):
         ).filter(Q(city__icontains="Akwa") | Q(district__icontains="Akwa"))
         sent = skipped = failed = 0
         for business in businesses:
+            if not require_whatsapp_entitlement(business, "can_use_crm"):
+                skipped += 1
+                continue
             connection = BusinessWhatsAppConnection.objects.filter(
                 business=business,
                 status=BusinessWhatsAppConnection.Status.ACTIVE,

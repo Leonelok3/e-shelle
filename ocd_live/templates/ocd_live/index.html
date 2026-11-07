@@ -1,0 +1,328 @@
+{% extends "ocd_live/base_ocd.html" %}
+{% load static %}
+
+{% block title %}OCD LIVE — Les Opportunités C'est Dehors | Le Hub Business & Directs en Afrique{% endblock %}
+
+{% block content %}
+<!-- HERO SECTION IMMERSIVE STUDIO -->
+<section class="ocd-hero">
+  <div class="ocd-hero-container">
+    <div class="ocd-hero-content">
+      <div class="ocd-hero-eyebrow">
+        <span>⚡ LE MOUVEMENT DES AFFAIRES EN AFRIQUE</span>
+      </div>
+      <h1 class="ocd-hero-title">
+        Arrêtez d'attendre dans un bureau.<br>
+        <span class="gradient-orange">Les Opportunités, C'est Dehors !</span>
+      </h1>
+      <p class="ocd-hero-desc">
+        Participez aux masterclasses en direct des entrepreneurs de terrain, découvrez des opportunités d'investissement vérifiées et réservez vos séances de consultation d'affaires exclusives au Cameroun et dans toute l'Afrique.
+      </p>
+
+      <div class="ocd-hero-cta-group">
+        {% if next_live %}
+          <a href="{% url 'ocd_live:live_detail' slug=next_live.slug %}" class="ocd-btn ocd-btn-primary">
+            🔴 Accéder au Direct de la Semaine →
+          </a>
+        {% else %}
+          <a href="#prochains-directs" class="ocd-btn ocd-btn-primary">
+            📅 Voir les Prochains Directs →
+          </a>
+        {% endif %}
+        <a href="{% url 'ocd_live:opportunities_list' %}" class="ocd-btn ocd-btn-glow">
+          💼 Explorer les Opportunités Vérifiées
+        </a>
+      </div>
+
+      <div class="ocd-hero-stats">
+        <div class="ocd-stat-item">
+          <strong>+150 M FCFA</strong>
+          <span>Projets Financés</span>
+        </div>
+        <div class="ocd-stat-item">
+          <strong>100%</strong>
+          <span>Opportunités Auditées</span>
+        </div>
+        <div class="ocd-stat-item">
+          <strong>15 000+</strong>
+          <span>Membres Actifs</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- VISUEL RÉTROÉCLAIRÉ 3D STUDIO DU LOGO -->
+    <div class="ocd-hero-visual">
+      <div class="ocd-backlit-stage">
+        <img src="{% static 'ocd_live/img/ocd_live_logo.svg' %}" alt="OCD Live — Les Opportunités C'est Dehors" class="ocd-backlit-img">
+        
+        {% if next_live %}
+          <div class="ocd-live-countdown-banner">
+            <div class="ocd-countdown-title">
+              {% if next_live.is_live_now %}
+                🔴 EN DIRECT MAINTENANT
+              {% else %}
+                ⏳ PROCHAIN DIRECT DANS :
+              {% endif %}
+            </div>
+            
+            {% if next_live.is_live_now %}
+              <div style="font-size:1.1rem;font-weight:800;color:#FFF;margin-bottom:0.75rem">
+                {{ next_live.title }}
+              </div>
+              <a href="{% url 'ocd_live:live_detail' slug=next_live.slug %}" class="ocd-btn ocd-btn-primary" style="width:100%">
+                Rejoindre la Salle de Direct 🚀
+              </a>
+            {% else %}
+              <div class="ocd-countdown-timer" data-ocd-countdown="{{ next_live.scheduled_at|date:'c' }}">
+                <div class="ocd-timer-box"><strong class="timer-days">00</strong><span>Jours</span></div>
+                <div class="ocd-timer-box"><strong class="timer-hours">00</strong><span>Heures</span></div>
+                <div class="ocd-timer-box"><strong class="timer-minutes">00</strong><span>Min</span></div>
+                <div class="ocd-timer-box"><strong class="timer-seconds">00</strong><span>Sec</span></div>
+              </div>
+              <div style="margin-top:0.75rem;font-size:0.85rem;color:#CBD5E1">
+                <strong>{{ next_live.title }}</strong><br>
+                <span style="color:var(--ocd-text-amber)">Intervenant : {{ next_live.speaker_name }}</span>
+              </div>
+            {% endif %}
+          </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SECTION PROCHAINE SESSION LIVE / DIRECT -->
+{% if next_live %}
+<section id="prochains-directs" class="ocd-section" style="padding-top:2rem">
+  <div class="ocd-section-header">
+    <span class="ocd-section-eyebrow">DIFFUSION &amp; MASTERCLASS OFFICIELLE</span>
+    <h2 class="ocd-section-title">Le Rendez-vous Business en Direct</h2>
+    <p class="ocd-section-subtitle">
+      Chaque semaine, nos experts de terrain décortiquent en direct des filières rentables et répondent sans filtre à vos questions.
+    </p>
+  </div>
+
+  <div class="ocd-card" style="max-width:960px;margin:0 auto;padding:2.5rem;background:linear-gradient(160deg, rgba(28,38,32,0.95) 0%, rgba(13,18,15,0.95) 100%);border:1px solid var(--ocd-border-glass)">
+    <div style="display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:1.5rem;margin-bottom:1.5rem">
+      <span class="ocd-badge-live">
+        <span class="pulse-dot"></span> 
+        {% if next_live.is_live_now %}DIFFUSION EN DIRECT{% else %}PROCHAINEMENT EN DIRECT{% endif %}
+      </span>
+      <div style="color:var(--ocd-text-amber);font-weight:700;font-size:0.95rem">
+        📅 {{ next_live.scheduled_at|date:"l d F Y à H:i" }} (Heure de Douala / Paris)
+      </div>
+    </div>
+
+    <h3 style="font-family:'Outfit';font-size: clamp(1.6rem, 3vw, 2.2rem);font-weight:900;color:#FFF;margin-bottom:1rem;line-height:1.2">
+      {{ next_live.title }}
+    </h3>
+    
+    {% if next_live.subtitle %}
+      <p style="font-size:1.1rem;color:#CBD5E1;line-height:1.6;margin-bottom:1.75rem">
+        {{ next_live.subtitle }}
+      </p>
+    {% endif %}
+
+    <div style="display:flex;align-items:center;gap:1.25rem;padding:1.25rem;background:rgba(0,0,0,0.4);border-radius:16px;margin-bottom:2rem;border:1px solid rgba(255,255,255,0.06)">
+      <div style="width:56px;height:56px;border-radius:50%;background:linear-gradient(135deg,#FF7A00,#E65100);display:flex;align-items:center;justify-content:center;font-size:1.6rem;color:#FFF;font-weight:900">
+        🎙️
+      </div>
+      <div>
+        <strong style="display:block;font-size:1.1rem;color:#FFF">{{ next_live.speaker_name }}</strong>
+        <span style="font-size:0.85rem;color:var(--ocd-text-muted)">{{ next_live.speaker_title }}</span>
+      </div>
+    </div>
+
+    <div style="display:flex;flex-wrap:wrap;gap:1rem;align-items:center;justify-content:space-between">
+      <div style="font-size:0.95rem;color:#94A3B8">
+        Accès : <strong style="color:#FFF">
+          {% if next_live.access_tier == 'FREE' %}
+            Gratuit
+          {% else %}
+            {{ next_live.ticket_price_xaf|floatformat:0 }} FCFA ou inclus dans les Pass OCD
+          {% endif %}
+        </strong>
+      </div>
+      <a href="{% url 'ocd_live:live_detail' slug=next_live.slug %}" class="ocd-btn ocd-btn-primary" style="padding:0.85rem 2rem;font-size:1rem">
+        Réserver ma place en ligne →
+      </a>
+    </div>
+  </div>
+</section>
+{% endif %}
+
+<!-- SECTION OPPORTUNITÉS D'AFFAIRES VÉRIFIÉES -->
+<section class="ocd-section">
+  <div class="ocd-section-header">
+    <span class="ocd-section-eyebrow">DOSSIERS TERRAIN AUDITÉS</span>
+    <h2 class="ocd-section-title">Les Opportunités d'Affaires du Moment</h2>
+    <p class="ocd-section-subtitle">
+      Des projets concrets, documentés sur place et ouverts aux investisseurs et entrepreneurs sérieux.
+    </p>
+
+    <!-- Filtres rapides -->
+    <div style="display:flex;flex-wrap:wrap;justify-content:center;gap:0.6rem;margin-top:2rem">
+      <button class="ocd-btn ocd-btn-glow active" data-ocd-filter="all" style="padding:0.5rem 1.1rem;font-size:0.85rem">Toutes les opportunités</button>
+      {% for cat in categories %}
+        <button class="ocd-btn ocd-btn-glow" data-ocd-filter="{{ cat.slug }}" style="padding:0.5rem 1.1rem;font-size:0.85rem">{{ cat.icon }} {{ cat.name }}</button>
+      {% endfor %}
+    </div>
+  </div>
+
+  <div class="ocd-grid-3">
+    {% for opp in featured_opportunities %}
+      <article class="ocd-card" data-ocd-category="{{ opp.category.slug|default:'all' }}">
+        <div class="ocd-card-header">
+          <span class="ocd-card-cat">{{ opp.category.name|default:"Général" }}</span>
+          <span class="ocd-card-status">✓ {{ opp.get_status_display }}</span>
+        </div>
+
+        <h3 class="ocd-card-title">
+          <a href="{{ opp.get_absolute_url }}" style="color:#FFF;text-decoration:none">
+            {{ opp.title }}
+          </a>
+        </h3>
+
+        <div style="font-size:0.82rem;color:var(--ocd-text-amber);margin-bottom:0.75rem;font-weight:700">
+          📍 {{ opp.city|default:"National" }}, {{ opp.country }}
+        </div>
+
+        <p class="ocd-card-desc">
+          {{ opp.summary|truncatewords:24 }}
+        </p>
+
+        <div class="ocd-metrics-row">
+          <div class="ocd-metric-col">
+            <strong>{{ opp.min_capital_xaf|floatformat:0 }} FCFA</strong>
+            <span>Capital Min.</span>
+          </div>
+          <div class="ocd-metric-col">
+            <strong style="color:#4ADE80">{{ opp.estimated_roi }}</strong>
+            <span>Rentabilité</span>
+          </div>
+        </div>
+
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:1rem">
+          <a href="{{ opp.get_absolute_url }}" class="ocd-btn ocd-btn-glow" style="flex-grow:1;padding:0.65rem 1rem;font-size:0.85rem">
+            Voir le dossier →
+          </a>
+          <a href="https://wa.me/{{ opp.whatsapp_contact|cut:' '|cut:'+' }}?text=Bonjour,%20je%20souhaite%20des%20informations%20sur%20l'opportunité%20{{ opp.title|urlencode }}" target="_blank" rel="noopener" class="ocd-btn" style="background:#25D366;color:#FFF;padding:0.65rem 0.9rem" title="Contacter le référent terrain">
+            💬
+          </a>
+        </div>
+      </article>
+    {% empty %}
+      <div style="grid-column:1/-1;text-align:center;padding:3rem;background:var(--ocd-bg-card);border-radius:16px">
+        <p style="color:#CBD5E1">De nouvelles opportunités sont en cours d'audit par l'équipe OCD Live.</p>
+      </div>
+    {% endfor %}
+  </div>
+
+  <div style="text-align:center;margin-top:3.5rem">
+    <a href="{% url 'ocd_live:opportunities_list' %}" class="ocd-btn ocd-btn-primary" style="padding:0.9rem 2.2rem">
+      Consulter toutes les opportunités d'affaires →
+    </a>
+  </div>
+</section>
+
+<!-- SECTION FORMULES & PASS OCD LIVE -->
+<section class="ocd-section" style="background:radial-gradient(circle at 50% 50%, rgba(255,102,0,0.08) 0%, transparent 60%)">
+  <div class="ocd-section-header">
+    <span class="ocd-section-eyebrow">ADHÉSION &amp; BILLETTERIE</span>
+    <h2 class="ocd-section-title">Choisissez Votre Pass d'Accès</h2>
+    <p class="ocd-section-subtitle">
+      Accédez aux directs exclusifs, recevez les dossiers confidentiels et réservez des créneaux privés avec nos experts.
+    </p>
+  </div>
+
+  <div class="ocd-pricing-grid">
+    {% for pkg in packages %}
+      <div class="ocd-pricing-card {% if pkg.is_popular %}popular{% endif %}">
+        {% if pkg.is_popular %}
+          <div class="ocd-pricing-badge">★ Formule Recommandée</div>
+        {% endif %}
+
+        <h3 class="ocd-pricing-name">{{ pkg.name }}</h3>
+        <div class="ocd-pricing-price">
+          {{ pkg.price_xaf|floatformat:0 }} <span>FCFA / {{ pkg.duration_days }} jours</span>
+        </div>
+
+        <ul class="ocd-features-list">
+          {% for feat in pkg.feature_list %}
+            <li>{{ feat }}</li>
+          {% empty %}
+            <li>Accès prioritaire aux sessions Live</li>
+            <li>Replays illimités des masterclasses</li>
+            <li>Alertes instantanées WhatsApp</li>
+            <li>Dossiers de synthèse téléchargeables</li>
+          {% endfor %}
+        </ul>
+
+        <a href="{% url 'ocd_live:book_package' package_code=pkg.code %}" class="ocd-btn {% if pkg.is_popular %}ocd-btn-primary{% else %}ocd-btn-glow{% endif %}" style="width:100%;margin-top:auto">
+          Prendre ce Pass par MoMo / Orange Money
+        </a>
+      </div>
+    {% empty %}
+      <div class="ocd-pricing-card">
+        <h3 class="ocd-pricing-name">Pass Ticket 1 Live</h3>
+        <div class="ocd-pricing-price">2 500 <span>FCFA / session</span></div>
+        <ul class="ocd-features-list">
+          <li>Accès en direct à la session choisie</li>
+          <li>Accès au Replay officiel pendant 30 jours</li>
+          <li>Rappel et lien direct sur WhatsApp</li>
+        </ul>
+        <a href="{% url 'ocd_live:live_list' %}" class="ocd-btn ocd-btn-glow">Choisir une session Live</a>
+      </div>
+      <div class="ocd-pricing-card popular">
+        <div class="ocd-pricing-badge">★ Le Plus Choisi</div>
+        <h3 class="ocd-pricing-name">Pass Membre Mensuel</h3>
+        <div class="ocd-pricing-price">15 000 <span>FCFA / mois</span></div>
+        <ul class="ocd-features-list">
+          <li>Accès illimité à tous les Lives du mois</li>
+          <li>Bibliothèque complète de tous les Replays</li>
+          <li>Dossiers confidentiels des opportunités</li>
+          <li>Canal VIP WhatsApp des membres</li>
+        </ul>
+        <a href="https://wa.me/237680625082?text=Je%20souhaite%20activer%20le%20Pass%20Membre%20Mensuel%20OCD%20Live" class="ocd-btn ocd-btn-primary">S'abonner maintenant</a>
+      </div>
+    {% endfor %}
+  </div>
+</section>
+
+<!-- SECTION LE MANIFESTE : LES OPPORTUNITÉS C'EST DEHORS -->
+<section class="ocd-section" style="padding-top:2rem">
+  <div style="background:linear-gradient(145deg, rgba(20,29,24,0.95) 0%, rgba(10,15,12,0.95) 100%);border:1px solid var(--ocd-border-glass);border-radius:28px;padding:clamp(2rem, 5vw, 4rem);display:grid;grid-template-columns:1fr 1fr;gap:3rem;align-items:center">
+    <div>
+      <span class="ocd-section-eyebrow">LA PHILOSOPHIE OCD</span>
+      <h2 style="font-family:'Outfit';font-size:clamp(1.8rem, 3.5vw, 2.6rem);font-weight:900;color:#FFF;line-height:1.15;margin-bottom:1.5rem">
+        L'Afrique n'attend pas.<br>
+        Le vrai business se passe sur le terrain.
+      </h2>
+      <p style="color:#CBD5E1;font-size:1.05rem;line-height:1.7;margin-bottom:1.5rem">
+        <strong>OCD</strong> est né d'un constat simple : des millions d'idées restent bloquées sur des feuilles de papier ou dans des discussions de salon. Pendant ce temps, les opportunités réelles — dans l'agriculture, l'immobilier, le commerce et les services — sont là, dehors, prêtes à être saisies par ceux qui agissent.
+      </p>
+      <div style="display:flex;flex-direction:column;gap:0.75rem;margin-bottom:2rem">
+        <div style="display:flex;align-items:center;gap:10px;color:#FFF;font-weight:700">
+          <span style="color:var(--ocd-primary);font-size:1.2rem">✓</span> Des experts qui vivent et travaillent sur le terrain
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;color:#FFF;font-weight:700">
+          <span style="color:var(--ocd-primary);font-size:1.2rem">✓</span> Des chiffres réels, sans fausses promesses
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;color:#FFF;font-weight:700">
+          <span style="color:var(--ocd-primary);font-size:1.2rem">✓</span> Un réseau panafricain d'entraide et de co-investissement
+        </div>
+      </div>
+      <a href="https://wa.me/237680625082?text=Bonjour,%20je%20souhaite%20rejoindre%20le%20réseau%20OCD%20Live" target="_blank" rel="noopener" class="ocd-btn ocd-btn-primary">
+        Rejoindre la Communauté Terrain 🚀
+      </a>
+    </div>
+
+    <div style="text-align:center">
+      <div style="background:radial-gradient(circle, rgba(255,102,0,0.2) 0%, transparent 70%);padding:2rem;border-radius:24px">
+        <img src="{% static 'ocd_live/img/ocd_live_logo.svg' %}" alt="OCD Live Logo" style="width:100%;max-width:360px;margin:0 auto;filter:drop-shadow(0 15px 35px rgba(255,102,0,0.5))">
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}
+

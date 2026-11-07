@@ -33,6 +33,7 @@ def eshelle_public_urls(request):
         "SIMPLO_PUBLIC_URL": getattr(settings, "SIMPLO_PUBLIC_URL", "/simplo/"),
         "MAPEX_PUBLIC_URL": getattr(settings, "MAPEX_PUBLIC_URL", "/edu/"),
         "EXPROD_PUBLIC_URL": getattr(settings, "EXPROD_PUBLIC_URL", "/lebelage-importer/"),
+        "OCD_LIVE_PUBLIC_URL": getattr(settings, "OCD_LIVE_PUBLIC_URL", "/ocd-live/"),
         "SALONHUB_PUBLIC_URL": getattr(settings, "SALONHUB_PUBLIC_URL", "/salons/"),
         "GOOGLE_SITE_VERIFICATION": getattr(settings, "GOOGLE_SITE_VERIFICATION", ""),
         "GOOGLE_ANALYTICS_ID": getattr(settings, "GOOGLE_ANALYTICS_ID", ""),

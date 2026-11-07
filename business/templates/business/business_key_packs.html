@@ -31,16 +31,21 @@
           {% endif %}
         {% else %}
           {% if user.is_authenticated %}
-          <form method="post" action="{% url 'business:business_key_payment_request' %}" enctype="multipart/form-data" class="bk-pay-form">
-            {% csrf_token %}
-            <input type="hidden" name="tier" value="{{ pack.tier }}">
-            <label>Numero Mobile Money</label>
-            <input name="momo_number" placeholder="+237 6XX XXX XXX">
-            <label>Preuve de paiement</label>
-            <input type="file" name="proof" accept="image/*,.pdf">
-            <textarea name="note" placeholder="Nom utilise pour le paiement, heure, commentaire..."></textarea>
-            <button type="submit">Demander l'activation</button>
-          </form>
+            {% if can_activate_business_key %}
+            <form method="post" action="{% url 'business:business_key_payment_request' %}" enctype="multipart/form-data" class="bk-pay-form">
+              {% csrf_token %}
+              <input type="hidden" name="tier" value="{{ pack.tier }}">
+              <label>Numero Mobile Money</label>
+              <input name="momo_number" placeholder="+237 6XX XXX XXX">
+              <label>Preuve de paiement</label>
+              <input type="file" name="proof" accept="image/*,.pdf">
+              <textarea name="note" placeholder="Nom utilise pour le paiement, heure, commentaire..."></textarea>
+              <button type="submit">Demander l'activation</button>
+            </form>
+            {% else %}
+            <p>Un abonnement Croissance — Business ou Premium actif est requis. L'activation de la Business Key reste un paiement unique de {{ business_key_price }} FCFA, distinct de l'abonnement.</p>
+            <a class="bk-pack-btn" href="/tarifs/">Voir les abonnements</a>
+            {% endif %}
           {% else %}
           <a class="bk-pack-btn" href="/accounts/login/?next=/business/partner/packs/">Se connecter pour activer</a>
           {% endif %}

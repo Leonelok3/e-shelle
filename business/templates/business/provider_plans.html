@@ -67,25 +67,24 @@
         <h2>{% if plan.plan_level == 'pro' %}{% if LANGUAGE_CODE == 'en' %}Presence — Pro{% else %}Présence — Pro{% endif %}{% elif plan.plan_level == 'business' %}{% if LANGUAGE_CODE == 'en' %}Growth — Business{% else %}Croissance — Business{% endif %}{% elif plan.plan_level == 'premium' %}Premium{% else %}{{ plan.display_name }}{% endif %}</h2>
         <div class="biz-plan-price">
           <strong>{{ plan.monthly_price_xaf }}</strong>
-          <span>XAF {% if plan.monthly_price_xaf > 0 %}{% if LANGUAGE_CODE == 'en' %}/ month{% else %}/ mois{% endif %}{% else %}{% if LANGUAGE_CODE == 'en' %}lifetime{% else %}à vie{% endif %}{% endif %}</span>
+          <span>XAF {% if plan.monthly_price_xaf > 0 %}{% if LANGUAGE_CODE == 'en' %}/ 30 days{% else %}/ 30 jours{% endif %}{% else %}{% if LANGUAGE_CODE == 'en' %}/ 14-day visibility{% else %}/ visibilité 14 jours{% endif %}{% endif %}</span>
         </div>
         <p class="biz-plan-desc">{% if LANGUAGE_CODE == 'en' %}{{ plan.description_en|default:'A plan to make your business more visible on E-Shelle.' }}{% else %}{{ plan.description }}{% endif %}</p>
         <ul>
           {% if plan.plan_level == 'free' %}
-            <li><b>✓</b> {% if LANGUAGE_CODE == 'en' %}Business catalogue: up to 5 items, no extra photos{% else %}Catalogue Business : jusqu'à 5 articles, sans photo supplémentaire{% endif %}</li>
+            <li><b>✓</b> {% if LANGUAGE_CODE == 'en' %}One listing, up to 5 products with photos; visible for 14 days{% else %}1 fiche, jusqu'à 5 produits avec photos, visible 14 jours{% endif %}</li>
+            <li class="is-muted"><b>–</b> {% if LANGUAGE_CODE == 'en' %}No AI credits, WABA, reply agent, boost or advanced dashboard{% else %}Sans crédits IA, WABA, agent de réponse, boost ni tableau de bord avancé{% endif %}</li>
           {% elif plan.plan_level == 'pro' %}
-            <li><b>✓</b> {% if LANGUAGE_CODE == 'en' %}Business catalogue: up to 20 items, 2 extra photos per item{% else %}Catalogue Business : jusqu'à 20 articles, 2 photos supplémentaires par article{% endif %}</li>
-            <li><b>✓</b> 1 WhatsApp Business (WABA) connection per profile</li>
-            <li><b>✓</b> Contact CRM and text replies within the 24-hour window</li>
+            <li><b>✓</b> {% if LANGUAGE_CODE == 'en' %}Up to 20 products, 5 AI credits and 5 boost days{% else %}Jusqu'à 20 produits, 5 crédits IA et 5 jours de boost{% endif %}</li>
+            <li><b>✓</b> {% if LANGUAGE_CODE == 'en' %}Merchant dashboard, Google SEO and visibility in E-Shelle AI/LLMs; no ranking guarantee{% else %}Tableau de bord commerçant, référencement Google et visibilité E-Shelle AI/LLM, sans garantie de classement{% endif %}</li>
+            <li class="is-muted"><b>–</b> {% if LANGUAGE_CODE == 'en' %}No WABA connection or automatic reply agent{% else %}Sans connexion WABA ni agent de réponse automatique{% endif %}</li>
           {% elif plan.plan_level == 'business' %}
-            <li><b>✓</b> {% if LANGUAGE_CODE == 'en' %}Business catalogue: up to 50 items, 4 extra photos per item{% else %}Catalogue Business : jusqu'à 50 articles, 4 photos supplémentaires par article{% endif %}</li>
-            <li><b>✓</b> 1 WhatsApp Business (WABA) connection per profile</li>
-            <li><b>✓</b> Sync the Business catalogue with its linked Meta catalogue</li>
-            <li><b>✓</b> Individual follow-ups using an approved Meta template and explicit consent, when enabled on the server</li>
+            <li><b>✓</b> {% if LANGUAGE_CODE == 'en' %}Up to 50 products, WABA connection and AI reply agent{% else %}Jusqu'à 50 produits, connexion WABA et agent IA de réponse{% endif %}</li>
+            <li><b>✓</b> {% if LANGUAGE_CODE == 'en' %}20 AI credits, 7 boost days, support and onboarding training{% else %}20 crédits IA, 7 jours de boost, assistance et formation{% endif %}</li>
+            <li><b>✓</b> {% if LANGUAGE_CODE == 'en' %}Right to activate Business Key separately (one-time 9,900 XAF){% else %}Droit de demander la Business Key séparément (9 900 FCFA, paiement unique){% endif %}</li>
           {% elif plan.plan_level == 'premium' %}
-            <li><b>✓</b> Business catalogue with no code-defined limit, 7 extra photos per item</li>
-            <li><b>✓</b> 1 WhatsApp Business (WABA) connection per profile</li>
-            <li><b>✓</b> Sync and individual follow-ups using an approved template and consent, when enabled on the server</li>
+            <li><b>✓</b> {% if LANGUAGE_CODE == 'en' %}All Growth benefits, unlimited catalogue and up to 7 extra photos per product{% else %}Tous les avantages Croissance, catalogue illimité et jusqu'à 7 photos supplémentaires par produit{% endif %}</li>
+            <li><b>✓</b> {% if LANGUAGE_CODE == 'en' %}WABA, AI reply agent, 50 AI credits and 15 boost days{% else %}WABA, agent IA de réponse, 50 crédits IA et 15 jours de boost{% endif %}</li>
           {% endif %}
           <li><b>✓</b> {{ plan.duration_days }} {% if LANGUAGE_CODE == 'en' %}days of activation{% else %}jours d'activation{% endif %}</li>
           {% if plan.included_boost_days %}
@@ -105,7 +104,13 @@
           {% endif %}
         </ul>
         {% if plan.monthly_price_xaf > 0 %}
-          <a href="{{ plan.whatsapp_activation_url }}" target="_blank" rel="noopener" class="biz-plan-btn">{% if LANGUAGE_CODE == 'en' %}Activate {{ plan.display_name }}{% else %}Activer {{ plan.display_name }}{% endif %} →</a>
+          {% if current_business %}
+            <a href="{% url 'provider_special_offer' %}?business={{ current_business.pk }}&amp;plan={{ plan.code }}" class="biz-plan-btn">{% if LANGUAGE_CODE == 'en' %}Choose {{ plan.display_name }}{% else %}Choisir {{ plan.display_name }}{% endif %} →</a>
+          {% elif user.is_authenticated %}
+            <a href="{% url 'business:onboarding' %}?plan={{ plan.code }}" class="biz-plan-btn">{% if LANGUAGE_CODE == 'en' %}Choose {{ plan.display_name }}{% else %}Choisir {{ plan.display_name }}{% endif %} →</a>
+          {% else %}
+            <a href="/accounts/register/?next={% url 'business:onboarding' %}%3Fplan%3D{{ plan.code }}" class="biz-plan-btn">{% if LANGUAGE_CODE == 'en' %}Choose {{ plan.display_name }}{% else %}Choisir {{ plan.display_name }}{% endif %} →</a>
+          {% endif %}
         {% elif user_has_business %}
           <a href="{% url 'business:dashboard' %}" class="biz-plan-btn biz-plan-btn--ghost">{% if LANGUAGE_CODE == 'en' %}Manage my business{% else %}Gérer mon business{% endif %}</a>
         {% else %}
@@ -114,8 +119,8 @@
       </article>
       {% endfor %}
     </div>
-    <p class="biz-plan-footnote">{% if LANGUAGE_CODE == 'en' %}Mobile Money payments are confirmed manually via WhatsApp. Activation follows payment validation.{% else %}Paiement Mobile Money confirmé manuellement via WhatsApp. Activation après validation du paiement.{% endif %}</p>
-    <p class="biz-plan-footnote">{% if LANGUAGE_CODE == 'en' %}Subscriptions may not include fees charged by Meta for WhatsApp Business Platform. Connection and synchronization depend on configuration, permissions and Meta approval. Follow-ups are individual, require an approved template and the contact’s explicit consent; bulk messages are not included. E-Shelle does not guarantee Meta approval or any particular business result.{% else %}Les abonnements ne comprennent pas nécessairement les frais facturés par Meta pour WhatsApp Business Platform. La connexion et la synchronisation dépendent de la configuration, des droits et de l'approbation Meta. Les relances sont individuelles, nécessitent un modèle approuvé et le consentement explicite du contact ; les messages de masse ne sont pas inclus. E-Shelle ne garantit ni l'approbation Meta ni un résultat commercial particulier.{% endif %}</p>
+    <p class="biz-plan-footnote">{% if LANGUAGE_CODE == 'en' %}Manual Mobile Money payment by WhatsApp and CamPay checkout are available; activation follows confirmed payment. E-Shelle is a certified Meta Tech Provider; this does not mean Meta guarantees, sponsors or recommends E-Shelle.{% else %}Le paiement Mobile Money manuel par WhatsApp et le paiement CamPay sont disponibles ; l'activation suit la confirmation du paiement. E-Shelle est « Meta Tech Provider certifié » ; cela ne signifie pas que Meta garantit, sponsorise ou recommande E-Shelle.{% endif %}</p>
+    <p class="biz-plan-footnote">Les frais de messagerie facturés par Meta sont distincts et ne sont pas inclus dans les tarifs E-Shelle. L'activation WABA dépend de l'éligibilité du numéro et du compte WhatsApp Business ainsi que des validations requises.</p>
     <p class="biz-plan-footnote">{% if LANGUAGE_CODE == 'en' %}Displayed limits apply to the Business catalogue (`BusinessCatalogItem`), not an unlimited digital shop. Follow-ups require the service to be enabled on the server; the technical processing limit is not a customer quota.{% else %}Les plafonds affichés concernent le catalogue Business (`BusinessCatalogItem`), pas une boutique digitale illimitée. Les relances sont soumises à l'activation du service côté serveur ; le plafond technique de traitement n'est pas un quota client.{% endif %}</p>
 
     <div class="biz-benefits">

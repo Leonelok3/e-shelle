@@ -10,10 +10,12 @@ from django.utils import timezone
 from .models import (
     BusinessActivationCode,
     BusinessCatalogItem,
+    BusinessKeyPaymentRequest,
     BusinessProfile,
     ProviderPlan,
 )
 from .services import (
+    activate_provider_whatsapp_payment,
     collect_business_items,
     record_provider_plan_payment,
     verified_provider_whatsapp_payment,
@@ -60,6 +62,88 @@ class ProviderPlanEntitlementTests(TestCase):
         self.business.refresh_from_db()
         self.assertEqual(self.business.plan, BusinessProfile.Plan.FREE)
         self.assertEqual(self.business.ai_credits, 0)
+
+    def test_free_listing_is_visible_for_fourteen_days_then_paused_without_deletion(self):
+        self.assertTrue(self.business.is_published)
+        self.assertGreater(
+            self.business.free_visibility_expires_at,
+            timezone.now() + timedelta(days=13),
+        )
+
+        self.business.free_visibility_expires_at = timezone.now() - timedelta(seconds=1)
+        self.business.save(update_fields=["free_visibility_expires_at", "updated_at"])
+        self.assertTrue(self.business.check_expiry())
+
+        self.business.refresh_from_db()
+        self.assertFalse(self.business.is_active)
+        self.assertFalse(self.business.is_published)
+        self.assertTrue(BusinessProfile.objects.filter(pk=self.business.pk).exists())
+
+    def test_public_queryset_excludes_expired_free_and_paid_listings(self):
+        self.business.free_visibility_expires_at = timezone.now() - timedelta(seconds=1)
+        self.business.save(update_fields=["free_visibility_expires_at", "updated_at"])
+        self.assertFalse(BusinessProfile.publicly_visible().filter(pk=self.business.pk).exists())
+
+        self.business.plan = BusinessProfile.Plan.PRO
+        self.business.activation_status = BusinessProfile.ActivationStatus.ACTIVE
+        self.business.subscription_expires_at = timezone.now() - timedelta(seconds=1)
+        self.business.save()
+        self.assertFalse(BusinessProfile.publicly_visible().filter(pk=self.business.pk).exists())
+
+    def test_business_key_payment_requires_active_growth_or_premium_subscription(self):
+        payment_request = BusinessKeyPaymentRequest.objects.create(
+            user=self.owner,
+            tier="key",
+            amount_xaf=9900,
+        )
+        with self.assertRaisesMessage(ValueError, "Croissance — Business ou Premium actif"):
+            payment_request.confirm()
+
+        self.assertEqual(payment_request.status, BusinessKeyPaymentRequest.Status.PENDING)
+
+        self.business.activate_plan(BusinessProfile.Plan.BUSINESS, ai_credits=20)
+        with patch("billing.affiliates.create_commission_for_transaction"):
+            payment_request.confirm()
+        payment_request.refresh_from_db()
+        self.assertEqual(payment_request.status, BusinessKeyPaymentRequest.Status.CONFIRMED)
+
+    def test_ai_delivery_kit_uses_existing_ai_credit_balance(self):
+        self.business.activate_plan(BusinessProfile.Plan.PRO, ai_credits=1)
+        self.client.force_login(self.owner)
+        url = reverse("business:ai_delivery_kit", kwargs={"business_id": self.business.pk})
+
+        with patch("business.views.generate_client_ai_kit") as generate_kit:
+            response = self.client.post(url)
+
+        self.assertRedirects(response, url, fetch_redirect_response=False)
+        generate_kit.assert_called_once()
+        self.business.refresh_from_db()
+        self.assertEqual(self.business.ai_credits, 0)
+
+        with patch("business.views.generate_client_ai_kit") as generate_kit:
+            self.client.post(url)
+
+        generate_kit.assert_not_called()
+
+    def test_free_plan_rejects_a_sixth_product(self):
+        for index in range(5):
+            BusinessCatalogItem.objects.create(
+                business=self.business,
+                title=f"Produit {index + 1}",
+            )
+        self.client.force_login(self.owner)
+
+        response = self.client.post(
+            reverse("business:catalog_manage", kwargs={"business_id": self.business.pk}),
+            {"title": "Produit en trop"},
+            follow=True,
+        )
+
+        self.assertEqual(BusinessCatalogItem.objects.filter(business=self.business).count(), 5)
+        self.assertContains(
+            response,
+            "Passe à Présence — Pro / Croissance pour ajouter plus de produits.",
+        )
 
     def test_provider_plan_payment_uses_configured_ai_credits_once(self):
         plan = ProviderPlan.objects.create(
@@ -167,6 +251,7 @@ class ProviderOnboardingPaymentTests(TestCase):
         self.assertIsNone(business.subscription_expires_at)
 
     def test_free_onboarding_keeps_listing_and_does_not_activate_whatsapp(self):
+        self.business.delete()
         response = self.client.post(
             reverse("business:onboarding"),
             {
@@ -183,6 +268,21 @@ class ProviderOnboardingPaymentTests(TestCase):
         )
         self.assertEqual(business.plan, BusinessProfile.Plan.FREE)
         self.assertFalse(business.is_trial)
+
+    def test_free_onboarding_rejects_a_second_business_listing(self):
+        response = self.client.post(
+            reverse("business:onboarding"),
+            {
+                "name": "Deuxieme boutique",
+                "phone": "+237699000003",
+                "plan": "free",
+            },
+            follow=True,
+        )
+
+        self.assertRedirects(response, reverse("business:dashboard"))
+        self.assertFalse(BusinessProfile.objects.filter(name="Deuxieme boutique").exists())
+        self.assertContains(response, "Le forfait Gratuit est limité à une fiche Business.")
 
     def test_special_offer_uses_server_defined_price_and_starts_mobile_money_checkout(self):
         with override_settings(CAMPAY_PUBLIC_BASE_URL="https://e-shelle.com"):
@@ -257,11 +357,45 @@ class ProviderOnboardingPaymentTests(TestCase):
         self.assertIn(self.plan.name, message)
         self.assertIn("3 000 FCFA", message)
 
+    def test_failed_provider_payment_does_not_activate_plan_or_grant_credits(self):
+        from payments.models import Transaction
+
+        payment = Transaction.objects.create(
+            utilisateur=self.owner,
+            type_tx="abonnement",
+            methode="campay",
+            montant=self.plan.monthly_price_xaf,
+            devise="XAF",
+            statut="echec",
+            metadata={
+                "product_type": "provider_whatsapp_onboarding",
+                "provider_whatsapp_business_id": self.business.pk,
+                "provider_whatsapp_plan_code": self.plan.code,
+                "provider_whatsapp_amount_xaf": self.plan.monthly_price_xaf,
+                "campay": {"provider_status": "SUCCESSFUL"},
+            },
+        )
+
+        self.assertFalse(activate_provider_whatsapp_payment(payment))
+        self.business.refresh_from_db()
+        self.assertEqual(self.business.plan, BusinessProfile.Plan.FREE)
+        self.assertEqual(self.business.ai_credits, 0)
+        self.assertIsNone(self.business.subscription_expires_at)
+
     def test_admin_issued_whatsapp_activation_code_unlocks_manual_payment_path(self):
+        business_plan = ProviderPlan.objects.create(
+            code="provider-business-manual",
+            name="Croissance — Business",
+            plan_level=BusinessProfile.Plan.BUSINESS,
+            monthly_price_xaf=15000,
+            duration_days=30,
+            included_ai_credits=20,
+            is_active=True,
+        )
         code = BusinessActivationCode.objects.create(
             business=self.business,
-            plan=self.plan,
-            amount_paid_xaf=self.plan.monthly_price_xaf,
+            plan=business_plan,
+            amount_paid_xaf=business_plan.monthly_price_xaf,
             payment_method=BusinessActivationCode.PaymentMethod.MTN_MOMO,
             unlocks_whatsapp_onboarding=True,
         )
@@ -328,13 +462,13 @@ class ProviderOnboardingPaymentTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(
             response,
-            f'href="{reverse("business:onboarding")}?plan=pro"',
+            f'href="{reverse("provider_special_offer")}?business={self.business.pk}&amp;plan=pro"',
         )
         self.assertContains(
             response,
-            f'href="{reverse("business:onboarding")}?plan=business"',
+            f'href="{reverse("provider_special_offer")}?business={self.business.pk}&amp;plan=business"',
         )
         self.assertContains(
             response,
-            f'href="{reverse("business:onboarding")}?plan=premium"',
+            f'href="{reverse("provider_special_offer")}?business={self.business.pk}&amp;plan=premium"',
         )

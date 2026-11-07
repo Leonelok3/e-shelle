@@ -72,10 +72,13 @@ def downgrade_expired_businesses():
 
     now = timezone.now()
     businesses = BusinessProfile.objects.filter(
-        ~Q(plan=BusinessProfile.Plan.FREE)
-        & (
-            Q(subscription_expires_at__isnull=True)
-            | Q(subscription_expires_at__lte=now)
+        Q(plan=BusinessProfile.Plan.FREE, free_visibility_expires_at__lte=now)
+        | (
+            ~Q(plan=BusinessProfile.Plan.FREE)
+            & (
+                Q(subscription_expires_at__isnull=True)
+                | Q(subscription_expires_at__lte=now)
+            )
         )
     )
 

@@ -1,0 +1,86 @@
+{% extends "ocd_live/base_ocd.html" %}
+
+{% block title %}Mon Espace Membre | OCD LIVE{% endblock %}
+
+{% block content %}
+<section class="ocd-section" style="padding-top:3.5rem">
+  <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:1.5rem;margin-bottom:3rem;padding-bottom:1.5rem;border-bottom:1px solid var(--ocd-border-glass)">
+    <div>
+      <span class="ocd-section-eyebrow">ESPACE MEMBRE OCD</span>
+      <h1 style="font-family:'Outfit';font-size:2rem;color:#FFF;margin-top:0.25rem">
+        Bienvenue, {{ user.first_name|default:user.username }}
+      </h1>
+      <span style="color:#94A3B8;font-size:0.9rem">Membre du Réseau « Les Opportunités C'est Dehors »</span>
+    </div>
+    <div style="display:flex;gap:1rem">
+      <a href="{% url 'ocd_live:opportunities_list' %}" class="ocd-btn ocd-btn-glow">
+        Explorer les Opportunités
+      </a>
+      <a href="{% url 'ocd_live:live_list' %}" class="ocd-btn ocd-btn-primary">
+        Programme des Directs
+      </a>
+    </div>
+  </div>
+
+  <div style="display:grid;grid-template-columns:1fr;gap:2.5rem">
+    <!-- MES BILLETS & PARTICIPATIONS -->
+    <div>
+      <h2 style="color:#FFF;font-family:'Outfit';font-size:1.4rem;margin-bottom:1.5rem">
+        🎟️ Mes Billets &amp; Accès aux Directs
+      </h2>
+
+      {% if bookings %}
+        <div class="ocd-grid-3">
+          {% for b in bookings %}
+            <div class="ocd-card" style="border:1px solid {% if b.status == 'CONFIRMED' %}rgba(16,185,129,0.3){% else %}rgba(251,191,36,0.3){% endif %}">
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem">
+                <span style="font-family:monospace;font-size:0.85rem;font-weight:800;color:var(--ocd-text-amber)">{{ b.ticket_code }}</span>
+                <span class="ocd-card-status" style="color:{% if b.status == 'CONFIRMED' %}#4ADE80{% else %}#FBBF24{% endif %}">
+                  {% if b.status == 'CONFIRMED' %}✓ Confirmé{% else %}⏳ En attente{% endif %}
+                </span>
+              </div>
+
+              <h3 style="font-family:'Outfit';font-size:1.15rem;color:#FFF;margin-bottom:0.75rem">
+                {% if b.session %}
+                  {{ b.session.title }}
+                {% elif b.package %}
+                  {{ b.package.name }}
+                {% elif b.slot %}
+                  {{ b.slot.title }}
+                {% endif %}
+              </h3>
+
+              <div style="font-size:0.82rem;color:var(--ocd-text-muted);margin-bottom:1.5rem">
+                Date réservation : {{ b.created_at|date:"d M Y à H:i" }}
+              </div>
+
+              <div style="margin-top:auto;display:flex;gap:0.75rem">
+                {% if b.session %}
+                  <a href="{{ b.session.get_absolute_url }}" class="ocd-btn ocd-btn-primary" style="flex-grow:1;padding:0.6rem;font-size:0.85rem">
+                    Rejoindre le Direct →
+                  </a>
+                {% endif %}
+                <a href="{% url 'ocd_live:booking_detail' ticket_code=b.ticket_code %}" class="ocd-btn ocd-btn-glow" style="padding:0.6rem 0.9rem;font-size:0.85rem">
+                  Voir Billet
+                </a>
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+      {% else %}
+        <div style="text-align:center;padding:3.5rem 1.5rem;background:var(--ocd-bg-card);border-radius:18px;border:1px solid var(--ocd-border-subtle)">
+          <span style="font-size:2.5rem;display:block;margin-bottom:1rem">🎟️</span>
+          <h3 style="color:#FFF;font-size:1.3rem;margin-bottom:0.5rem">Vous n'avez pas encore de billet actif.</h3>
+          <p style="color:#94A3B8;max-width:460px;margin:0 auto 1.5rem">
+            Rejoignez une prochaine masterclass ou souscrivez à un pass pour débloquer les opportunités d'affaires exclusives.
+          </p>
+          <a href="{% url 'ocd_live:live_list' %}" class="ocd-btn ocd-btn-primary">
+            Découvrir les prochains directs →
+          </a>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+</section>
+{% endblock %}
+

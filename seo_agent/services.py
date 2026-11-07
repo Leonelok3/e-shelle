@@ -228,7 +228,7 @@ class LocalSEOAgent:
 
         pages = []
         cities = (
-            BusinessProfile.objects.filter(is_active=True)
+            BusinessProfile.publicly_visible()
             .exclude(city="")
             .values_list("city", flat=True)
             .distinct()
@@ -236,8 +236,7 @@ class LocalSEOAgent:
         for city in cities:
             city_slug = slugify(city)
             for service_slug, service in SEO_SERVICE_MAP.items():
-                count = BusinessProfile.objects.filter(
-                    is_active=True,
+                count = BusinessProfile.publicly_visible().filter(
                     city__iexact=city,
                     module=service["module"],
                 ).count()
@@ -400,7 +399,7 @@ def build_sitemap_entries(request):
     # Individual Business Profiles (/b/<slug>/)
     try:
         from business.models import BusinessProfile
-        for biz in BusinessProfile.objects.filter(is_active=True).exclude(public_slug=None).exclude(public_slug=""):
+        for biz in BusinessProfile.publicly_visible().exclude(public_slug=None).exclude(public_slug=""):
             try:
                 path = reverse("business_public_short", kwargs={"public_slug": biz.public_slug})
             except Exception:

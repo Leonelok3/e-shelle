@@ -99,7 +99,7 @@ class CommercialAgentService:
         except Exception:
             return {"created": 0, "updated": 0}
 
-        qs = BusinessProfile.objects.filter(is_active=True).order_by("-leads_count", "-views_count", "-created_at")[:limit]
+        qs = BusinessProfile.publicly_visible().order_by("-leads_count", "-views_count", "-created_at")[:limit]
         created = 0
         updated = 0
         for business in qs:

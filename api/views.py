@@ -28,7 +28,7 @@ def search(request):
             is_published=True
         ).filter(Q(titre__icontains=q) | Q(description__icontains=q))[:5]
 
-        businesses = BusinessProfile.objects.filter(is_active=True).filter(
+        businesses = BusinessProfile.publicly_visible().filter(
             Q(name__icontains=q)
             | Q(description__icontains=q)
             | Q(promo_headline__icontains=q)

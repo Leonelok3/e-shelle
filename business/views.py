@@ -6,7 +6,7 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth.decorators import login_required
 from django.db import models, transaction as db_transaction
 from django.db.models import Avg, Count, F, Sum
-from django.http import HttpResponse, JsonResponse
+from django.http import Http404, HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.contrib import messages
 from django.core.exceptions import ValidationError
@@ -373,7 +373,7 @@ def _external_search_links(query: str) -> list:
 
 
 def _opportunity_matches(unmet_request, limit=3):
-    businesses = BusinessProfile.objects.filter(is_active=True)
+    businesses = BusinessProfile.publicly_visible()
     if unmet_request.module and unmet_request.module != BusinessProfile.Module.GENERAL:
         businesses = businesses.filter(module=unmet_request.module)
     if unmet_request.city:
@@ -388,7 +388,7 @@ def _opportunity_matches(unmet_request, limit=3):
 
 
 def _matching_businesses_for_request(unmet_request, limit=20):
-    businesses = BusinessProfile.objects.filter(is_active=True)
+    businesses = BusinessProfile.publicly_visible()
     if unmet_request.module and unmet_request.module != BusinessProfile.Module.GENERAL:
         businesses = businesses.filter(module=unmet_request.module)
     if unmet_request.city:
@@ -591,7 +591,7 @@ def track(request, public_id):
 @require_GET
 def go_business(request, business_id, event_type):
     """Clic public depuis la home: compte le lead puis redirige."""
-    business = get_object_or_404(BusinessProfile, pk=business_id, is_active=True)
+    business = get_object_or_404(BusinessProfile.publicly_visible(), pk=business_id)
     allowed = {
         "view": BusinessLeadEvent.EventType.VIEW,
         "whatsapp": BusinessLeadEvent.EventType.WHATSAPP,
@@ -675,7 +675,10 @@ def public_profile(request, public_slug):
             canonical_short_url = f"{canonical_short_url}?{query_string}"
         return redirect(canonical_short_url, permanent=True)
 
-    business = get_object_or_404(BusinessProfile, public_slug=public_slug, is_active=True)
+    business = get_object_or_404(BusinessProfile, public_slug=public_slug)
+    business.check_expiry()
+    if not business.is_published:
+        raise Http404("Cette fiche n'est plus visible.")
     BusinessProfile.objects.filter(pk=business.pk).update(views_count=F("views_count") + 1)
     if request.GET.get("utm_source", "").lower() == "facebook":
         campaign = request.GET.get("utm_campaign", "")[:120]
@@ -765,8 +768,10 @@ def provider_plans(request):
     }
 
     comparison = None
+    current_business = None
     if request.user.is_authenticated:
         my_business = BusinessProfile.objects.filter(owner=request.user).order_by("-updated_at").first()
+        current_business = my_business
         if my_business and my_business.plan == BusinessProfile.Plan.FREE:
             premium_avg = BusinessProfile.objects.filter(
                 is_active=True,
@@ -785,7 +790,16 @@ def provider_plans(request):
                 "avg_leads": round(premium_avg["leads"] or 0),
             }
 
-    return render(request, "business/provider_plans.html", {"plans": plans, "proof": proof, "comparison": comparison})
+    return render(
+        request,
+        "business/provider_plans.html",
+        {
+            "plans": plans,
+            "proof": proof,
+            "comparison": comparison,
+            "current_business": current_business,
+        },
+    )
 
 
 def restaurant_sales(request):
@@ -955,7 +969,7 @@ def custom_app_offer(request):
 def eshelle_communication(request):
     """Plan de lancement terrain pour faire connaitre E-Shelle sans disperser les outils."""
     proof = {
-        "businesses": BusinessProfile.objects.filter(is_active=True).count(),
+        "businesses": BusinessProfile.publicly_visible().count(),
         "requests": UnmetSearchRequest.objects.count(),
         "premium": BusinessProfile.objects.filter(
             is_active=True,
@@ -1177,7 +1191,7 @@ def partner(request):
     """Page publique pour recruter ambassadeurs et affiliés."""
     account = _get_business_key_account(request.user)
     proof = {
-        "businesses": BusinessProfile.objects.filter(is_active=True).count(),
+        "businesses": BusinessProfile.publicly_visible().count(),
         "premium": BusinessProfile.objects.filter(
             is_active=True,
             plan__in=[BusinessProfile.Plan.BUSINESS, BusinessProfile.Plan.PREMIUM],
@@ -1224,6 +1238,10 @@ def business_key_packs(request):
         {
             "packs": packs,
             "account": account,
+            "can_activate_business_key": (
+                request.user.is_authenticated
+                and BusinessProfile.user_has_business_key_entitlement(request.user.pk)
+            ),
             "business_key_price": BUSINESS_KEY_PRICE_XAF,
             "partner_recruit_rate": BUSINESS_KEY_PARTNER_RECRUIT_RATE,
             "provider_rate": BUSINESS_KEY_PROVIDER_RATE,
@@ -1640,7 +1658,7 @@ def eshelle_command_center(request):
             UnmetSearchRequest.Status.EXPIRED,
         ]
     )
-    businesses = BusinessProfile.objects.filter(is_active=True)
+    businesses = BusinessProfile.publicly_visible()
     lead_events = BusinessLeadEvent.objects.filter(created_at__gte=since)
 
     query_logs = CentralAgentQueryLog.objects.filter(created_at__gte=since) if CentralAgentQueryLog else []
@@ -1989,6 +2007,13 @@ def business_key_payment_request(request):
     """Demande manuelle Mobile Money pour activer une Business Key."""
     if request.method != "POST":
         return redirect("business:business_key_packs")
+    if not BusinessProfile.user_has_business_key_entitlement(request.user.pk):
+        messages.error(
+            request,
+            "La Business Key est accessible aux abonnements Croissance — Business et Premium actifs. "
+            "Son activation reste un paiement unique de 9 900 FCFA.",
+        )
+        return redirect("business:business_key_packs")
 
     tier = request.POST.get("tier", "").strip()
     if tier != BusinessKeyAccount.Tier.KEY:
@@ -2093,8 +2118,12 @@ def business_key_admin_action(request, pk, action):
         return redirect("business:business_key_admin")
 
     if action == "confirm":
-        payment.confirm()
-        messages.success(request, f"Business Key activee pour {payment.user}.")
+        try:
+            payment.confirm()
+        except ValueError as exc:
+            messages.error(request, str(exc))
+        else:
+            messages.success(request, f"Business Key activee pour {payment.user}.")
     elif action == "cancel" and payment.status != BusinessKeyPaymentRequest.Status.CONFIRMED:
         payment.status = BusinessKeyPaymentRequest.Status.CANCELED
         payment.save(update_fields=["status"])
@@ -2298,6 +2327,13 @@ def onboarding(request):
 
         if not name or not phone:
             messages.error(request, "Business name and phone number are required." if request.LANGUAGE_CODE == "en" else "Le nom du business et le telephone sont obligatoires.")
+        elif not plan and BusinessProfile.objects.filter(owner=request.user).exists():
+            messages.error(
+                request,
+                "Le forfait Gratuit est limité à une fiche Business. "
+                "Choisissez Présence — Pro pour créer une fiche supplémentaire.",
+            )
+            return redirect("business:dashboard")
         else:
             affiliate = get_affiliate_by_code(request.session.get("ref_code"))
             if affiliate:
@@ -2349,7 +2385,7 @@ def onboarding(request):
 
 @login_required
 def special_offer(request):
-    """Collect a verified Mobile Money payment before WhatsApp onboarding."""
+    """Collect a verified Mobile Money payment for a provider subscription."""
     from payments.models import Transaction
     from .services import verified_provider_whatsapp_payment
     from whatsapp_commerce.entitlements import whatsapp_entitlements
@@ -2365,12 +2401,20 @@ def special_offer(request):
         owner=request.user,
     )
     paid = verified_provider_whatsapp_payment(business)
-    if paid and whatsapp_entitlements(business)["can_connect"]:
+    if paid:
+        can_connect = whatsapp_entitlements(business)["can_connect"]
         messages.success(
             request,
-            "Paiement confirmé par CamPay. La connexion WhatsApp officielle est débloquée.",
+            (
+                "Paiement confirmé : votre abonnement est actif. "
+                "La connexion WABA est disponible à partir de Croissance — Business."
+                if not can_connect
+                else "Paiement confirmé par CamPay. La connexion WhatsApp officielle est débloquée."
+            ),
         )
-        return redirect("whatsapp_commerce:business_dashboard", business_id=business.pk)
+        if can_connect:
+            return redirect("whatsapp_commerce:business_dashboard", business_id=business.pk)
+        return redirect("business:dashboard")
 
     plans = ProviderPlan.objects.filter(
         is_active=True,
@@ -2490,8 +2534,44 @@ def dashboard(request):
     public_url = ""
     share_whatsapp_url = ""
     whatsapp_url = ""
+    plan_days_remaining = 0
+    ai_credit_total = 0
+    product_count = 0
+    product_limit_display = "0"
+    whatsapp_status = "Non disponible"
+    can_manage_whatsapp = False
     if current:
         current.check_expiry()
+        if current.plan == BusinessProfile.Plan.FREE and current.free_visibility_expires_at:
+            plan_days_remaining = max(
+                0,
+                (current.free_visibility_expires_at - timezone.now()).days,
+            )
+        else:
+            plan_days_remaining = (
+                max(0, (current.subscription_expires_at - timezone.now()).days)
+                if current.subscription_active else 0
+            )
+        ai_credit_total = {
+            BusinessProfile.Plan.PRO: 5,
+            BusinessProfile.Plan.BUSINESS: 20,
+            BusinessProfile.Plan.PREMIUM: 50,
+        }.get(current.plan, 0)
+        product_count = current.catalog_items.count()
+        item_limit = current.catalog_item_limit
+        product_limit_display = str(item_limit) if item_limit is not None else "Illimité"
+        from whatsapp_commerce.entitlements import whatsapp_entitlements
+        from whatsapp_commerce.models import BusinessWhatsAppConnection
+
+        current_whatsapp_entitlements = whatsapp_entitlements(current)
+        can_manage_whatsapp = current_whatsapp_entitlements["can_connect"]
+        connection = BusinessWhatsAppConnection.objects.filter(business=current).first()
+        if not can_manage_whatsapp:
+            whatsapp_status = "Non disponible"
+        elif connection and connection.status == BusinessWhatsAppConnection.Status.ACTIVE:
+            whatsapp_status = "Connecté"
+        else:
+            whatsapp_status = "Disponible"
         public_url = request.build_absolute_uri(current.get_absolute_url())
         share_text = (f"Discover {current.display_name} on E-Shelle: {public_url}" if request.LANGUAGE_CODE == "en" else f"Decouvrez {current.display_name} sur E-Shelle: {public_url}")
         share_whatsapp_url = f"https://wa.me/?text={urllib.parse.quote(share_text)}"
@@ -2529,6 +2609,12 @@ def dashboard(request):
             "whatsapp_url": whatsapp_url,
             "filters": {"days": days, "business": current.id if current else ""},
             "whatsapp_campaigns": whatsapp_campaigns,
+            "plan_days_remaining": plan_days_remaining,
+            "ai_credit_total": ai_credit_total,
+            "product_count": product_count,
+            "product_limit_display": product_limit_display,
+            "whatsapp_status": whatsapp_status,
+            "can_manage_whatsapp": can_manage_whatsapp,
         },
     )
 
@@ -2561,52 +2647,64 @@ def catalog_manage(request, business_id):
         if not title:
             messages.error(request, "A product or service name is required." if request.LANGUAGE_CODE == "en" else "Le nom du produit ou service est obligatoire.")
         else:
-            item_limit = business.catalog_item_limit
-            if item_limit is not None:
-                existing_count = BusinessCatalogItem.objects.filter(business=business).count()
-                if existing_count >= item_limit:
-                    if request.LANGUAGE_CODE == "en":
-                        messages.error(request, f"Your current plan allows up to {item_limit} products or services. Upgrade to add more.")
-                    else:
-                        messages.error(request, f"Votre formule actuelle est limitée à {item_limit} produits ou services. Passez à une formule supérieure pour en ajouter plus.")
-                    return redirect("business:catalog_manage", business_id=business.id)
-
-            if not business.catalog_video_enabled:
-                video_url = ""
-            else:
-                video_url, video_warning = _clean_catalog_video_url(video_url)
-                if video_warning:
-                    messages.warning(request, video_warning)
-
-            if item_type not in dict(BusinessCatalogItem.ItemType.choices):
-                item_type = BusinessCatalogItem.ItemType.PRODUCT
             try:
-                item = BusinessCatalogItem.objects.create(
-                    business=business,
-                    item_type=item_type,
-                    title=title,
-                    title_en=title_en,
-                    description=description,
-                    description_en=description_en,
-                    price_label=price_label,
-                    price_label_en=price_label_en,
-                    image=request.FILES.get("image"),
-                    video_url=video_url,
-                    order=order,
-                    is_active=True,
-                )
-                # handle additional photos (limitees selon le plan)
-                extra_images = request.FILES.getlist("images")
-                photo_limit = business.catalog_extra_photo_limit
-                if photo_limit is not None and len(extra_images) > photo_limit:
-                    messages.warning(
-                        request,
-                        f"Votre formule permet {photo_limit} photo(s) supplémentaire(s) par produit/service. "
-                        f"Seules les {photo_limit} premières ont été ajoutées."
+                with db_transaction.atomic():
+                    business = BusinessProfile.objects.select_for_update().get(pk=business.pk)
+                    business.check_expiry()
+                    item_limit = business.catalog_item_limit
+                    if (
+                        item_limit is not None
+                        and BusinessCatalogItem.objects.filter(business=business).count() >= item_limit
+                    ):
+                        limit_message = (
+                            "Your plan allows up to "
+                            f"{item_limit} products or services. Upgrade to Presence — Pro / Growth "
+                            "to add more products."
+                            if request.LANGUAGE_CODE == "en"
+                            else "Votre formule autorise jusqu'à "
+                            f"{item_limit} produits ou services. Passe à Présence — Pro / "
+                            "Croissance pour ajouter plus de produits."
+                        )
+                        messages.error(
+                            request,
+                            limit_message,
+                        )
+                        return redirect("business:catalog_manage", business_id=business.id)
+
+                    if not business.catalog_video_enabled:
+                        video_url = ""
+                    else:
+                        video_url, video_warning = _clean_catalog_video_url(video_url)
+                        if video_warning:
+                            messages.warning(request, video_warning)
+
+                    if item_type not in dict(BusinessCatalogItem.ItemType.choices):
+                        item_type = BusinessCatalogItem.ItemType.PRODUCT
+                    item = BusinessCatalogItem.objects.create(
+                        business=business,
+                        item_type=item_type,
+                        title=title,
+                        title_en=title_en,
+                        description=description,
+                        description_en=description_en,
+                        price_label=price_label,
+                        price_label_en=price_label_en,
+                        image=request.FILES.get("image"),
+                        video_url=video_url,
+                        order=order,
+                        is_active=True,
                     )
-                    extra_images = extra_images[:photo_limit]
-                for img in extra_images:
-                    BusinessCatalogItemImage.objects.create(item=item, image=img)
+                    extra_images = request.FILES.getlist("images")
+                    photo_limit = business.catalog_extra_photo_limit
+                    if photo_limit is not None and len(extra_images) > photo_limit:
+                        messages.warning(
+                            request,
+                            f"Votre formule permet {photo_limit} photo(s) supplémentaire(s) par produit/service. "
+                            f"Seules les {photo_limit} premières ont été ajoutées."
+                        )
+                        extra_images = extra_images[:photo_limit]
+                    for img in extra_images:
+                        BusinessCatalogItemImage.objects.create(item=item, image=img)
             except Exception as exc:
                 logger.exception("Erreur ajout catalogue business #%s", business.id)
                 messages.error(request, f"Impossible d'ajouter ce produit au catalogue : {exc}")
@@ -2833,11 +2931,42 @@ def performance_report_pdf(request, business_id):
 def ai_delivery_kit(request, business_id):
     """Atelier IA: kit complet pour livrer un client avec les agents E-Shelle."""
     business = get_object_or_404(BusinessProfile, pk=business_id, owner=request.user)
+    business.check_expiry()
     kit = getattr(business, "ai_delivery_kit", None)
 
     if request.method == "POST":
+        reserved = BusinessProfile.objects.filter(
+            pk=business.pk,
+            plan__in=[
+                BusinessProfile.Plan.PRO,
+                BusinessProfile.Plan.BUSINESS,
+                BusinessProfile.Plan.PREMIUM,
+            ],
+            is_active=True,
+            is_trial=False,
+            subscription_expires_at__gt=timezone.now(),
+            ai_credits__gt=0,
+        ).update(ai_credits=F("ai_credits") - 1, updated_at=timezone.now())
+        if not reserved:
+            messages.error(
+                request,
+                "Aucun crédit IA actif. Choisissez ou renouvelez un abonnement payant pour générer ce kit.",
+            )
+            return redirect("business:ai_delivery_kit", business_id=business.id)
+
         extra_brief = request.POST.get("extra_brief", "")
-        kit = generate_client_ai_kit(business, user=request.user, extra_brief=extra_brief)
+        try:
+            kit = generate_client_ai_kit(business, user=request.user, extra_brief=extra_brief)
+        except Exception:
+            BusinessProfile.objects.filter(
+                pk=business.pk,
+                plan=business.plan,
+                is_active=True,
+                is_trial=False,
+                subscription_expires_at__gt=timezone.now(),
+            ).update(ai_credits=F("ai_credits") + 1, updated_at=timezone.now())
+            logger.exception("Erreur génération du kit IA business #%s", business.pk)
+            raise
         messages.success(request, "AI client kit generated. You can now sell or deliver this package." if request.LANGUAGE_CODE == "en" else "Kit IA client généré. Vous pouvez maintenant vendre/livrer ce pack.")
         return redirect("business:ai_delivery_kit", business_id=business.id)
 
@@ -3130,6 +3259,22 @@ def catalog_item_generate_description(request, business_id, item_id):
         )
         return redirect("business:catalog_item_edit", business_id=business.id, item_id=item.id)
 
+    reserved = BusinessProfile.objects.filter(
+        pk=business.pk,
+        plan__in=[
+            BusinessProfile.Plan.PRO,
+            BusinessProfile.Plan.BUSINESS,
+            BusinessProfile.Plan.PREMIUM,
+        ],
+        is_active=True,
+        is_trial=False,
+        subscription_expires_at__gt=timezone.now(),
+        ai_credits__gt=0,
+    ).update(ai_credits=F("ai_credits") - 1, updated_at=timezone.now())
+    if not reserved:
+        messages.error(request, "Vous n'avez plus de crédits IA actifs. Renouvelez votre formule pour continuer.")
+        return redirect("business:catalog_item_edit", business_id=business.id, item_id=item.id)
+
     from e_shelle_ai.services.openai_service import EshelleAIService
 
     is_english = request.LANGUAGE_CODE == "en"
@@ -3151,25 +3296,43 @@ def catalog_item_generate_description(request, business_id, item_id):
             f"Prix indicatif : {item.display_price_label or 'non precise'}\n"
             f"Reponds uniquement avec la description, sans titre ni guillemets."
         )
-    text = EshelleAIService().chat_simple(
-        messages=[{"role": "user", "content": prompt}],
-        system_prompt=(
-            "You are an e-commerce copywriter specializing in small African businesses."
-            if is_english else "Tu es un copywriter e-commerce specialise dans les petites entreprises africaines."
-        ),
-        user=request.user,
-    )
+    try:
+        text = EshelleAIService().chat_simple(
+            messages=[{"role": "user", "content": prompt}],
+            system_prompt=(
+                "You are an e-commerce copywriter specializing in small African businesses."
+                if is_english else "Tu es un copywriter e-commerce specialise dans les petites entreprises africaines."
+            ),
+            user=request.user,
+        )
+    except Exception:
+        BusinessProfile.objects.filter(
+            pk=business.pk,
+            plan=business.plan,
+            subscription_expires_at__gt=timezone.now(),
+            is_active=True,
+            is_trial=False,
+        ).update(ai_credits=F("ai_credits") + 1, updated_at=timezone.now())
+        logger.exception("Erreur génération IA business #%s", business.pk)
+        raise
     if text:
         target_field = "description_en" if is_english else "description"
         setattr(item, target_field, text.strip())
         item.save(update_fields=[target_field, "updated_at"])
-        business.ai_credits -= 1
-        business.save(update_fields=["ai_credits", "updated_at"])
+        business.refresh_from_db(fields=["ai_credits"])
         if is_english:
             messages.success(request, f"AI description generated. You have {business.ai_credits} AI credit(s) left.")
         else:
             messages.success(request, f"Description générée par l'IA. Il vous reste {business.ai_credits} crédit(s) IA.")
     else:
+        BusinessProfile.objects.filter(
+            pk=business.pk,
+            plan=business.plan,
+            subscription_expires_at__gt=timezone.now(),
+            is_active=True,
+            is_trial=False,
+        ).update(ai_credits=F("ai_credits") + 1, updated_at=timezone.now())
+        business.refresh_from_db(fields=["ai_credits"])
         messages.error(request, "AI generation failed. Please try again." if is_english else "La génération IA a échoué. Réessayez dans un instant.")
     return redirect("business:catalog_item_edit", business_id=business.id, item_id=item.id)
 

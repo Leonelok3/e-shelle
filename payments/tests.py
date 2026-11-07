@@ -11,7 +11,7 @@ from django.urls import reverse
 
 from accounts.admin import AppSubscriptionAdmin
 from accounts.models import AppPlan, AppSubscription, PaymentHistory
-from business.models import BusinessProfile
+from business.models import BusinessProfile, ProviderPlan
 from boutique.models import Commande
 from .campay import CampayClient, CampayError, reconcile_transaction
 from .models import Transaction
@@ -140,26 +140,37 @@ class CampayClientTests(TestCase):
             module=BusinessProfile.Module.GENERAL,
             name="Paid provider",
         )
+        plan = ProviderPlan.objects.create(
+            code="provider-pro-campay",
+            name="Présence — Pro",
+            plan_level=BusinessProfile.Plan.PRO,
+            monthly_price_xaf=5000,
+            duration_days=30,
+            included_boost_days=5,
+            included_ai_credits=11,
+            is_active=True,
+        )
         tx = self.make_transaction(
             utilisateur=user,
             type_tx="abonnement",
-            montant=Decimal("3000"),
+            montant=Decimal("5000"),
             ref_operateur="provider-ref-success",
             metadata={
                 "product_type": "provider_whatsapp_onboarding",
                 "provider_whatsapp_business_id": business.pk,
+                "provider_whatsapp_plan_code": plan.code,
                 "provider_whatsapp_plan_level": BusinessProfile.Plan.PRO,
                 "provider_whatsapp_duration_days": 30,
                 "provider_whatsapp_boost_days": 7,
                 "provider_whatsapp_ai_credits": 11,
-                "provider_whatsapp_amount_xaf": 3000,
+                "provider_whatsapp_amount_xaf": 5000,
             },
         )
         provider = Mock(
             mode="sandbox",
             get_transaction=Mock(return_value={
                 "reference": "provider-ref-success",
-                "amount": 3000,
+                "amount": 5000,
                 "currency": "XAF",
                 "status": "SUCCESSFUL",
             }),

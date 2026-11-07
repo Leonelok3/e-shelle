@@ -4,7 +4,7 @@ from decimal import Decimal, InvalidOperation
 
 from django.db import transaction
 
-from .models import BusinessCatalogItem
+from .models import BusinessCatalogItem, BusinessProfile
 
 
 REQUIRED_COLUMNS = {"sku", "nom", "prix_detail", "prix_gros", "stock", "categorie"}
@@ -98,6 +98,24 @@ def parse_catalog_csv(upload):
 
 @transaction.atomic
 def import_catalog_rows(business, rows):
+    business = BusinessProfile.objects.select_for_update().get(pk=business.pk)
+    business.check_expiry()
+    limit = business.catalog_item_limit
+    if limit is not None:
+        existing_skus = set(
+            BusinessCatalogItem.objects.filter(
+                business=business,
+                sku__in=[row["sku"] for row in rows],
+            ).values_list("sku", flat=True)
+        )
+        current_count = BusinessCatalogItem.objects.filter(business=business).count()
+        new_count = sum(row["sku"] not in existing_skus for row in rows)
+        if current_count + new_count > limit:
+            raise CatalogImportError(
+                f"Votre formule autorise {limit} produits ou services. "
+                "Passez à Présence — Pro / Croissance pour ajouter plus de produits."
+            )
+
     created = 0
     updated = 0
     for row in rows:
@@ -125,7 +143,6 @@ def import_catalog_csv(business, upload):
 
 def import_from_photo(image_file, business_id):
     """Read a product label locally, structure it with E-Shelle AI, and upsert it."""
-    from business.models import BusinessProfile
     from phone_ocr_agent.services import OCRError, extract_from_image
 
     if getattr(image_file, "size", 0) > 10 * 1024 * 1024:
@@ -187,6 +204,19 @@ def import_from_photo(image_file, business_id):
         raise CatalogImportError("Les champs produit retournés par l’IA sont invalides.") from exc
 
     with transaction.atomic():
+        business = BusinessProfile.objects.select_for_update().get(pk=business_id)
+        business.check_expiry()
+        existing = BusinessCatalogItem.objects.filter(business=business, sku=sku).exists()
+        limit = business.catalog_item_limit
+        if (
+            not existing
+            and limit is not None
+            and BusinessCatalogItem.objects.filter(business=business).count() >= limit
+        ):
+            raise CatalogImportError(
+                f"Votre formule autorise {limit} produits ou services. "
+                "Passez à Présence — Pro / Croissance pour ajouter plus de produits."
+            )
         item, created = BusinessCatalogItem.objects.update_or_create(
             business=business,
             sku=sku,

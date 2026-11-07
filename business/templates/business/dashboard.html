@@ -48,7 +48,13 @@
           <div class="biz-stat biz-stat--blue"><span>WhatsApp</span><strong>{{ current.whatsapp_clicks }}</strong><i></i></div>
           <div class="biz-stat biz-stat--amber"><span>{% if LANGUAGE_CODE == 'en' %}Calls{% else %}Appels{% endif %}</span><strong>{{ current.phone_clicks }}</strong><i></i></div>
           <div class="biz-stat biz-stat--pink"><span>{% if LANGUAGE_CODE == 'en' %}Enquiries{% else %}Demandes{% endif %}</span><strong>{{ current.leads_count }}</strong><i></i></div>
-          <div class="biz-stat biz-stat--violet"><span>{% if LANGUAGE_CODE == 'en' %}AI credits{% else %}Crédits IA{% endif %}</span><strong>{{ current.ai_credits }}</strong><i></i></div>
+          <div class="biz-stat biz-stat--violet"><span>{% if LANGUAGE_CODE == 'en' %}AI credits{% else %}Crédits IA{% endif %}</span><strong>{{ current.ai_credits }} / {{ ai_credit_total }}</strong><i></i></div>
+        </div>
+
+        <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:.75rem;margin-top:.75rem">
+          <div class="biz-stat biz-stat--blue"><span>{% if LANGUAGE_CODE == 'en' %}Days remaining{% else %}Jours restants{% endif %}</span><strong>{{ plan_days_remaining }}</strong><i></i></div>
+          <div class="biz-stat biz-stat--amber"><span>{% if LANGUAGE_CODE == 'en' %}Products / limit{% else %}Produits / limite{% endif %}</span><strong>{{ product_count }} / {{ product_limit_display }}</strong><i></i></div>
+          <div class="biz-stat biz-stat--green"><span>WABA</span><strong>{{ whatsapp_status }}</strong><i></i></div>
         </div>
 
         <div style="display:flex;gap:.55rem;flex-wrap:wrap;margin-top:1rem">
@@ -79,12 +85,14 @@
           <a href="{% url 'business:business_edit' current.id %}" class="btn btn-primary">{% if LANGUAGE_CODE == 'en' %}Edit profile{% else %}Modifier la fiche{% endif %}</a>
           <a href="{% url 'business:ai_delivery_kit' current.id %}" class="btn btn-primary">{% if LANGUAGE_CODE == 'en' %}AI customer kit{% else %}Kit IA client{% endif %}</a>
           <a href="{% url 'business:catalog_manage' current.id %}" class="btn btn-primary">{% if LANGUAGE_CODE == 'en' %}Manage products{% else %}Gérer les produits{% endif %}</a>
-          <a href="{% url 'whatsapp_commerce:business_dashboard' current.id %}" class="btn btn-primary">WhatsApp CRM</a>
+          {% if can_manage_whatsapp %}
+            <a href="{% url 'whatsapp_commerce:business_dashboard' current.id %}" class="btn btn-primary">WhatsApp CRM</a>
+          {% endif %}
           <a href="{{ share_whatsapp_url }}" target="_blank" rel="noopener" class="btn btn-outline-white">{% if LANGUAGE_CODE == 'en' %}Share my profile{% else %}Partager ma boutique{% endif %}</a>
           {% if whatsapp_url %}
             <a href="{{ whatsapp_url }}" target="_blank" rel="noopener" class="btn btn-outline-white">{% if LANGUAGE_CODE == 'en' %}Contact on WhatsApp{% else %}Contacter WhatsApp{% endif %}</a>
           {% endif %}
-          <a href="{% url 'business:provider_plans' %}" class="btn btn-primary">{% if LANGUAGE_CODE == 'en' %}Upgrade to Premium{% else %}Passer Premium{% endif %}</a>
+          <a href="{% url 'business:provider_plans' %}" class="btn btn-primary">{% if LANGUAGE_CODE == 'en' %}Renew / change plan{% else %}Renouveler / changer de plan{% endif %}</a>
           <a href="{% url 'business:custom_app_offer' %}" class="btn btn-outline-white">Application personnalisée</a>
           <a href="/chat/" class="btn btn-outline-white">{% if LANGUAGE_CODE == 'en' %}Try in chat{% else %}Tester dans le chat{% endif %}</a>
           <a href="{% url 'business:performance_report' current.id %}" class="btn btn-outline-white">{% if LANGUAGE_CODE == 'en' %}PDF/WhatsApp report{% else %}Rapport PDF/WhatsApp{% endif %}</a>

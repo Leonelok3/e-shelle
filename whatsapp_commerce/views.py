@@ -291,6 +291,12 @@ def _provider_special_offer_url(business):
 def business_whatsapp_dashboard(request, business_id):
 	business = _owned_business(request, business_id)
 	entitlements = whatsapp_entitlements(business)
+	if not entitlements["can_connect"]:
+		messages.error(
+			request,
+			"La connexion WhatsApp Business officielle (WABA) est disponible à partir de l'abonnement Croissance — Business à 15 000 XAF / 30 jours.",
+		)
+		return redirect("tarifs")
 	connection = BusinessWhatsAppConnection.objects.filter(business=business).first()
 	contacts = BusinessWhatsAppContact.objects.filter(business=business)
 	today = timezone.localdate()
@@ -386,10 +392,7 @@ def business_whatsapp_dashboard(request, business_id):
 				and getattr(settings, "WHATSAPP_TECH_PROVIDER_APP_SECRET", "")
 				and getattr(settings, "WHATSAPP_EMBEDDED_SIGNUP_CONFIG_ID", "")
 			),
-			"whatsapp_payment_verified": bool(
-				_verified_provider_payment(business)
-				and entitlements["can_connect"]
-			),
+			"whatsapp_payment_verified": entitlements["can_connect"],
 			"whatsapp_connection_needs_signup": bool(
 				not connection
 				or connection.status == BusinessWhatsAppConnection.Status.DISCONNECTED
@@ -423,6 +426,12 @@ def sync_existing_waba_for_business(request, business_id):
 		owner=request.user,
 		public_slug=EXISTING_WABA_TARGET_PUBLIC_SLUG,
 	)
+	if not whatsapp_entitlements(business)["can_connect"]:
+		messages.error(
+			request,
+			"La connexion WhatsApp Business officielle (WABA) est disponible à partir de l'abonnement Croissance — Business à 15 000 XAF / 30 jours.",
+		)
+		return redirect("tarifs")
 	connection = BusinessWhatsAppConnection.objects.filter(business=business).first()
 	if not connection or connection.waba_id != EXISTING_WABA_ID:
 		messages.error(request, "La connexion WhatsApp dédiée à cette fiche est absente ou incorrecte.")
@@ -516,15 +525,12 @@ def business_whatsapp_inbox(request):
 @require_GET
 def start_business_connection(request, business_id):
 	business = _owned_business(request, business_id)
-	if not _verified_provider_payment(business):
+	if not whatsapp_entitlements(business)["can_connect"]:
 		messages.error(
 			request,
-			"Payez d'abord pour débloquer la connexion WhatsApp officielle Meta.",
+			"La connexion WhatsApp Business officielle (WABA) est disponible à partir de l'abonnement Croissance — Business à 15 000 XAF / 30 jours.",
 		)
-		return redirect(_provider_special_offer_url(business))
-	if not whatsapp_entitlements(business)["can_connect"]:
-		messages.error(request, "La connexion WhatsApp nécessite une formule Pro active ou l’essai Business.")
-		return redirect("whatsapp_commerce:business_dashboard", business_id=business.pk)
+		return redirect("tarifs")
 	connection = BusinessWhatsAppConnection.objects.filter(business=business).first()
 	if connection and connection.status != BusinessWhatsAppConnection.Status.DISCONNECTED:
 		messages.info(request, "Un compte WhatsApp est déjà associé à cette fiche.")
@@ -573,13 +579,12 @@ def start_business_connection(request, business_id):
 @require_POST
 def complete_business_connection(request, business_id):
 	business = _owned_business(request, business_id)
-	if not _verified_provider_payment(business):
-		return JsonResponse(
-			{"error": "Un paiement CamPay confirmé est requis avant la connexion WhatsApp."},
-			status=403,
-		)
 	if not whatsapp_entitlements(business)["can_connect"]:
-		return JsonResponse({"error": "Une formule Pro active est requise pour connecter WhatsApp."}, status=403)
+		messages.error(
+			request,
+			"La connexion WhatsApp Business officielle (WABA) est disponible à partir de l'abonnement Croissance — Business à 15 000 XAF / 30 jours.",
+		)
+		return redirect("tarifs")
 	if request.content_type != "application/json":
 		return JsonResponse({"error": "Content-Type application/json requis."}, status=415)
 	try:
@@ -678,15 +683,12 @@ def complete_business_connection(request, business_id):
 @require_POST
 def retry_business_connection(request, business_id):
 	business = _owned_business(request, business_id)
-	if not _verified_provider_payment(business):
+	if not whatsapp_entitlements(business)["can_connect"]:
 		messages.error(
 			request,
-			"Un paiement CamPay confirmé est requis avant de reprendre la connexion WhatsApp.",
+			"La connexion WhatsApp Business officielle (WABA) est disponible à partir de l'abonnement Croissance — Business à 15 000 XAF / 30 jours.",
 		)
-		return redirect(_provider_special_offer_url(business))
-	if not whatsapp_entitlements(business)["can_connect"]:
-		messages.error(request, "Une formule Pro active est requise pour reprendre la connexion WhatsApp.")
-		return redirect("whatsapp_commerce:business_dashboard", business_id=business.pk)
+		return redirect("tarifs")
 	connection = get_object_or_404(
 		BusinessWhatsAppConnection,
 		business=business,
@@ -708,6 +710,12 @@ def retry_business_connection(request, business_id):
 @require_POST
 def reply_to_business_contact(request, business_id, contact_id):
 	business = _owned_business(request, business_id)
+	if not whatsapp_entitlements(business)["can_use_crm"]:
+		messages.error(
+			request,
+			"La connexion WhatsApp Business officielle (WABA) est disponible à partir de l'abonnement Croissance — Business à 15 000 XAF / 30 jours.",
+		)
+		return redirect("tarifs")
 	contact = get_object_or_404(BusinessWhatsAppContact, pk=contact_id, business=business)
 	try:
 		send_business_reply(contact, request.POST.get("body", "").strip())

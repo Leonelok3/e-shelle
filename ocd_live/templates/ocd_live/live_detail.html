@@ -1,0 +1,117 @@
+{% extends "ocd_live/base_ocd.html" %}
+
+{% block title %}{{ session.title }} | OCD LIVE Studio{% endblock %}
+
+{% block content %}
+<section class="ocd-section" style="padding-top:3rem">
+  <div style="margin-bottom:1.5rem">
+    <a href="{% url 'ocd_live:live_list' %}" style="color:var(--ocd-text-amber);text-decoration:none;font-weight:700">
+      ← Retour au programme des Directs
+    </a>
+  </div>
+
+  <div style="display:grid;grid-template-columns:2fr 1fr;gap:2rem;align-items:start">
+    <!-- COLONNE PRINCIPALE : LECTEUR / SALLE DE DIRECT -->
+    <div>
+      <div style="background:#000;border-radius:20px;overflow:hidden;border:1px solid var(--ocd-border-glass);box-shadow:0 25px 60px rgba(0,0,0,0.8);position:relative;margin-bottom:2rem">
+        {% if has_access %}
+          {% if session.is_live_now and session.stream_url %}
+            <div style="position:relative;padding-bottom:56.25%;height:0">
+              <iframe src="{{ session.stream_url }}" style="position:absolute;top:0;left:0;width:100%;height:100%;border:none" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+            </div>
+          {% elif session.is_completed and session.replay_url %}
+            <div style="position:relative;padding-bottom:56.25%;height:0">
+              <iframe src="{{ session.replay_url }}" style="position:absolute;top:0;left:0;width:100%;height:100%;border:none" allowfullscreen></iframe>
+            </div>
+          {% else %}
+            <!-- Salle d'attente avant le début -->
+            <div style="padding:4.5rem 2rem;text-align:center;background:radial-gradient(circle, rgba(255,102,0,0.15) 0%, #000 70%)">
+              <span class="ocd-badge-live" style="margin-bottom:1.5rem"><span class="pulse-dot"></span> SALLE D'ATTENTE OFFICIELLE</span>
+              <h2 style="color:#FFF;font-family:'Outfit';font-size:1.8rem;margin-bottom:1rem">Le direct commence bientôt</h2>
+              <div class="ocd-countdown-timer" data-ocd-countdown="{{ session.scheduled_at|date:'c' }}" style="margin:2rem auto">
+                <div class="ocd-timer-box"><strong class="timer-days">00</strong><span>Jours</span></div>
+                <div class="ocd-timer-box"><strong class="timer-hours">00</strong><span>Heures</span></div>
+                <div class="ocd-timer-box"><strong class="timer-minutes">00</strong><span>Min</span></div>
+                <div class="ocd-timer-box"><strong class="timer-seconds">00</strong><span>Sec</span></div>
+              </div>
+              <p style="color:#94A3B8;max-width:480px;margin:0 auto">
+                Votre place est confirmée. Le lecteur vidéo s'activera automatiquement au lancement de la diffusion.
+              </p>
+            </div>
+          {% endif %}
+        {% else %}
+          <!-- Verrouillé : Achat de billet ou pass requis -->
+          <div style="padding:4.5rem 2rem;text-align:center;background:radial-gradient(circle, rgba(255,102,0,0.2) 0%, #0A0E0C 80%)">
+            <span style="font-size:3rem;display:block;margin-bottom:1rem">🔒</span>
+            <h2 style="color:#FFF;font-family:'Outfit';font-size:1.8rem;margin-bottom:0.75rem">Accès Réservé aux Membres &amp; Porteurs de Billet</h2>
+            <p style="color:#CBD5E1;max-width:520px;margin:0 auto 2rem;line-height:1.6">
+              Cette masterclass est réservée aux détenteurs de billet ou aux membres abonnés OCD Live. Réservez votre place pour débloquer le direct et le replay.
+            </p>
+            <a href="{% url 'ocd_live:book_session' slug=session.slug %}" class="ocd-btn ocd-btn-primary" style="padding:0.9rem 2rem;font-size:1.05rem">
+              Débloquer mon Billet ({{ session.ticket_price_xaf|floatformat:0 }} FCFA) →
+            </a>
+          </div>
+        {% endif %}
+      </div>
+
+      <!-- Informations sur la session -->
+      <div class="ocd-card">
+        <h1 style="font-family:'Outfit';font-size:1.8rem;color:#FFF;margin-bottom:1rem">{{ session.title }}</h1>
+        {% if session.subtitle %}
+          <p style="color:var(--ocd-text-amber);font-size:1.1rem;margin-bottom:1.5rem;font-weight:600">{{ session.subtitle }}</p>
+        {% endif %}
+        <div style="color:#CBD5E1;line-height:1.7;white-space:pre-line">
+          {{ session.description }}
+        </div>
+      </div>
+    </div>
+
+    <!-- COLONNE LATÉRALE : INTERVENANT & CRÉNEAUX 1-TO-1 -->
+    <div>
+      <!-- Carte Intervenant -->
+      <div class="ocd-card" style="margin-bottom:1.5rem">
+        <span class="ocd-section-eyebrow">INTERVENANT DU DIRECT</span>
+        <div style="display:flex;align-items:center;gap:12px;margin:1rem 0">
+          <div style="width:52px;height:52px;border-radius:50%;background:linear-gradient(135deg,#FF7A00,#E65100);display:flex;align-items:center;justify-content:center;font-size:1.5rem;color:#FFF">
+            🎙️
+          </div>
+          <div>
+            <strong style="display:block;color:#FFF;font-size:1.1rem">{{ session.speaker_name }}</strong>
+            <span style="font-size:0.8rem;color:var(--ocd-text-muted)">{{ session.speaker_title }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Créneaux de consultation d'affaires privée -->
+      {% if available_slots %}
+        <div class="ocd-card" style="border:1px solid var(--ocd-border-glass)">
+          <span class="ocd-section-eyebrow">CONSULTATION PRIVÉE 1-TO-1</span>
+          <h3 style="color:#FFF;font-family:'Outfit';font-size:1.2rem;margin-bottom:0.75rem">Réserver un créneau d'affaires</h3>
+          <p style="color:#94A3B8;font-size:0.85rem;line-height:1.5;margin-bottom:1.25rem">
+            Échangez directement pendant 45 minutes avec l'expert pour auditer votre projet ou valider votre plan d'investissement.
+          </p>
+
+          <div style="display:flex;flex-direction:column;gap:0.75rem">
+            {% for slot in available_slots %}
+              <div style="background:rgba(0,0,0,0.4);border-radius:12px;padding:1rem;border:1px solid rgba(255,255,255,0.06);display:flex;justify-content:space-between;align-items:center">
+                <div>
+                  <strong style="display:block;color:#FFF;font-size:0.9rem">{{ slot.start_time|date:"d M à H:i" }}</strong>
+                  <span style="font-size:0.75rem;color:var(--ocd-text-amber)">{{ slot.price_xaf|floatformat:0 }} FCFA</span>
+                </div>
+                {% if not slot.is_full %}
+                  <a href="https://wa.me/237680625082?text=Je%20souhaite%20réserver%20le%20créneau%20du%20{{ slot.start_time|date:'d/m/Y%20H:i' }}%20avec%20{{ slot.expert_name|urlencode }}" class="ocd-btn ocd-btn-primary" style="padding:0.4rem 0.85rem;font-size:0.75rem">
+                    Réserver
+                  </a>
+                {% else %}
+                  <span style="font-size:0.75rem;color:#EF4444;font-weight:700">Complet</span>
+                {% endif %}
+              </div>
+            {% endfor %}
+          </div>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+</section>
+{% endblock %}
+

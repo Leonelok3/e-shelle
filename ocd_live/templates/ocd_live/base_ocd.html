@@ -1,0 +1,141 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}OCD LIVE — Les Opportunités C'est Dehors | E-Shelle{% endblock %}</title>
+  
+  <meta name="description" content="{% block meta_description %}Plateforme immersive des opportunités d'affaires réelles en Afrique. Sessions Live, Masterclasses terrain, investissements vérifiés et networking entrepreneurial.{% endblock %}">
+  
+  <!-- Fonts Google -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  
+  <!-- CSS OCD Live -->
+  <link rel="stylesheet" href="{% static 'ocd_live/css/ocd_live.css' %}">
+  {% block extra_head %}{% endblock %}
+</head>
+<body class="ocd-body">
+
+  <!-- Navbar OCD LIVE -->
+  <header class="ocd-navbar">
+    <div class="ocd-nav-container">
+      <a href="{% url 'ocd_live:index' %}" class="ocd-brand">
+        <img src="{% static 'ocd_live/img/ocd_live_logo.svg' %}" alt="OCD Live Logo" class="ocd-brand-logo-img">
+        <div class="ocd-brand-text">
+          <div class="ocd-brand-title">OCD <span>LIVE</span></div>
+          <div class="ocd-brand-subtitle">Les Opportunités C'est Dehors</div>
+        </div>
+      </a>
+
+      <nav>
+        <ul class="ocd-nav-menu">
+          <li><a href="{% url 'ocd_live:index' %}" class="ocd-nav-link {% if request.resolver_match.url_name == 'index' %}active{% endif %}">Accueil</a></li>
+          <li><a href="{% url 'ocd_live:opportunities_list' %}" class="ocd-nav-link {% if 'opportunite' in request.path %}active{% endif %}">Opportunités Terrain</a></li>
+          <li><a href="{% url 'ocd_live:live_list' %}" class="ocd-nav-link {% if 'direct' in request.path %}active{% endif %}">Directs &amp; Masterclasses</a></li>
+          <li><a href="{% url 'ocd_live:dashboard' %}" class="ocd-nav-link {% if 'mon-espace' in request.path %}active{% endif %}">Mon Espace</a></li>
+          <li><a href="/" class="ocd-nav-link" style="color:var(--ocd-text-muted)">← Écosystème E-Shelle</a></li>
+        </ul>
+      </nav>
+
+      <div class="ocd-nav-actions">
+        <a href="https://wa.me/237680625082?text=Bonjour%20OCD%20Live,%20je%20souhaite%20rejoindre%20le%20prochain%20direct" target="_blank" rel="noopener" class="ocd-btn ocd-btn-glow" style="padding:0.6rem 1.1rem;font-size:0.85rem">
+          💬 Canal WhatsApp
+        </a>
+        {% if user.is_authenticated %}
+          <a href="{% url 'ocd_live:dashboard' %}" class="ocd-btn ocd-btn-primary" style="padding:0.6rem 1.2rem;font-size:0.85rem">
+            👤 Mon Compte
+          </a>
+        {% else %}
+          <a href="{% url 'account_login' %}?next={{ request.path }}" class="ocd-btn ocd-btn-primary" style="padding:0.6rem 1.2rem;font-size:0.85rem">
+            Se Connecter
+          </a>
+        {% endif %}
+      </div>
+    </div>
+  </header>
+
+  <!-- Messages Flash -->
+  {% if messages %}
+    <div style="max-width:1320px;margin:1rem auto 0;padding:0 1.5rem">
+      {% for message in messages %}
+        <div style="padding:1rem 1.25rem;border-radius:12px;background:rgba(255,102,0,0.15);border:1px solid rgba(255,102,0,0.4);color:#FFF;margin-bottom:0.75rem;font-weight:600">
+          {{ message }}
+        </div>
+      {% endfor %}
+    </div>
+  {% endif %}
+
+  <!-- Contenu Principal -->
+  <main>
+    {% block content %}{% endblock %}
+  </main>
+
+  <!-- Footer OCD LIVE -->
+  <footer class="ocd-footer">
+    <div class="ocd-footer-container">
+      <div>
+        <div class="ocd-brand" style="margin-bottom:1rem">
+          <img src="{% static 'ocd_live/img/ocd_live_logo.svg' %}" alt="OCD Live" class="ocd-brand-logo-img">
+          <div class="ocd-brand-text">
+            <div class="ocd-brand-title">OCD <span>LIVE</span></div>
+            <div class="ocd-brand-subtitle">Les Opportunités C'est Dehors</div>
+          </div>
+        </div>
+        <p style="font-size:0.92rem;line-height:1.6;color:#94A3B8;max-width:320px">
+          Le hub vidéo &amp; terrain incontournable pour saisir les opportunités d'affaires, d'investissements et d'entrepreneuriat au Cameroun et partout en Afrique.
+        </p>
+      </div>
+
+      <div>
+        <h4 style="color:#FFF;font-size:1rem;margin-bottom:1.25rem;font-family:'Outfit'">Navigation</h4>
+        <ul style="list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:0.65rem;font-size:0.9rem">
+          <li><a href="{% url 'ocd_live:index' %}" style="color:#94A3B8;text-decoration:none">Accueil</a></li>
+          <li><a href="{% url 'ocd_live:opportunities_list' %}" style="color:#94A3B8;text-decoration:none">Opportunités vérifiées</a></li>
+          <li><a href="{% url 'ocd_live:live_list' %}" style="color:#94A3B8;text-decoration:none">Programme des Lives</a></li>
+          <li><a href="{% url 'ocd_live:dashboard' %}" style="color:#94A3B8;text-decoration:none">Espace Membre</a></li>
+        </ul>
+      </div>
+
+      <div>
+        <h4 style="color:#FFF;font-size:1rem;margin-bottom:1.25rem;font-family:'Outfit'">Services E-Shelle</h4>
+        <ul style="list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:0.65rem;font-size:0.9rem">
+          <li><a href="/formations/" style="color:#94A3B8;text-decoration:none">Formations &amp; Académie</a></li>
+          <li><a href="/immobilier/" style="color:#94A3B8;text-decoration:none">Immobilier &amp; Terrains</a></li>
+          <li><a href="/njangi/" style="color:#94A3B8;text-decoration:none">Njangi Tontine Digitale</a></li>
+          <li><a href="/pub/" style="color:#94A3B8;text-decoration:none">AdGen Pubs IA</a></li>
+        </ul>
+      </div>
+
+      <div>
+        <h4 style="color:#FFF;font-size:1rem;margin-bottom:1.25rem;font-family:'Outfit'">Paiement &amp; Sécurité</h4>
+        <p style="font-size:0.85rem;line-height:1.6;color:#94A3B8">
+          Paiements sécurisés via <strong>CamPay Mobile Money</strong> (MTN MoMo &amp; Orange Money) et Cartes Bancaires.
+        </p>
+        <div style="margin-top:1rem;display:flex;gap:0.5rem;align-items:center">
+          <span style="background:rgba(255,255,255,0.08);padding:4px 8px;border-radius:6px;font-size:0.75rem;font-weight:700">MTN MoMo</span>
+          <span style="background:rgba(255,255,255,0.08);padding:4px 8px;border-radius:6px;font-size:0.75rem;font-weight:700">Orange Money</span>
+          <span style="background:rgba(255,255,255,0.08);padding:4px 8px;border-radius:6px;font-size:0.75rem;font-weight:700">Visa / Mastercard</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="ocd-footer-bottom">
+      <div>
+        &copy; 2026 <strong>OCD LIVE</strong> — Une application modulaire native d'<strong>E-Shelle.com</strong>. Tous droits réservés.
+      </div>
+      <div style="display:flex;gap:1.5rem">
+        <a href="/terms/" style="color:#94A3B8;text-decoration:none">Conditions Générales</a>
+        <a href="/privacy-policy" style="color:#94A3B8;text-decoration:none">Confidentialité</a>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Scripts -->
+  <script src="{% static 'ocd_live/js/ocd_live.js' %}"></script>
+  {% block extra_js %}{% endblock %}
+</body>
+</html>
+

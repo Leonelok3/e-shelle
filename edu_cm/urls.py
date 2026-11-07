@@ -101,8 +101,12 @@ def marketing_view(request):
     }
     try:
         from business.models import BusinessProfile, BusinessCatalogItem
-        ctx["active_businesses_count"] = BusinessProfile.objects.filter(is_active=True).count()
-        ctx["business_products_count"] = BusinessCatalogItem.objects.filter(is_active=True, business__is_active=True).count()
+        visible_businesses = BusinessProfile.publicly_visible()
+        ctx["active_businesses_count"] = visible_businesses.count()
+        ctx["business_products_count"] = BusinessCatalogItem.objects.filter(
+            is_active=True,
+            business__in=visible_businesses,
+        ).count()
     except Exception:
         pass
     try:
@@ -153,15 +157,14 @@ def home_view(request):
         from business.models import BusinessCatalogItem, BusinessLeadEvent, BusinessProfile, HomeAdSlide, AppPromotionSlide
         now = timezone.now()
         premium_businesses = list(
-            BusinessProfile.objects.filter(
-                is_active=True,
+            BusinessProfile.publicly_visible().filter(
                 plan__in=[BusinessProfile.Plan.PREMIUM, BusinessProfile.Plan.BUSINESS],
             ).order_by("-boost_expires_at", "-subscription_expires_at", "-leads_count", "-updated_at")[:12]
         )
         if len(premium_businesses) < 12:
             featured_business_ids = [business.pk for business in premium_businesses]
             premium_businesses.extend(
-                BusinessProfile.objects.filter(is_active=True)
+                BusinessProfile.publicly_visible()
                 .exclude(pk__in=featured_business_ids)
                 .order_by("-updated_at")[: 12 - len(premium_businesses)]
             )
@@ -214,7 +217,7 @@ def home_view(request):
             )
         for slide in merged_slides:
             slide.cta_url = _localize_debug_url(getattr(slide, "cta_url", ""))
-        active_businesses = BusinessProfile.objects.filter(is_active=True)
+        active_businesses = BusinessProfile.publicly_visible()
         top_verified_businesses = list(
             active_businesses.filter(is_verified=True)
             .order_by("-leads_count", "-whatsapp_clicks", "-views_count", "-updated_at")[:6]
@@ -296,7 +299,7 @@ def presentation_view(request):
     try:
         from django.db.models import Sum
         from business.models import BusinessProfile, BusinessCatalogItem, BusinessLeadEvent, PresentationSlide
-        active_businesses = BusinessProfile.objects.filter(is_active=True)
+        active_businesses = BusinessProfile.publicly_visible()
         lead_total = active_businesses.aggregate(total=Sum("leads_count"))["total"] or 0
         whatsapp_total = active_businesses.aggregate(total=Sum("whatsapp_clicks"))["total"] or 0
         ctx["home_numbers"] = {
@@ -321,7 +324,7 @@ def tarifs_view(request):
     try:
         from django.db.models import Sum
         from business.models import BusinessProfile, ProviderPlan
-        active_businesses = BusinessProfile.objects.filter(is_active=True)
+        active_businesses = BusinessProfile.publicly_visible()
         lead_total = active_businesses.aggregate(total=Sum("leads_count"))["total"] or 0
         whatsapp_total = active_businesses.aggregate(total=Sum("whatsapp_clicks"))["total"] or 0
         ctx["home_numbers"] = {
@@ -330,6 +333,10 @@ def tarifs_view(request):
             "leads": lead_total + whatsapp_total,
         }
         ctx["plans"] = list(ProviderPlan.objects.filter(is_active=True).order_by("order", "monthly_price_xaf"))
+        if request.user.is_authenticated:
+            ctx["owned_business"] = BusinessProfile.objects.filter(
+                owner=request.user
+            ).order_by("-updated_at").first()
     except Exception:
         ctx["home_numbers"] = {"businesses": 0, "premium": 0, "leads": 0}
         ctx["plans"] = []
@@ -365,7 +372,7 @@ def products_services_view(request):
 
         # Récupérer les pays actifs pour les filtres
         active_countries = list(
-            BusinessProfile.objects.filter(is_active=True)
+            BusinessProfile.publicly_visible()
             .exclude(country="")
             .values_list("country", flat=True)
             .distinct()
@@ -394,7 +401,7 @@ def products_services_view(request):
             })
 
         # 1. Slider Block: Business profiles (fiches business) with their logos.
-        businesses_qs = BusinessProfile.objects.filter(is_active=True)
+        businesses_qs = BusinessProfile.publicly_visible()
         if country_filter:
             businesses_qs = businesses_qs.filter(country__iexact=country_filter)
         active_businesses = list(businesses_qs.order_by("-updated_at")[:24])
@@ -927,6 +934,9 @@ urlpatterns = [
 
     # ── Artist Hub (Group Opus / Casting Fashion Week Douala) ─────────
     path("artist-hub/", include("artist_hub.urls", namespace="artist_hub")),
+
+    # ── OCD LIVE — Les Opportunités C'est Dehors ──────────────────────
+    path("ocd-live/", include("ocd_live.urls", namespace="ocd_live")),
 
 
     # Page d'accueil

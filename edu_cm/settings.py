@@ -198,6 +198,9 @@ INSTALLED_APPS = [
     # ── TIBO — Dropshipping premium Canada ────────────────────────
     "apps.tibo.apps.TiboConfig",
 
+    # ── OCD LIVE — Les Opportunités C'est Dehors ─────────────────
+    "ocd_live.apps.OcdLiveConfig",
+
     # ── Celery Beat — Scheduler persistant en base ──────────────────
     "django_celery_beat",
     "django_celery_results",
@@ -611,6 +614,7 @@ TCHASLUCPAY_PUBLIC_URL = _public_url("TCHASLUCPAY_PUBLIC_URL", "/tchaslucpay/")
 SIMPLO_PUBLIC_URL = _public_url("SIMPLO_PUBLIC_URL", "/simplo/")
 MAPEX_PUBLIC_URL = _public_url("MAPEX_PUBLIC_URL", "/edu/")
 EXPROD_PUBLIC_URL = _public_url("EXPROD_PUBLIC_URL", "/lebelage-importer/")
+OCD_LIVE_PUBLIC_URL = _public_url("OCD_LIVE_PUBLIC_URL", "/ocd-live/")
 
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": [

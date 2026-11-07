@@ -42,7 +42,8 @@ class BusinessCatalogItemInline(admin.TabularInline):
 class BusinessProfileAdmin(admin.ModelAdmin):
     inlines = (BusinessCatalogItemInline,)
     list_display = (
-        "name", "module", "public_slug", "plan", "subscription_status", "days_left",
+        "name", "module", "public_slug", "plan", "subscription_expires_at",
+        "subscription_status", "days_left",
         "boost_status", "ai_credits", "views_count", "whatsapp_clicks", "phone_clicks",
         "leads_count", "is_active", "is_verified", "whatsapp_contact",
     )
@@ -61,7 +62,9 @@ class BusinessProfileAdmin(admin.ModelAdmin):
         }),
         ("Abonnement et performance", {
             "fields": (
-                "plan", "subscription_expires_at", "boost_expires_at", "ai_credits",
+                "plan", "activation_status", "subscription_started_at",
+                "subscription_expires_at", "free_visibility_expires_at",
+                "is_trial", "boost_expires_at", "ai_credits",
                 "views_count", "whatsapp_clicks", "phone_clicks", "detail_clicks",
                 "leads_count", "economic_score", "facebook_shared_at", "last_facebook_post_id",
             )

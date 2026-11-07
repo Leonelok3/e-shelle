@@ -225,7 +225,7 @@ def _business_qs(city_slug, service_slug):
     service = SEO_SERVICE_MAP[service_slug]
     city_filter = Q(city__iexact=city_slug.replace("-", " ")) | Q(city__iexact=_city_name_from_slug(city_slug))
     return (
-        BusinessProfile.objects.filter(is_active=True, module=service["module"])
+        BusinessProfile.publicly_visible().filter(module=service["module"])
         .filter(city_filter)
         .order_by("-plan", "-boost_expires_at", "-leads_count", "-views_count", "name")
     )
@@ -233,7 +233,7 @@ def _business_qs(city_slug, service_slug):
 
 def _available_cities():
     rows = (
-        BusinessProfile.objects.filter(is_active=True)
+        BusinessProfile.publicly_visible()
         .exclude(city="")
         .values("city", "country")
         .annotate(total=Count("id"))

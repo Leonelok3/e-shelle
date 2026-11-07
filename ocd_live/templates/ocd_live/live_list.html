@@ -1,0 +1,95 @@
+{% extends "ocd_live/base_ocd.html" %}
+
+{% block title %}Programme des Directs & Replays | OCD LIVE{% endblock %}
+
+{% block content %}
+<section class="ocd-section" style="padding-top:3.5rem">
+  <div class="ocd-section-header">
+    <span class="ocd-section-eyebrow">DIFFUSION &amp; FORMATION TERRAIN</span>
+    <h1 class="ocd-section-title">Directs &amp; Masterclasses Exclusives</h1>
+    <p class="ocd-section-subtitle">
+      Participez en temps réel avec nos intervenants d'affaires ou visionnez les replays complets.
+    </p>
+  </div>
+
+  <!-- SESSIONS ACTIVES / EN DIRECT MAINTENANT -->
+  {% if active_lives %}
+    <div style="margin-bottom:3.5rem">
+      <h2 style="color:#FFF;font-size:1.4rem;font-family:'Outfit';margin-bottom:1.5rem;display:flex;align-items:center;gap:10px">
+        <span class="ocd-badge-live"><span class="pulse-dot"></span> EN COURS DE DIFFUSION</span>
+      </h2>
+      <div class="ocd-grid-3">
+        {% for s in active_lives %}
+          <div class="ocd-card" style="border:1px solid #EF4444;background:rgba(239,68,68,0.06)">
+            <h3 class="ocd-card-title"><a href="{{ s.get_absolute_url }}" style="color:#FFF">{{ s.title }}</a></h3>
+            <p style="color:#CBD5E1;font-size:0.92rem;margin-bottom:1.25rem">{{ s.subtitle }}</p>
+            <div style="font-size:0.85rem;color:var(--ocd-text-amber);margin-bottom:1.5rem">
+              Intervenant : <strong>{{ s.speaker_name }}</strong>
+            </div>
+            <a href="{{ s.get_absolute_url }}" class="ocd-btn ocd-btn-primary" style="width:100%">
+              🔴 Rejoindre la salle de direct en cours →
+            </a>
+          </div>
+        {% endfor %}
+      </div>
+    </div>
+  {% endif %}
+
+  <!-- PROCHAINS DIRECTS PROGRAMMÉS -->
+  <div style="margin-bottom:4rem">
+    <h2 style="color:#FFF;font-size:1.4rem;font-family:'Outfit';margin-bottom:1.5rem">
+      📅 Prochains Directs Programmés
+    </h2>
+    <div class="ocd-grid-3">
+      {% for s in upcoming_lives %}
+        <article class="ocd-card">
+          <div style="font-size:0.85rem;color:var(--ocd-text-amber);font-weight:700;margin-bottom:0.75rem">
+            🗓️ {{ s.scheduled_at|date:"l d F Y à H:i" }}
+          </div>
+          <h3 class="ocd-card-title"><a href="{{ s.get_absolute_url }}" style="color:#FFF">{{ s.title }}</a></h3>
+          <p class="ocd-card-desc">{{ s.subtitle|default:s.description|truncatewords:20 }}</p>
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:1.5rem">
+            <span style="font-size:1.5rem">🎙️</span>
+            <div>
+              <strong style="display:block;font-size:0.95rem;color:#FFF">{{ s.speaker_name }}</strong>
+              <span style="font-size:0.75rem;color:var(--ocd-text-muted)">{{ s.speaker_title }}</span>
+            </div>
+          </div>
+          <a href="{{ s.get_absolute_url }}" class="ocd-btn ocd-btn-primary" style="width:100%;margin-top:auto">
+            Réserver mon accès →
+          </a>
+        </article>
+      {% empty %}
+        <div style="grid-column:1/-1;text-align:center;padding:3rem;background:var(--ocd-bg-card);border-radius:16px">
+          <p style="color:#94A3B8">De nouvelles sessions sont en cours de programmation.</p>
+        </div>
+      {% endfor %}
+    </div>
+  </div>
+
+  <!-- BIBLIOTHÈQUE DES REPLAYS -->
+  {% if past_replays %}
+    <div>
+      <h2 style="color:#FFF;font-size:1.4rem;font-family:'Outfit';margin-bottom:1.5rem">
+        📼 Bibliothèque des Replays Précédents
+      </h2>
+      <div class="ocd-grid-3">
+        {% for s in past_replays %}
+          <article class="ocd-card">
+            <span class="ocd-card-cat" style="width:fit-content;margin-bottom:0.75rem">REPLAY DISPONIBLE</span>
+            <h3 class="ocd-card-title"><a href="{{ s.get_absolute_url }}" style="color:#FFF">{{ s.title }}</a></h3>
+            <p class="ocd-card-desc">{{ s.subtitle|default:s.description|truncatewords:18 }}</p>
+            <div style="font-size:0.85rem;color:var(--ocd-text-muted);margin-bottom:1.25rem">
+              Intervenant : {{ s.speaker_name }}
+            </div>
+            <a href="{{ s.get_absolute_url }}" class="ocd-btn ocd-btn-glow" style="width:100%;margin-top:auto">
+              Visionner le Replay →
+            </a>
+          </article>
+        {% endfor %}
+      </div>
+    </div>
+  {% endif %}
+</section>
+{% endblock %}
+

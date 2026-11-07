@@ -4,7 +4,9 @@ import logging
 from datetime import datetime, timedelta, timezone as datetime_timezone
 
 from django.db import transaction
+from django.db.models import F
 from django.utils import timezone
+from business.models import BusinessProfile
 
 from .models import (
 	BusinessWhatsAppAudit,
@@ -135,9 +137,31 @@ def _run_sales_agent(connection, contact, inbound_message):
 	from .funnel import build_funnel_reply
 	from .orchestrator import record_sales_decision, resolve_action
 
+	business = contact.business
+	if not require_whatsapp_entitlement(business, "can_use_crm"):
+		return
+	reserved = BusinessProfile.objects.filter(
+		pk=business.pk,
+		plan__in=[
+			BusinessProfile.Plan.BUSINESS,
+			BusinessProfile.Plan.PREMIUM,
+		],
+		is_active=True,
+		is_trial=False,
+		subscription_expires_at__gt=timezone.now(),
+		ai_credits__gt=0,
+	).update(ai_credits=F("ai_credits") - 1, updated_at=timezone.now())
+	if not reserved:
+		BusinessWhatsAppAudit.objects.create(
+			connection=connection,
+			contact=contact,
+			event_type="sales_agent_credits_exhausted",
+			action="reply_skipped",
+			details={"reason": "No active AI credits."},
+		)
+		return
+
 	try:
-		if not require_whatsapp_entitlement(contact.business, "can_use_crm"):
-			return
 		from .orchestrator import confirm_draft_order, is_explicit_draft_confirmation
 
 		if is_explicit_draft_confirmation(contact, inbound_message.body):
@@ -189,6 +213,13 @@ def _run_sales_agent(connection, contact, inbound_message):
 				contact.pk,
 			)
 	except Exception as exc:
+		BusinessProfile.objects.filter(
+			pk=business.pk,
+			plan=business.plan,
+			subscription_expires_at__gt=timezone.now(),
+			is_active=True,
+			is_trial=False,
+		).update(ai_credits=F("ai_credits") + 1, updated_at=timezone.now())
 		logger.exception(
 			"WhatsApp Commerce: agent vendeur en échec (business_id=%s, contact_id=%s).",
 			connection.business_id,

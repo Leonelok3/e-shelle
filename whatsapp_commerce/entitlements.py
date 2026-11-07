@@ -1,22 +1,18 @@
 """Plan-gated WhatsApp features for a business profile."""
 
-from django.utils import timezone
-
 from business.models import BusinessProfile
 
 
 def whatsapp_entitlements(business):
     business.check_expiry()
-    eligible = business.subscription_active and business.is_active
-    if business.is_trial:
-        eligible = eligible and bool(
-            business.subscription_expires_at
-            and business.subscription_expires_at > timezone.now()
-        )
+    eligible = (
+        business.subscription_active
+        and business.is_active
+        and not business.is_trial
+    )
 
     plan = business.plan if eligible else BusinessProfile.Plan.FREE
     crm = plan in {
-        BusinessProfile.Plan.PRO,
         BusinessProfile.Plan.BUSINESS,
         BusinessProfile.Plan.PREMIUM,
     }

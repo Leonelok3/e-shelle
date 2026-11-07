@@ -1,0 +1,56 @@
+{% extends "ocd_live/base_ocd.html" %}
+
+{% block title %}Réservation : {{ session.title }} | OCD LIVE{% endblock %}
+
+{% block content %}
+<section class="ocd-section" style="padding-top:3.5rem">
+  <div style="max-width:680px;margin:0 auto">
+    <div class="ocd-card" style="padding:2.5rem;border:1px solid var(--ocd-border-glass);background:linear-gradient(160deg, rgba(25,35,30,0.98) 0%, rgba(12,18,15,0.98) 100%)">
+      <span class="ocd-section-eyebrow">BILLETTERIE OFFICIELLE</span>
+      <h1 style="font-family:'Outfit';font-size:1.8rem;color:#FFF;margin-bottom:0.75rem">
+        Réservation pour la session Live
+      </h1>
+      <p style="color:var(--ocd-text-amber);font-size:1.05rem;font-weight:700;margin-bottom:1.5rem">
+        {{ session.title }}
+      </p>
+
+      <div style="padding:1.25rem;background:rgba(0,0,0,0.45);border-radius:14px;border:1px solid rgba(255,255,255,0.06);margin-bottom:2rem">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.75rem">
+          <span style="color:#94A3B8">Intervenant :</span>
+          <strong style="color:#FFF">{{ session.speaker_name }}</strong>
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.75rem">
+          <span style="color:#94A3B8">Date &amp; Heure :</span>
+          <strong style="color:var(--ocd-text-amber)">{{ session.scheduled_at|date:"l d F Y à H:i" }}</strong>
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:center;padding-top:0.75rem;border-top:1px solid rgba(255,255,255,0.08)">
+          <span style="color:#FFF;font-weight:700">Montant à régler :</span>
+          <strong style="font-size:1.35rem;color:#4ADE80">{{ session.ticket_price_xaf|floatformat:0 }} FCFA</strong>
+        </div>
+      </div>
+
+      <form method="post" style="display:flex;flex-direction:column;gap:1.25rem">
+        {% csrf_token %}
+        <div>
+          <label for="whatsapp" style="display:block;font-size:0.9rem;font-weight:700;color:#FFF;margin-bottom:0.5rem">
+            Votre Numéro WhatsApp (pour recevoir votre Billet &amp; Rappel) :
+          </label>
+          <input type="tel" id="whatsapp" name="whatsapp" value="{{ user.telephone|default:user.phone|default:'+237' }}" required placeholder="+237 6XXXXXXXX" style="width:100%;padding:0.9rem 1.25rem;border-radius:10px;background:rgba(255,255,255,0.06);border:1px solid var(--ocd-border-glass);color:#FFF;font-size:1rem;outline:none">
+          <span style="display:block;font-size:0.75rem;color:var(--ocd-text-muted);margin-top:0.35rem">
+            Votre lien d'accès vous sera automatiquement transmis sur ce numéro.
+          </span>
+        </div>
+
+        <button type="submit" class="ocd-btn ocd-btn-primary" style="padding:1rem;font-size:1.05rem;margin-top:1rem">
+          Valider et Payer par MoMo / Orange Money (CamPay) →
+        </button>
+      </form>
+
+      <div style="margin-top:1.5rem;text-align:center;font-size:0.8rem;color:#64748B">
+        🔒 Paiement sécurisé opéré par <strong>CamPay</strong> pour E-Shelle.
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}
+

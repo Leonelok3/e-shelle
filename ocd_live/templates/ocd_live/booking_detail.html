@@ -1,0 +1,58 @@
+{% extends "ocd_live/base_ocd.html" %}
+
+{% block title %}Billet {{ booking.ticket_code }} | OCD LIVE{% endblock %}
+
+{% block content %}
+<section class="ocd-section" style="padding-top:4rem">
+  <div style="max-width:620px;margin:0 auto">
+    <div class="ocd-card" style="padding:2.5rem;text-align:center;border:1px solid var(--ocd-border-glass);background:linear-gradient(160deg, rgba(20,28,24,0.98) 0%, rgba(10,14,12,0.98) 100%)">
+      
+      {% if booking.status == 'CONFIRMED' %}
+        <div style="width:64px;height:64px;border-radius:50%;background:rgba(16,185,129,0.15);border:2px solid #10B981;color:#10B981;display:flex;align-items:center;justify-content:center;font-size:2rem;margin:0 auto 1.5rem">
+          ✓
+        </div>
+        <span class="ocd-card-status" style="justify-content:center;font-size:0.9rem;margin-bottom:0.5rem">BILLET OFFICIEL VALIDÉ</span>
+      {% else %}
+        <div style="width:64px;height:64px;border-radius:50%;background:rgba(251,191,36,0.15);border:2px solid #FBBF24;color:#FBBF24;display:flex;align-items:center;justify-content:center;font-size:2rem;margin:0 auto 1.5rem">
+          ⏳
+        </div>
+        <span style="color:#FBBF24;font-size:0.9rem;font-weight:700;display:block;margin-bottom:0.5rem">EN ATTENTE DE PAIEMENT</span>
+      {% endif %}
+
+      <h1 style="font-family:'Outfit';font-size:1.8rem;color:#FFF;margin-bottom:0.75rem">
+        {% if booking.session %}
+          {{ booking.session.title }}
+        {% elif booking.package %}
+          {{ booking.package.name }}
+        {% elif booking.slot %}
+          {{ booking.slot.title }}
+        {% endif %}
+      </h1>
+
+      <div style="background:rgba(0,0,0,0.5);border:1px dashed var(--ocd-border-glass);border-radius:14px;padding:1.5rem;margin:2rem 0">
+        <span style="font-size:0.75rem;color:var(--ocd-text-muted);text-transform:uppercase;letter-spacing:0.1em;font-weight:700">Code Unique de Billet</span>
+        <div style="font-size:2rem;font-family:monospace;font-weight:900;color:var(--ocd-text-amber);letter-spacing:0.1em;margin:0.5rem 0">
+          {{ booking.ticket_code }}
+        </div>
+        <span style="font-size:0.85rem;color:#CBD5E1">Attribué à : <strong>{{ booking.user.get_full_name|default:booking.user.username }}</strong></span>
+      </div>
+
+      <div style="display:flex;flex-direction:column;gap:0.75rem;margin-bottom:2rem">
+        {% if booking.session %}
+          <a href="{{ booking.session.get_absolute_url }}" class="ocd-btn ocd-btn-primary">
+            🔴 Accéder à la Salle de Direct →
+          </a>
+        {% endif %}
+        <a href="{% url 'ocd_live:dashboard' %}" class="ocd-btn ocd-btn-glow">
+          Voir tous mes billets dans Mon Espace
+        </a>
+      </div>
+
+      <p style="font-size:0.8rem;color:#64748B;line-height:1.5">
+        Un récapitulatif a été enregistré pour votre compte. Conservez ce code d'accès pour toute réclamation.
+      </p>
+    </div>
+  </div>
+</section>
+{% endblock %}
+

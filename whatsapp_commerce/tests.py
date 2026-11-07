@@ -13,7 +13,7 @@ from django.utils import timezone
 
 from business.models import BusinessCatalogItem, BusinessProfile
 from whatsapp_agent.models import Campagne, MessageEnvoi
-from .inbox import process_business_whatsapp_webhook, send_business_reply
+from .inbox import _run_sales_agent, process_business_whatsapp_webhook, send_business_reply
 from .models import (
 	BusinessWhatsAppAudit,
 	BusinessWhatsAppConnection,
@@ -44,7 +44,12 @@ from .orchestrator import confirm_draft_order
 from boutique.models import Commande, LigneCommande
 from payments.models import Transaction
 from .orchestrator import can_create_order
-from .campaigns import accept_njangi_invitation, lancer_njangi_achat, send_vocal_campaign
+from .campaigns import (
+	_connection_for_business,
+	accept_njangi_invitation,
+	lancer_njangi_achat,
+	send_vocal_campaign,
+)
 from njangi.models import NjangiAchatGroupe, NjangiAchatParticipation
 
 
@@ -65,7 +70,7 @@ class BusinessWhatsAppTests(TestCase):
 		)
 
 	def create_verified_provider_payment(self, business):
-		business.plan = BusinessProfile.Plan.PRO
+		business.plan = BusinessProfile.Plan.BUSINESS
 		business.activation_status = BusinessProfile.ActivationStatus.ACTIVE
 		business.subscription_expires_at = timezone.now() + timezone.timedelta(days=30)
 		business.is_trial = False
@@ -137,7 +142,7 @@ class BusinessWhatsAppTests(TestCase):
 			referral.pk,
 		)
 
-		self.business.plan = BusinessProfile.Plan.PRO
+		self.business.plan = BusinessProfile.Plan.BUSINESS
 		self.business.subscription_expires_at = timezone.now() + timezone.timedelta(days=5)
 		self.business.save(update_fields=["plan", "subscription_expires_at", "updated_at"])
 		self.create_verified_provider_payment(self.business)
@@ -452,6 +457,7 @@ class BusinessWhatsAppTests(TestCase):
 		self.assertNotIn("existing-waba-token", connection.access_token_encrypted)
 		self.assertNotIn("primary-waba-token", connection.access_token_encrypted)
 		self.client.force_login(self.owner)
+		self.create_verified_provider_payment(self.business)
 		dashboard = self.client.get(
 			reverse("whatsapp_commerce:business_dashboard", args=[self.business.pk])
 		)
@@ -568,7 +574,7 @@ class BusinessWhatsAppTests(TestCase):
 
 	def test_dashboard_keeps_embedded_signup_for_other_business_profiles(self):
 		self.set_as_immigration_target()
-		self.business.plan = BusinessProfile.Plan.PRO
+		self.business.plan = BusinessProfile.Plan.BUSINESS
 		self.business.subscription_expires_at = timezone.now() + timezone.timedelta(days=5)
 		self.business.save(update_fields=["plan", "subscription_expires_at", "updated_at"])
 		connection = BusinessWhatsAppConnection.objects.create(
@@ -608,27 +614,17 @@ class BusinessWhatsAppTests(TestCase):
 		response = self.client.get(
 			reverse("whatsapp_commerce:business_dashboard", args=[self.business.pk])
 		)
-		self.assertEqual(
-			response.context["whatsapp_connection_needs_signup"],
-			True,
-		)
-		self.assertEqual(
-			response.context["whatsapp_payment_verified"],
-			False,
-		)
+		self.assertRedirects(response, reverse("tarifs"))
 		self.assertIn(
-			"Payez d'abord pour débloquer la connexion WhatsApp officielle Meta",
-			response.content.decode(),
+			"La connexion WhatsApp Business officielle (WABA) est disponible à partir de "
+			"l'abonnement Croissance — Business à 15 000 XAF / 30 jours.",
+			[str(message) for message in response.wsgi_request._messages],
 		)
-		self.assertContains(response, "disabled")
 
 		connect_response = self.client.get(
 			reverse("whatsapp_commerce:business_connect", args=[self.business.pk])
 		)
-		self.assertRedirects(
-			connect_response,
-			f"{reverse('provider_special_offer')}?business={self.business.pk}",
-		)
+		self.assertRedirects(connect_response, reverse("tarifs"))
 
 	@patch("whatsapp_commerce.onboarding._request_meta")
 	def test_get_assigned_applications_uses_meta_me_endpoint(self, meta_request):
@@ -851,7 +847,8 @@ class BusinessWhatsAppTests(TestCase):
 	def test_enabled_sales_agent_replies_only_in_matching_tenant(self, call_llm_mock, meta_request):
 		self.business.plan = BusinessProfile.Plan.BUSINESS
 		self.business.subscription_expires_at = timezone.now() + timezone.timedelta(days=10)
-		self.business.save(update_fields=["plan", "subscription_expires_at", "updated_at"])
+		self.business.ai_credits = 20
+		self.business.save(update_fields=["plan", "subscription_expires_at", "ai_credits", "updated_at"])
 		connection = BusinessWhatsAppConnection.objects.create(
 			business=self.business,
 			waba_id="agent-waba",
@@ -1068,7 +1065,8 @@ class BusinessWhatsAppTests(TestCase):
 		draft.connection.save(update_fields=["agent_enabled", "access_token_encrypted"])
 		draft.business.plan = BusinessProfile.Plan.BUSINESS
 		draft.business.subscription_expires_at = timezone.now() + timezone.timedelta(days=10)
-		draft.business.save(update_fields=["plan", "subscription_expires_at", "updated_at"])
+		draft.business.ai_credits = 20
+		draft.business.save(update_fields=["plan", "subscription_expires_at", "ai_credits", "updated_at"])
 		meta_request.return_value = {"messages": [{"id": "wamid-confirmed-order-reply"}]}
 		payload = {
 			"entry": [{
@@ -1342,8 +1340,8 @@ class BusinessWhatsAppTests(TestCase):
 		response = self.client.get(
 			reverse("whatsapp_commerce:business_dashboard", args=[self.business.pk])
 		)
-		self.assertEqual(response.status_code, 200)
-		self.assertContains(response, "WhatsApp Business")
+		self.assertEqual(response.status_code, 302)
+		self.assertEqual(response.url, "/tarifs/")
 
 	def test_inbox_entry_lists_only_owned_businesses(self):
 		self.client.force_login(self.owner)
@@ -1396,18 +1394,66 @@ class BusinessWhatsAppTests(TestCase):
 		self.business.subscription_expires_at = timezone.now() + timezone.timedelta(days=3)
 		self.business.save(update_fields=["plan", "subscription_expires_at", "updated_at"])
 		pro_features = whatsapp_entitlements(self.business)
-		self.assertTrue(pro_features["can_connect"])
-		self.assertTrue(pro_features["can_use_crm"])
+		self.assertFalse(pro_features["can_connect"])
+		self.assertFalse(pro_features["can_use_crm"])
 		self.assertFalse(pro_features["can_sync_catalog"])
 
 		self.business.plan = BusinessProfile.Plan.BUSINESS
 		self.business.is_trial = True
 		self.business.save(update_fields=["plan", "is_trial", "updated_at"])
+		self.assertFalse(whatsapp_entitlements(self.business)["can_sync_catalog"])
+		self.business.is_trial = False
+		self.business.save(update_fields=["is_trial", "updated_at"])
 		self.assertTrue(whatsapp_entitlements(self.business)["can_sync_catalog"])
 
 		self.business.subscription_expires_at = timezone.now() - timezone.timedelta(days=1)
 		self.business.save(update_fields=["subscription_expires_at", "updated_at"])
 		self.assertFalse(whatsapp_entitlements(self.business)["can_use_crm"])
+
+	def test_waba_campaign_sender_rejects_business_below_growth(self):
+		with self.assertRaisesMessage(
+			MetaOnboardingError,
+			"réservée à Croissance — Business et Premium",
+		):
+			_connection_for_business(self.business)
+
+	@override_settings(WHATSAPP_COMMERCE_AI_ENABLED=True)
+	@patch("whatsapp_commerce.funnel.build_funnel_reply")
+	def test_business_reply_agent_stops_when_ai_credits_are_exhausted(self, build_reply):
+		self.business.plan = BusinessProfile.Plan.BUSINESS
+		self.business.subscription_expires_at = timezone.now() + timezone.timedelta(days=30)
+		self.business.ai_credits = 0
+		self.business.save(update_fields=[
+			"plan", "subscription_expires_at", "ai_credits", "updated_at",
+		])
+		connection = BusinessWhatsAppConnection.objects.create(
+			business=self.business,
+			waba_id="credits-waba",
+			phone_number_id="credits-phone",
+			agent_enabled=True,
+		)
+		contact = BusinessWhatsAppContact.objects.create(
+			business=self.business,
+			phone="+237699000001",
+		)
+		inbound = BusinessWhatsAppMessage.objects.create(
+			contact=contact,
+			wa_message_id="wamid-no-ai-credits",
+			direction=BusinessWhatsAppMessage.Direction.INBOUND,
+			body="Bonjour",
+		)
+
+		_run_sales_agent(connection, contact, inbound)
+
+		self.business.refresh_from_db()
+		self.assertEqual(self.business.ai_credits, 0)
+		self.assertTrue(BusinessWhatsAppAudit.objects.filter(
+			connection=connection,
+			contact=contact,
+			event_type="sales_agent_credits_exhausted",
+			action="reply_skipped",
+		).exists())
+		build_reply.assert_not_called()
 
 	def test_contact_pipeline_update_is_owner_scoped(self):
 		contact = BusinessWhatsAppContact.objects.create(
@@ -1418,7 +1464,7 @@ class BusinessWhatsAppTests(TestCase):
 			business=self.other_business,
 			phone="+237699000002",
 		)
-		self.business.plan = BusinessProfile.Plan.PRO
+		self.business.plan = BusinessProfile.Plan.BUSINESS
 		self.business.subscription_expires_at = timezone.now() + timezone.timedelta(days=3)
 		self.business.save(update_fields=["plan", "subscription_expires_at", "updated_at"])
 		self.client.force_login(self.owner)
@@ -1462,8 +1508,8 @@ class BusinessWhatsAppTests(TestCase):
 		response = self.client.get(
 			reverse("whatsapp_commerce:business_dashboard", args=[self.business.pk])
 		)
-		self.assertEqual(response.status_code, 200)
-		self.assertNotContains(response, contact.phone)
+		self.assertEqual(response.status_code, 302)
+		self.assertEqual(response.url, "/tarifs/")
 		self.assertTrue(BusinessWhatsAppContact.objects.filter(pk=contact.pk).exists())
 
 	@override_settings(WHATSAPP_BUSINESS_AUTOMATIONS_ENABLED=True)
@@ -1578,7 +1624,7 @@ class BusinessWhatsAppTests(TestCase):
 		).exists())
 
 	def test_revoking_consent_cancels_scheduled_messages(self):
-		self.business.plan = BusinessProfile.Plan.PRO
+		self.business.plan = BusinessProfile.Plan.BUSINESS
 		self.business.subscription_expires_at = timezone.now() + timezone.timedelta(days=10)
 		self.business.save(update_fields=["plan", "subscription_expires_at", "updated_at"])
 		contact = BusinessWhatsAppContact.objects.create(

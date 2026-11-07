@@ -22,8 +22,10 @@ class AppKey(models.TextChoices):
     GAZ        = "gaz",        "E-Shelle Gaz"
     AUTO       = "auto",       "Auto"
     AUTO_ECOLE = "autoecole",  "Auto-école"
+    OCD_LIVE   = "ocd_live",   "OCD Live — Les Opportunités C'est Dehors"
 
 APP_ICONS = {
+    "ocd_live":   "🌍",
     "adgen":      "✨",
     "resto":      "🍽️",
     "rencontres": "❤️",
@@ -53,6 +55,7 @@ APP_COLORS = {
     "gaz":        "#FF6B00",
     "auto":       "#EF4444",
     "autoecole":  "#2563EB",
+    "ocd_live":   "#FF6600",
 }
 
 

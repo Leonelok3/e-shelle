@@ -1,0 +1,47 @@
+{% extends "ocd_live/base_ocd.html" %}
+
+{% block title %}Souscrire au Pass : {{ package.name }} | OCD LIVE{% endblock %}
+
+{% block content %}
+<section class="ocd-section" style="padding-top:3.5rem">
+  <div style="max-width:680px;margin:0 auto">
+    <div class="ocd-card" style="padding:2.5rem;border:1px solid var(--ocd-primary);background:linear-gradient(160deg, rgba(32,24,18,0.98) 0%, rgba(14,18,15,0.98) 100%)">
+      <span class="ocd-section-eyebrow">ADHÉSION MEMBRE OCD</span>
+      <h1 style="font-family:'Outfit';font-size:1.8rem;color:#FFF;margin-bottom:0.75rem">
+        Souscription au {{ package.name }}
+      </h1>
+      <div style="font-size:2rem;font-weight:900;color:#FFF;font-family:'Outfit';margin-bottom:1.5rem">
+        {{ package.price_xaf|floatformat:0 }} <span style="font-size:1rem;color:var(--ocd-text-muted)">FCFA / {{ package.duration_days }} jours</span>
+      </div>
+
+      <div style="padding:1.25rem;background:rgba(0,0,0,0.45);border-radius:14px;border:1px solid rgba(255,255,255,0.06);margin-bottom:2rem">
+        <strong style="display:block;color:#FFF;margin-bottom:0.75rem;font-size:0.95rem">Avantages inclus dans ce pass :</strong>
+        <ul class="ocd-features-list" style="margin-bottom:0">
+          {% for f in package.feature_list %}
+            <li>{{ f }}</li>
+          {% empty %}
+            <li>Accès illimité aux sessions Live et Replays</li>
+            <li>Dossiers confidentiels des opportunités</li>
+            <li>Canal VIP WhatsApp</li>
+          {% endfor %}
+        </ul>
+      </div>
+
+      <form method="post" style="display:flex;flex-direction:column;gap:1.25rem">
+        {% csrf_token %}
+        <div>
+          <label for="whatsapp" style="display:block;font-size:0.9rem;font-weight:700;color:#FFF;margin-bottom:0.5rem">
+            Votre Numéro WhatsApp :
+          </label>
+          <input type="tel" id="whatsapp" name="whatsapp" value="{{ user.telephone|default:user.phone|default:'+237' }}" required placeholder="+237 6XXXXXXXX" style="width:100%;padding:0.9rem 1.25rem;border-radius:10px;background:rgba(255,255,255,0.06);border:1px solid var(--ocd-border-glass);color:#FFF;font-size:1rem;outline:none">
+        </div>
+
+        <button type="submit" class="ocd-btn ocd-btn-primary" style="padding:1rem;font-size:1.05rem;margin-top:0.75rem">
+          Activer mon Pass via CamPay Mobile Money →
+        </button>
+      </form>
+    </div>
+  </div>
+</section>
+{% endblock %}
+

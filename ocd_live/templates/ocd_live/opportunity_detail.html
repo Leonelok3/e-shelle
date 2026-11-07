@@ -1,0 +1,89 @@
+{% extends "ocd_live/base_ocd.html" %}
+
+{% block title %}{{ opportunity.title }} | Opportunité OCD LIVE{% endblock %}
+
+{% block content %}
+<section class="ocd-section" style="padding-top:3.5rem">
+  <div style="margin-bottom:1.5rem">
+    <a href="{% url 'ocd_live:opportunities_list' %}" style="color:var(--ocd-text-amber);text-decoration:none;font-weight:700;display:inline-flex;align-items:center;gap:6px">
+      ← Retour aux opportunités
+    </a>
+  </div>
+
+  <div style="display:grid;grid-template-columns:1.8fr 1.2fr;gap:2.5rem;align-items:start">
+    <!-- COLONNE PRINCIPALE : DOSSIER -->
+    <div>
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:1rem">
+        <span class="ocd-card-cat">{{ opportunity.category.name|default:"Affaires" }}</span>
+        <span class="ocd-card-status">✓ {{ opportunity.get_status_display }}</span>
+      </div>
+
+      <h1 style="font-family:'Outfit';font-size:clamp(1.8rem, 3.5vw, 2.6rem);font-weight:900;color:#FFF;line-height:1.2;margin-bottom:1.25rem">
+        {{ opportunity.title }}
+      </h1>
+
+      <div style="font-size:0.95rem;color:var(--ocd-text-amber);margin-bottom:1.75rem;font-weight:700">
+        📍 Localisation : {{ opportunity.city|default:"National" }}, {{ opportunity.country }}
+      </div>
+
+      <!-- Métriques phares -->
+      <div style="display:grid;grid-template-columns:repeat(3, 1fr);gap:1rem;padding:1.5rem;background:rgba(0,0,0,0.45);border-radius:18px;border:1px solid var(--ocd-border-glass);margin-bottom:2.5rem">
+        <div>
+          <span style="font-size:0.75rem;color:var(--ocd-text-muted);text-transform:uppercase;font-weight:700">Capital Min. Requis</span>
+          <strong style="display:block;font-size:1.3rem;color:#FFF;margin-top:4px">{{ opportunity.min_capital_xaf|floatformat:0 }} FCFA</strong>
+        </div>
+        <div>
+          <span style="font-size:0.75rem;color:var(--ocd-text-muted);text-transform:uppercase;font-weight:700">Rentabilité Attendue</span>
+          <strong style="display:block;font-size:1.3rem;color:#4ADE80;margin-top:4px">{{ opportunity.estimated_roi }}</strong>
+        </div>
+        <div>
+          <span style="font-size:0.75rem;color:var(--ocd-text-muted);text-transform:uppercase;font-weight:700">Horizon d'Affaire</span>
+          <strong style="display:block;font-size:1.3rem;color:var(--ocd-text-amber);margin-top:4px">{{ opportunity.timeframe }}</strong>
+        </div>
+      </div>
+
+      <!-- Résumé du projet -->
+      <div class="ocd-card" style="margin-bottom:2rem">
+        <h3 style="font-family:'Outfit';color:#FFF;font-size:1.2rem;margin-bottom:0.75rem">Vue d'ensemble du projet</h3>
+        <p style="color:#CBD5E1;font-size:1.05rem;line-height:1.7">
+          {{ opportunity.summary }}
+        </p>
+      </div>
+
+      <!-- Cahier des charges et description complète -->
+      <div class="ocd-card" style="margin-bottom:2rem">
+        <h3 style="font-family:'Outfit';color:#FFF;font-size:1.2rem;margin-bottom:1rem">Détails &amp; Cahier des charges terrain</h3>
+        <div style="color:#CBD5E1;font-size:1rem;line-height:1.7;white-space:pre-line">
+          {{ opportunity.full_description }}
+        </div>
+      </div>
+    </div>
+
+    <!-- COLONNE LATÉRALE : CONTACT & VALIDATION -->
+    <div style="position:sticky;top:6rem">
+      <div class="ocd-card" style="border:1px solid var(--ocd-primary);background:linear-gradient(160deg, rgba(28,38,32,0.98) 0%, rgba(13,18,15,0.98) 100%)">
+        <span class="ocd-section-eyebrow" style="margin-bottom:0.75rem">ACCÈS AU RÉFÉRENT TERRAIN</span>
+        <h3 style="font-family:'Outfit';color:#FFF;font-size:1.35rem;margin-bottom:1rem">
+          Vous souhaitez investir ou vous positionner sur ce projet ?
+        </h3>
+        <p style="color:#94A3B8;font-size:0.92rem;line-height:1.6;margin-bottom:1.5rem">
+          L'équipe OCD Live vous met directement en relation avec le référent local après vérification de votre capacité de financement.
+        </p>
+
+        <a href="https://wa.me/{{ opportunity.whatsapp_contact|cut:' '|cut:'+' }}?text=Bonjour,%20je%20suis%20intéressé(e)%20par%20l'opportunité%20suivante%20sur%20OCD%20Live%20:%20{{ opportunity.title|urlencode }}%20(Capital%20disponible:%20...)" target="_blank" rel="noopener" class="ocd-btn" style="background:#25D366;color:#FFF;width:100%;margin-bottom:1rem;padding:0.9rem">
+          💬 Échanger sur WhatsApp avec le Référent
+        </a>
+
+        <a href="{% url 'ocd_live:live_list' %}" class="ocd-btn ocd-btn-glow" style="width:100%">
+          📅 Poser une question au prochain Live
+        </a>
+
+        <div style="margin-top:1.5rem;padding-top:1.25rem;border-top:1px solid rgba(255,255,255,0.08);font-size:0.8rem;color:#64748B;line-height:1.5">
+          🛡️ <strong>Garantie E-Shelle :</strong> Toutes les opportunités présentées sur OCD Live font l'objet d'une visite de conformité terrain préalable.
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}
+

@@ -137,6 +137,8 @@ class BusinessProfile(models.Model):
         db_index=True,
     )
     subscription_expires_at = models.DateTimeField(null=True, blank=True)
+    subscription_started_at = models.DateTimeField(null=True, blank=True)
+    free_visibility_expires_at = models.DateTimeField(null=True, blank=True)
     boost_expires_at = models.DateTimeField(null=True, blank=True)
     ai_credits = models.PositiveIntegerField(default=0)
 
@@ -177,12 +179,43 @@ class BusinessProfile(models.Model):
         verbose_name = "Profil business"
         verbose_name_plural = "Profils business"
 
+    @classmethod
+    def publicly_visible(cls):
+        now = timezone.now()
+        return cls.objects.filter(is_active=True).filter(
+            models.Q(
+                plan=cls.Plan.FREE,
+                activation_status__in=[cls.ActivationStatus.DEMO, cls.ActivationStatus.ACTIVE],
+                free_visibility_expires_at__gt=now,
+            )
+            | (
+                ~models.Q(plan=cls.Plan.FREE)
+                & models.Q(
+                    activation_status=cls.ActivationStatus.ACTIVE,
+                    subscription_expires_at__gt=now,
+                )
+            )
+        )
+
+    @classmethod
+    def user_has_business_key_entitlement(cls, user_id):
+        return cls.objects.filter(
+            owner_id=user_id,
+            plan__in=[cls.Plan.BUSINESS, cls.Plan.PREMIUM],
+            activation_status=cls.ActivationStatus.ACTIVE,
+            is_active=True,
+            is_trial=False,
+            subscription_expires_at__gt=timezone.now(),
+        ).exists()
+
     def __str__(self):
         return f"{self.name} ({self.get_module_display()})"
 
     def save(self, *args, **kwargs):
         if not self.public_slug:
             self.public_slug = self._build_unique_public_slug()
+        if self._state.adding and self.plan == self.Plan.FREE and not self.free_visibility_expires_at:
+            self.free_visibility_expires_at = timezone.now() + timedelta(days=14)
         super().save(*args, **kwargs)
 
     def _build_unique_public_slug(self):
@@ -245,7 +278,23 @@ class BusinessProfile(models.Model):
 
     @property
     def is_published(self):
-        return bool(self.is_active and self.activation_status == self.ActivationStatus.ACTIVE)
+        if self.plan == self.Plan.FREE:
+            visible = bool(
+                self.free_visibility_expires_at
+                and self.free_visibility_expires_at > timezone.now()
+            )
+            status_allows_publication = self.activation_status in {
+                self.ActivationStatus.DEMO,
+                self.ActivationStatus.ACTIVE,
+            }
+        else:
+            visible = self.subscription_active
+            status_allows_publication = self.activation_status == self.ActivationStatus.ACTIVE
+        return bool(
+            self.is_active
+            and status_allows_publication
+            and visible
+        )
 
     @property
     def nom(self):
@@ -285,10 +334,22 @@ class BusinessProfile(models.Model):
             self.is_trial = False
             self.boost_expires_at = None
             self.ai_credits = 0
+            self.subscription_started_at = None
+            self.free_visibility_expires_at = timezone.now() + timedelta(days=14)
             self.save(update_fields=[
                 "plan", "activation_status", "is_verified", "is_trial",
-                "boost_expires_at", "ai_credits", "updated_at",
+                "boost_expires_at", "ai_credits", "subscription_started_at",
+                "free_visibility_expires_at", "updated_at",
             ])
+            return True
+        if (
+            self.plan == self.Plan.FREE
+            and self.is_active
+            and self.free_visibility_expires_at
+            and timezone.now() >= self.free_visibility_expires_at
+        ):
+            self.is_active = False
+            self.save(update_fields=["is_active", "updated_at"])
             return True
         return False
 
@@ -323,8 +384,13 @@ class BusinessProfile(models.Model):
     def activate_plan(self, plan: str, days: int = 30, ai_credits: int | None = None):
         self.plan = plan
         self.activation_status = self.ActivationStatus.ACTIVE
-        base = self.subscription_expires_at if self.subscription_active else timezone.now()
+        self.is_active = True
+        self.is_trial = False
+        now = timezone.now()
+        base = self.subscription_expires_at if self.subscription_active else now
+        self.subscription_started_at = now
         self.subscription_expires_at = base + timedelta(days=days)
+        self.free_visibility_expires_at = None
         self.expiry_reminder_sent_at = None
         if ai_credits is None:
             ai_credits = {
@@ -334,8 +400,9 @@ class BusinessProfile(models.Model):
             }.get(plan, 0)
         self.ai_credits = ai_credits
         self.save(update_fields=[
-            "plan", "activation_status", "subscription_expires_at",
-            "expiry_reminder_sent_at", "ai_credits", "updated_at",
+            "plan", "activation_status", "subscription_started_at",
+            "subscription_expires_at", "free_visibility_expires_at",
+            "expiry_reminder_sent_at", "ai_credits", "is_active", "is_trial", "updated_at",
         ])
 
     def activate_boost(self, days: int = 7):
@@ -859,7 +926,7 @@ class PaymentRequest(models.Model):
             plan=self.plan,
             paid_by=self.requested_by,
             amount_xaf=self.amount_xaf,
-            payment_method="OTHER",
+            payment_method=self.method.upper(),
         )
         self.status = self.Status.CONFIRMED
         self.confirmed_at = timezone.now()
@@ -1078,33 +1145,42 @@ class BusinessKeyPaymentRequest(models.Model):
     def __str__(self):
         return f"{self.user} - {self.get_tier_display()} - {self.amount_xaf} FCFA"
 
+    @db_transaction.atomic
     def confirm(self):
         from billing.affiliates import create_commission_for_transaction
         from billing.models import Transaction
 
-        if self.status == self.Status.CONFIRMED:
+        payment_request = type(self).objects.select_for_update().select_related("user").get(pk=self.pk)
+        if payment_request.status == self.Status.CONFIRMED:
             return None
-        account, _ = BusinessKeyAccount.objects.get_or_create(user=self.user)
-        account.activate(self.tier, days=30)
+        if not BusinessProfile.user_has_business_key_entitlement(payment_request.user_id):
+            raise ValueError(
+                "Un abonnement Croissance — Business ou Premium actif est requis pour activer la Business Key."
+            )
+        account, _ = BusinessKeyAccount.objects.get_or_create(user=payment_request.user)
+        account = BusinessKeyAccount.objects.select_for_update().get(pk=account.pk)
+        account.activate(payment_request.tier, days=30)
         tx = Transaction.objects.create(
-            user=self.user,
-            amount=self.amount_xaf,
+            user=payment_request.user,
+            amount=payment_request.amount_xaf,
             currency="XAF",
             type="CREDIT",
             status="COMPLETED",
             payment_method="OTHER",
             description="Activation E-Shelle Business Key",
             metadata={
-                "business_key_tier": self.tier,
-                "commission_base": str(self.amount_xaf),
+                "business_key_tier": payment_request.tier,
+                "commission_base": str(payment_request.amount_xaf),
                 "product_type": "business_key_subscription",
-                "payment_request_id": self.id,
+                "payment_request_id": payment_request.pk,
             },
         )
         create_commission_for_transaction(tx)
-        self.status = self.Status.CONFIRMED
-        self.confirmed_at = timezone.now()
-        self.save(update_fields=["status", "confirmed_at"])
+        payment_request.status = self.Status.CONFIRMED
+        payment_request.confirmed_at = timezone.now()
+        payment_request.save(update_fields=["status", "confirmed_at"])
+        self.status = payment_request.status
+        self.confirmed_at = payment_request.confirmed_at
         return account
 
 

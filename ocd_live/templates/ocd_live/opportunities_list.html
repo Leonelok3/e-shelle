@@ -1,0 +1,94 @@
+{% extends "ocd_live/base_ocd.html" %}
+
+{% block title %}Opportunités d'Affaires Vérifiées en Afrique | OCD LIVE{% endblock %}
+
+{% block content %}
+<section class="ocd-section" style="padding-top:3.5rem">
+  <div class="ocd-section-header">
+    <span class="ocd-section-eyebrow">CATALOGUE OFFICIEL</span>
+    <h1 class="ocd-section-title">Les Opportunités d'Affaires de Terrain</h1>
+    <p class="ocd-section-subtitle">
+      Explorez nos dossiers d'investissement et projets rentables audités par nos experts sur le terrain.
+    </p>
+
+    <!-- Barre de recherche -->
+    <form method="get" style="max-width:540px;margin:2rem auto 0;display:flex;gap:0.75rem">
+      <input type="text" name="q" value="{{ query }}" placeholder="Rechercher par mot-clé, ville ou filière..." style="flex-grow:1;padding:0.85rem 1.25rem;border-radius:99px;background:rgba(255,255,255,0.06);border:1px solid var(--ocd-border-glass);color:#FFF;font-size:0.95rem;outline:none">
+      <button type="submit" class="ocd-btn ocd-btn-primary" style="padding:0.85rem 1.5rem">Chercher</button>
+    </form>
+
+    <!-- Filtres par catégorie -->
+    <div style="display:flex;flex-wrap:wrap;justify-content:center;gap:0.5rem;margin-top:1.5rem">
+      <a href="{% url 'ocd_live:opportunities_list' %}" class="ocd-btn ocd-btn-glow {% if not active_category %}active{% endif %}" style="padding:0.4rem 1rem;font-size:0.82rem">Tous</a>
+      {% for cat in categories %}
+        <a href="{% url 'ocd_live:opportunities_list' %}?category={{ cat.slug }}" class="ocd-btn ocd-btn-glow {% if active_category == cat.slug %}active{% endif %}" style="padding:0.4rem 1rem;font-size:0.82rem">{{ cat.icon }} {{ cat.name }}</a>
+      {% endfor %}
+    </div>
+  </div>
+
+  <div class="ocd-grid-3">
+    {% for opp in page_obj %}
+      <article class="ocd-card">
+        <div class="ocd-card-header">
+          <span class="ocd-card-cat">{{ opp.category.name|default:"Affaires" }}</span>
+          <span class="ocd-card-status">✓ {{ opp.get_status_display }}</span>
+        </div>
+
+        <h3 class="ocd-card-title">
+          <a href="{{ opp.get_absolute_url }}" style="color:#FFF;text-decoration:none">
+            {{ opp.title }}
+          </a>
+        </h3>
+
+        <div style="font-size:0.82rem;color:var(--ocd-text-amber);margin-bottom:0.75rem;font-weight:700">
+          📍 {{ opp.city|default:"National" }}, {{ opp.country }}
+        </div>
+
+        <p class="ocd-card-desc">
+          {{ opp.summary }}
+        </p>
+
+        <div class="ocd-metrics-row">
+          <div class="ocd-metric-col">
+            <strong>{{ opp.min_capital_xaf|floatformat:0 }} FCFA</strong>
+            <span>Capital Min.</span>
+          </div>
+          <div class="ocd-metric-col">
+            <strong style="color:#4ADE80">{{ opp.estimated_roi }}</strong>
+            <span>Rentabilité</span>
+          </div>
+        </div>
+
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:1rem;margin-top:auto">
+          <a href="{{ opp.get_absolute_url }}" class="ocd-btn ocd-btn-primary" style="flex-grow:1;padding:0.75rem 1rem;font-size:0.9rem">
+            Consulter le Dossier →
+          </a>
+          <a href="https://wa.me/{{ opp.whatsapp_contact|cut:' '|cut:'+' }}?text=Bonjour,%20je%20souhaite%20des%20détails%20sur%20l'opportunité%20{{ opp.title|urlencode }}" target="_blank" rel="noopener" class="ocd-btn" style="background:#25D366;color:#FFF;padding:0.75rem 0.9rem" title="WhatsApp Référent">
+            💬
+          </a>
+        </div>
+      </article>
+    {% empty %}
+      <div style="grid-column:1/-1;text-align:center;padding:4rem 1.5rem;background:var(--ocd-bg-card);border-radius:20px;border:1px solid var(--ocd-border-subtle)">
+        <h3 style="color:#FFF;font-size:1.4rem;margin-bottom:0.75rem">Aucune opportunité ne correspond à ces critères.</h3>
+        <p style="color:#94A3B8;margin-bottom:1.5rem">Essayez une autre recherche ou découvrez nos masterclasses en direct.</p>
+        <a href="{% url 'ocd_live:opportunities_list' %}" class="ocd-btn ocd-btn-glow">Réinitialiser les filtres</a>
+      </div>
+    {% endfor %}
+  </div>
+
+  <!-- Pagination -->
+  {% if page_obj.has_other_pages %}
+    <div style="display:flex;justify-content:center;gap:0.5rem;margin-top:3.5rem">
+      {% if page_obj.has_previous %}
+        <a href="?page={{ page_obj.previous_page_number }}{% if active_category %}&category={{ active_category }}{% endif %}{% if query %}&q={{ query }}{% endif %}" class="ocd-btn ocd-btn-glow" style="padding:0.5rem 1rem">← Précédent</a>
+      {% endif %}
+      <span style="display:flex;align-items:center;padding:0 1rem;color:var(--ocd-text-amber);font-weight:700">Page {{ page_obj.number }} / {{ page_obj.paginator.num_pages }}</span>
+      {% if page_obj.has_next %}
+        <a href="?page={{ page_obj.next_page_number }}{% if active_category %}&category={{ active_category }}{% endif %}{% if query %}&q={{ query }}{% endif %}" class="ocd-btn ocd-btn-glow" style="padding:0.5rem 1rem">Suivant →</a>
+      {% endif %}
+    </div>
+  {% endif %}
+</section>
+{% endblock %}
+
