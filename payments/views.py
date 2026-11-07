@@ -241,16 +241,20 @@ def _start_campay_checkout(request, transaction_obj, *, description, fallback_ur
             redirect_url=return_url,
         )
     except CampayError as exc:
+        err_msg = str(exc)
         transaction_obj.statut = "echec"
-        transaction_obj.erreur = "CamPay checkout could not be started."
+        transaction_obj.erreur = err_msg[:255]
         transaction_obj.save(update_fields=["statut", "erreur", "updated_at"])
         _set_app_plan_payment_status(transaction_obj, "failed")
-        logger.warning(
+        logger.error(
             "CamPay checkout failed for transaction %s: %s",
             transaction_obj.reference,
             exc,
         )
-        messages.error(request, "CamPay n’a pas pu démarrer le paiement. Vous pouvez réessayer ou continuer sur WhatsApp.")
+        messages.error(
+            request,
+            f"CamPay n’a pas pu démarrer le paiement ({err_msg}). Vous pouvez réessayer ou continuer sur WhatsApp."
+        )
         return redirect(fallback_url)
 
     metadata = dict(transaction_obj.metadata or {})

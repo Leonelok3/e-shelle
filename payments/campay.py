@@ -49,6 +49,17 @@ class CampayClient:
             raise CampayError("CamPay could not be reached.") from exc
 
         if not 200 <= response.status_code < 300:
+            detail = ""
+            try:
+                err_data = response.json()
+                if isinstance(err_data, dict):
+                    detail = err_data.get("message") or err_data.get("detail") or str(err_data)
+                elif isinstance(err_data, list):
+                    detail = ", ".join(str(x) for x in err_data)
+            except Exception:
+                detail = (response.text or "").strip()[:200]
+            if detail:
+                raise CampayError(f"CamPay returned HTTP {response.status_code}: {detail}")
             raise CampayError(f"CamPay returned HTTP {response.status_code}.")
         try:
             result = response.json()
@@ -212,4 +223,11 @@ def _is_campay_checkout_url(value):
     if not _is_https_url(value):
         return False
     hostname = (urlparse(value).hostname or "").lower()
-    return hostname in {"campay.net", "demo.campay.net", "www.campay.net"}
+    return (
+        hostname in {
+            "campay.net", "demo.campay.net", "www.campay.net",
+            "campay.com", "demo.campay.com", "www.campay.com",
+        }
+        or hostname.endswith(".campay.net")
+        or hostname.endswith(".campay.com")
+    )

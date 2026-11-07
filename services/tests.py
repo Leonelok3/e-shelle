@@ -2,6 +2,15 @@ from django.test import TestCase, override_settings
 
 
 class PublicMetaReviewPagesTests(TestCase):
+    def test_homepage_promotes_all_applications_with_responsive_cta_content(self):
+        response = self.client.get("/")
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Vous cherchez un autre service E-Shelle")
+        self.assertContains(response, "Découvrez nos applications pour les entreprises")
+        self.assertContains(response, 'class="home-apps-cta-link" href="/applications/"')
+        self.assertContains(response, "Voir toutes les applications E-Shelle")
+
     def test_homepage_uses_meta_label_and_hides_unverified_content(self):
         response = self.client.get("/")
 
@@ -90,6 +99,11 @@ class PublicMetaReviewPagesTests(TestCase):
         self.assertContains(response, "E-Shelle est Tech Provider Meta (App ID 1841260056892991)")
         self.assertContains(response, 'href="/services/whatsapp-business/"')
         self.assertContains(response, "Installation WhatsApp Business API")
+        self.assertContains(response, "Soyez visible. Donnez envie. Gardez le contact.")
+        self.assertContains(response, "Être trouvé")
+        self.assertContains(response, "Présenter vos offres")
+        self.assertContains(response, "Garder le contact")
+        self.assertContains(response, "Les campagnes WhatsApp nécessitent une formule éligible")
         self.assertContains(response, 'href="/privacy-policy"')
         self.assertContains(response, 'href="/terms"')
         self.assertContains(response, 'href="/about"')
