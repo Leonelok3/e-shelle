@@ -2,17 +2,13 @@ from django.test import TestCase, override_settings
 
 
 class PublicMetaReviewPagesTests(TestCase):
-    def test_homepage_uses_meta_label_and_hides_unverified_content(self):
+    def test_homepage_uses_previous_business_hero_and_hides_unverified_content(self):
         response = self.client.get("/")
 
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, "E-Shelle est Tech Provider Meta (App ID 1841260056892991)")
-        self.assertContains(response, "Créer ma fiche business gratuite")
-        self.assertContains(response, "Connecter WhatsApp Business")
-        self.assertContains(response, "Mise en service WhatsApp : 25 000 FCFA une fois")
-        self.assertContains(response, "5 000 FCFA")
-        self.assertContains(response, "15 000 FCFA")
-        self.assertContains(response, "30 000 FCFA")
+        self.assertContains(response, "Vendez en continu avec l’IA")
+        self.assertContains(response, "App ID 1841260056892991 · API Cloud directe")
+        self.assertContains(response, "Connecter WhatsApp")
         self.assertContains(response, 'href="/business/restaurants/"')
         self.assertContains(response, 'href="/business/grossistes/"')
         for unpublished_text in (
