@@ -1,7 +1,7 @@
 """
 models_whatsapp_draft.py — immobilier_cameroun
 Brouillons d'annonces immobilières capturées depuis les groupes WhatsApp (ex: ViSLE, E-Shelle Immobilier).
-Validation humaine en 1 clic avant publication sur e-shelle.com et partage Facebook.
+Validation humaine avant publication sur e-shelle.com et partage Facebook.
 """
 import uuid
 from django.db import models
@@ -29,14 +29,16 @@ class WhatsappImmoDraft(models.Model):
     # Données extraites par regex / IA
     parsed_titre = models.CharField("Titre suggéré", max_length=200, blank=True)
     parsed_type_bien = models.CharField(
-        "Type de bien", max_length=30, choices=TypeBien.choices, default=TypeBien.STUDIO
+        "Type de bien", max_length=30, choices=TypeBien.choices, blank=True, default=""
     )
     parsed_type_transaction = models.CharField(
-        "Transaction", max_length=20, choices=TypeTransaction.choices, default=TypeTransaction.LOCATION
+        "Transaction", max_length=20, choices=TypeTransaction.choices, blank=True, default=""
     )
     parsed_prix = models.DecimalField("Prix loyer/vente (XAF)", max_digits=14, decimal_places=0, null=True, blank=True)
     parsed_conditions = models.CharField("Conditions (Avance/Caution)", max_length=150, blank=True)
-    parsed_ville = models.CharField("Ville", max_length=100, choices=VILLES_CAMEROUN, default="Yaoundé")
+    parsed_ville = models.CharField(
+        "Ville", max_length=100, choices=VILLES_CAMEROUN, blank=True, default=""
+    )
     parsed_quartier = models.CharField("Quartier", max_length=150, blank=True)
     parsed_description = models.TextField("Description brute extraite", blank=True)
 
@@ -54,6 +56,28 @@ class WhatsappImmoDraft(models.Model):
         related_name="whatsapp_drafts", verbose_name="Bien créé sur E-Shelle"
     )
     facebook_post_id = models.CharField("ID publication Facebook", max_length=100, blank=True)
+    details_reviewed_at = models.DateTimeField(
+        "Informations vérifiées le", null=True, blank=True
+    )
+    details_reviewed_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="whatsapp_immo_detail_reviews",
+        verbose_name="Informations vérifiées par",
+    )
+    republishing_authorized_at = models.DateTimeField(
+        "Autorisation de republication confirmée le", null=True, blank=True
+    )
+    republishing_authorized_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="whatsapp_immo_republishing_authorizations",
+        verbose_name="Autorisation confirmée par",
+    )
     created_by = models.ForeignKey(
         settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True,
         related_name="whatsapp_immo_drafts", verbose_name="Importé par"

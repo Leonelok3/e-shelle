@@ -26,19 +26,45 @@
 
       <div class="row g-3 mb-3">
         <div class="col-md-6">
-          <label for="quartier" class="form-label fw-bold">Quartier</label>
-          <input type="text" name="quartier" id="quartier" class="form-control rounded-3" value="{{ draft.parsed_quartier }}">
+          <label for="type_bien" class="form-label fw-bold">Type de bien</label>
+          <select name="type_bien" id="type_bien" class="form-select rounded-3" required>
+            <option value="">Choisir le type</option>
+            {% for value, label in types_bien %}
+              <option value="{{ value }}" {% if draft.parsed_type_bien == value %}selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+          </select>
         </div>
         <div class="col-md-6">
+          <label for="type_transaction" class="form-label fw-bold">Transaction</label>
+          <select name="type_transaction" id="type_transaction" class="form-select rounded-3" required>
+            <option value="">Choisir la transaction</option>
+            {% for value, label in types_transaction %}
+              <option value="{{ value }}" {% if draft.parsed_type_transaction == value %}selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+          </select>
+        </div>
+      </div>
+
+      <div class="row g-3 mb-3">
+        <div class="col-md-6">
           <label for="ville" class="form-label fw-bold">Ville</label>
-          <input type="text" name="ville" id="ville" class="form-control rounded-3" value="{{ draft.parsed_ville }}">
+          <select name="ville" id="ville" class="form-select rounded-3" required>
+            <option value="">Choisir la ville</option>
+            {% for value, label in villes %}
+              <option value="{{ value }}" {% if draft.parsed_ville == value %}selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="col-md-6">
+          <label for="quartier" class="form-label fw-bold">Quartier</label>
+          <input type="text" name="quartier" id="quartier" class="form-control rounded-3" value="{{ draft.parsed_quartier }}" required>
         </div>
       </div>
 
       <div class="row g-3 mb-3">
         <div class="col-md-6">
           <label for="prix" class="form-label fw-bold">Prix / Loyer (XAF)</label>
-          <input type="number" name="prix" id="prix" class="form-control rounded-3" value="{{ draft.parsed_prix|default:'' }}">
+          <input type="number" name="prix" id="prix" min="1" step="1" class="form-control rounded-3" value="{{ draft.parsed_prix|default:'' }}" required>
         </div>
         <div class="col-md-6">
           <label for="conditions" class="form-label fw-bold">Conditions (Avance / Caution)</label>
@@ -59,13 +85,20 @@
 
       <div class="mb-4">
         <label for="description" class="form-label fw-bold">Description de l'annonce</label>
-        <textarea name="description" id="description" rows="8" class="form-control rounded-3">{{ draft.ai_improved_description|default:draft.raw_text }}</textarea>
+        <textarea name="description" id="description" rows="8" class="form-control rounded-3" required>{{ draft.ai_improved_description|default:draft.raw_text }}</textarea>
+      </div>
+
+      <div class="form-check mb-4">
+        <input class="form-check-input" type="checkbox" name="confirm_details_reviewed" id="confirm_details_reviewed" required>
+        <label class="form-check-label" for="confirm_details_reviewed">
+          J’ai vérifié le type de bien, la transaction, la ville, le quartier, le prix et la description avec l’annonce source.
+        </label>
       </div>
 
       <div class="d-flex justify-content-end gap-2">
         <a href="{% url 'immobilier:whatsapp_drafts' %}" class="btn btn-outline-secondary rounded-pill px-4">Annuler</a>
         <button type="submit" class="btn btn-success rounded-pill px-4 fw-bold" style="background:#1B4332;border-color:#1B4332;">
-          <i class="fa-solid fa-save me-1"></i> Enregistrer les modifications
+          <i class="fa-solid fa-save me-1"></i> Enregistrer et confirmer la vérification
         </button>
       </div>
     </form>

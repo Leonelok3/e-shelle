@@ -7,11 +7,9 @@ Parsing automatique des messages immobiliers WhatsApp (groupes Cameroun : ViSLE,
 - Génération d'une description enrichie professionnelle et optimisée SEO
 """
 import re
-import os
-import math
 import logging
 from decimal import Decimal
-from typing import List, Dict, Any, Tuple, Optional
+from typing import List, Dict, Any, Tuple
 from PIL import Image, ImageStat, ImageFilter
 
 logger = logging.getLogger(__name__)
@@ -66,11 +64,11 @@ def parse_immo_text(text: str) -> Dict[str, Any]:
     cleaned_text = text.strip()
     result = {
         "titre": "",
-        "type_bien": "STUDIO",
-        "type_transaction": "LOCATION",
+        "type_bien": "",
+        "type_transaction": "",
         "prix": None,
         "conditions": "",
-        "ville": "Yaoundé",
+        "ville": "",
         "quartier": "",
         "telephone": "",
         "description": cleaned_text,
@@ -138,7 +136,7 @@ def parse_immo_text(text: str) -> Dict[str, Any]:
         result["type_transaction"] = "VENTE"
     elif re.search(r"\b(colocation|coloc)\b", lower_text):
         result["type_transaction"] = "COLOCATION"
-    else:
+    elif re.search(r"\b(à louer|a louer|location|loue|loyer|loquer)\b", lower_text):
         result["type_transaction"] = "LOCATION"
 
     # ── 4. TYPE DE BIEN ──
@@ -161,7 +159,7 @@ def parse_immo_text(text: str) -> Dict[str, Any]:
     elif re.search(r"\b(studio)\b", lower_text):
         result["type_bien"] = "STUDIO"
     else:
-        result["type_bien"] = "STUDIO"
+        result["type_bien"] = ""
 
     # ── 5. ANALYSE PRIX & FORMULE CONDITIONS ──
     # Cas clé 1 : Formule camerounaise type "80mil*4+2" ou "80k*6+2" ou "150 000 * 10 + 2"
@@ -218,7 +216,14 @@ def parse_immo_text(text: str) -> Dict[str, Any]:
         m_cfa = re.search(r"\b(\d{1,3}(?:[\s.,]\d{3})+|\d{4,9})\s*(?:fcfa|cfa|frs|f\b|xaf)?", cleaned_text, re.IGNORECASE)
         if m_cfa:
             digits = re.sub(r"[\s.,]", "", m_cfa.group(1))
-            if digits.isdigit() and int(digits) >= 10000:
+            phone_digits = re.sub(r"\D", "", result["telephone"])
+            is_phone_fragment = bool(
+                phone_digits and (
+                    phone_digits.endswith(digits)
+                    or digits.endswith(phone_digits[-9:])
+                )
+            )
+            if digits.isdigit() and int(digits) >= 10000 and not is_phone_fragment:
                 extracted_prix = int(digits)
 
     if extracted_prix:
@@ -257,11 +262,17 @@ def parse_immo_text(text: str) -> Dict[str, Any]:
         "TERRAIN": "Terrain titré",
         "AUTRE": "Bien immobilier",
     }
-    action_label = "à Louer" if result["type_transaction"] == "LOCATION" else "à Vendre"
+    action_labels = {
+        "LOCATION": "à louer",
+        "VENTE": "à vendre",
+        "COLOCATION": "en colocation",
+    }
+    action_label = action_labels.get(result["type_transaction"], "à confirmer")
     q_label = f" à {result['quartier']}" if result["quartier"] else ""
     v_label = f" ({result['ville']})" if result["ville"] else ""
 
-    result["titre"] = f"{type_labels.get(result['type_bien'], 'Bien')} {action_label}{q_label}{v_label}"
+    type_label = type_labels.get(result["type_bien"], "Bien immobilier")
+    result["titre"] = f"{type_label} {action_label}{q_label}{v_label}"
 
     # ── 7. CALCUL DU SCORE QUALITÉ INITIAL (0 - 100) ──
     score = 30.0
@@ -420,75 +431,70 @@ def select_best_photos(images_list: List[Any], max_photos: int = 5) -> List[Dict
 
 def improve_description(raw_text: str, parsed_data: Dict[str, Any]) -> str:
     """
-    Génère une description immobilière professionnelle, séduisante,
-    structurée avec emojis et optimisée pour le SEO local camerounais.
+    Met en forme les informations présentes sans ajouter de caractéristiques
+    ou de promesses qui ne figurent pas dans l'annonce source.
     """
-    titre = parsed_data.get("titre") or "Bien immobilier de standing"
-    ville = parsed_data.get("ville") or "Cameroun"
-    quartier = parsed_data.get("quartier") or "Zone résidentielle"
+    titre = parsed_data.get("titre") or "Bien immobilier"
+    ville = parsed_data.get("ville") or ""
+    quartier = parsed_data.get("quartier") or ""
     prix = parsed_data.get("prix")
     conditions = parsed_data.get("conditions") or ""
-    phone = parsed_data.get("telephone") or ""
-    type_bien = parsed_data.get("type_bien") or "BIEN"
-    type_transaction = parsed_data.get("type_transaction") or "LOCATION"
+    type_transaction = parsed_data.get("type_transaction") or ""
 
-    # Formatage prix
+    sections = [f"🏠 **{titre}**"]
+
+    location_parts = [part for part in (quartier, ville) if part]
+    if location_parts:
+        sections.append(f"📍 **Localisation** : {', '.join(location_parts)}")
+
     if prix:
         prix_str = f"{int(prix):,} XAF".replace(",", " ")
         if type_transaction == "LOCATION":
             prix_label = f"{prix_str} / mois"
+        elif type_transaction == "VENTE":
+            prix_label = prix_str
         else:
-            prix_label = f"{prix_str}"
-    else:
-        prix_label = "Prix sur demande"
+            prix_label = f"{prix_str} (période à confirmer)"
+        sections.append(f"💰 **Prix indiqué** : {prix_label}")
 
-    # Détection des points forts dans le texte brut
-    points_forts = []
-    raw_lower = raw_text.lower()
-    
-    if any(k in raw_lower for k in ["forage", "eau cde", "camwater", "eau disponible", "bâche"]):
-        points_forts.append("💧 Alimentation en eau continue (forage / Camwater)")
-    if any(k in raw_lower for k in ["compteur", "eneo", "prépayé", "prepaye"]):
-        points_forts.append("⚡ Compteur électrique individuel prépayé")
-    if any(k in raw_lower for k in ["parking", "garage"]):
-        points_forts.append("🚗 Parking sécurisé disponible")
-    if any(k in raw_lower for k in ["gardien", "vigile", "sécurité", "securite", "clôturé", "cloture"]):
-        points_forts.append("🛡️ Cadre sécurisé et clôturé avec gardiennage")
-    if any(k in raw_lower for k in ["clim", "climatisé", "climatise"]):
-        points_forts.append("❄️ Logement climatisé")
-    if any(k in raw_lower for k in ["balcon", "terrasse", "véranda"]):
-        points_forts.append("🌅 Balcon avec vue agréable")
-    if any(k in raw_lower for k in ["chauffe-eau", "chauffe eau"]):
-        points_forts.append("🚿 Chauffe-eau installé")
-    if any(k in raw_lower for k in ["placard", "dressing"]):
-        points_forts.append("🚪 Placards et rangements intégrés")
-
-    if not points_forts:
-        points_forts = [
-            "✨ Cadre calme, propre et accessible",
-            "🛡️ Environnement sécurisé",
-            "🚗 Accès facile pour véhicule",
-        ]
-
-    bullets_str = "\n".join(f"- {p}" for p in points_forts)
-
-    conditions_block = ""
     if conditions:
-        conditions_block = f"📋 **Conditions d'entrée** : {conditions}\n"
+        sections.append(f"📋 **Conditions indiquées** : {conditions}")
 
-    contact_block = f"📱 **Contact direct WhatsApp** : {phone}\n" if phone else ""
+    # Report only amenities explicitly mentioned in the source message.
+    mentioned_features = []
+    raw_lower = raw_text.lower()
 
-    improved = f"""🏠 **{titre.upper()}**
+    if "forage" in raw_lower:
+        mentioned_features.append("Forage mentionné")
+    if any(k in raw_lower for k in ["eau cde", "camwater", "eau disponible"]):
+        mentioned_features.append("Approvisionnement en eau mentionné")
+    if any(k in raw_lower for k in ["compteur", "eneo", "prépayé", "prepaye"]):
+        mentioned_features.append("Compteur / électricité mentionné")
+    if any(k in raw_lower for k in ["parking", "garage"]):
+        mentioned_features.append("Parking / garage mentionné")
+    if any(k in raw_lower for k in ["gardien", "vigile", "sécurité", "securite", "clôturé", "cloture"]):
+        mentioned_features.append("Sécurité / gardiennage mentionné")
+    if any(k in raw_lower for k in ["clim", "climatisé", "climatise"]):
+        mentioned_features.append("Climatisation mentionnée")
+    if any(k in raw_lower for k in ["balcon", "terrasse", "véranda"]):
+        mentioned_features.append("Balcon / terrasse mentionné")
+    if any(k in raw_lower for k in ["chauffe-eau", "chauffe eau"]):
+        mentioned_features.append("Chauffe-eau mentionné")
+    if any(k in raw_lower for k in ["placard", "dressing"]):
+        mentioned_features.append("Placards / dressing mentionné")
 
-📍 **Localisation** : Quartier {quartier}, {ville}
-💰 **Tarif** : {prix_label}
-{conditions_block}
-✨ **Points forts & Équipements** :
-{bullets_str}
+    if mentioned_features:
+        sections.append(
+            "✨ **Équipements mentionnés** :\n"
+            + "\n".join(f"- {feature}" for feature in mentioned_features)
+        )
 
-📝 **Description & Ambiance** :
-Ce bien immobilier idéalement situé à {quartier} offre un cadre de vie paisible, sécurisé et proche de toutes commodités (transports, commerces, écoles). Parfait pour toute personne à la recherche de confort et de sérénité au quotidien.
+    if raw_text.strip():
+        public_text = re.sub(
+            r"(?<!\w)(?:\+?237[\s.-]*)?[62](?:[\s.-]*\d){8}(?!\w)",
+            "[contact à confirmer]",
+            raw_text.strip(),
+        )
+        sections.append(f"📝 **Détails communiqués** :\n{public_text}")
 
-{contact_block}👉 **Visites & réservations rapides garanties via E-Shelle Immobilier**.
-"""
-    return improved.strip()
+    return "\n\n".join(sections)

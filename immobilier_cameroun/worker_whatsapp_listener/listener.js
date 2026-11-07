@@ -1,7 +1,7 @@
 /**
  * listener.js — Worker WhatsApp Baileys pour E-Shelle Immobilier
- * Écoute en continu le groupe "E-Shelle Immobilier", regroupe les photos
- * et les envoie automatiquement à Django sans aucune intervention manuelle.
+ * Écoute le groupe explicitement autorisé, regroupe les photos
+ * et transmet les annonces à Django comme brouillons à vérifier.
  */
 import baileysPkg, {
     useMultiFileAuthState,
@@ -36,12 +36,26 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 // Configuration
 const DJANGO_INGEST_URL = process.env.DJANGO_INGEST_URL || 'http://127.0.0.1:8000/immobilier/api/internal-ingest/';
-const INTERNAL_SECRET = process.env.INTERNAL_WHATSAPP_SECRET || 'eshelle_immo_listener_secret_2026';
-const TARGET_GROUP_KEYWORD = (process.env.TARGET_GROUP_KEYWORD || 'immobilier').toLowerCase();
+const INTERNAL_SECRET = process.env.INTERNAL_WHATSAPP_SECRET || '';
+const TARGET_GROUP_NAME = process.env.TARGET_GROUP_NAME || '';
 const PHONE_NUMBER_FOR_PAIRING = process.env.PHONE_NUMBER || '237680625082'; // +237680625082
 const USE_PAIRING_CODE = process.env.USE_PAIRING_CODE === 'true'; // Mettre à true pour recevoir un code à 8 chiffres
 
 const logger = pino({ level: 'info' });
+
+function normalizeGroupName(name) {
+    return name.normalize('NFD')
+        .replace(/\p{Diacritic}/gu, '')
+        .toLowerCase()
+        .replace(/[^\p{L}\p{N}]/gu, '');
+}
+
+if (INTERNAL_SECRET.length < 32 || INTERNAL_SECRET === 'replace-with-a-random-secret-of-at-least-32-characters') {
+    throw new Error('INTERNAL_WHATSAPP_SECRET doit être un secret aléatoire d’au moins 32 caractères.');
+}
+if (!TARGET_GROUP_NAME.trim()) {
+    throw new Error('TARGET_GROUP_NAME doit désigner exactement le groupe WhatsApp autorisé.');
+}
 
 // Buffer temporaire pour regrouper les photos envoyées en rafale (fenêtre de 10s)
 const pendingBatches = new Map();
@@ -51,7 +65,6 @@ async function sendBatchToDjango(batchKey, batchData) {
         console.log(`\n🚀 [Ingestion Django] Envoi annonce de ${batchData.senderPhone} (${batchData.images.length} photos)...`);
         
         const form = new FormData();
-        form.append('secret', INTERNAL_SECRET);
         form.append('raw_text', batchData.text || '');
         form.append('source_name', batchData.senderName || 'Démarcheur WhatsApp');
         form.append('source_phone', batchData.senderPhone || '');
@@ -93,7 +106,7 @@ async function startWhatsAppListener() {
     console.log(`=======================================================`);
     console.log(`📱 E-Shelle WhatsApp Immo Listener (Baileys v${version.join('.')})`);
     console.log(`📡 URL Django Ingest : ${DJANGO_INGEST_URL}`);
-    console.log(`🎯 Filtre groupe : "${TARGET_GROUP_KEYWORD}"`);
+    console.log(`🎯 Groupe autorisé : "${TARGET_GROUP_NAME}"`);
     console.log(`=======================================================\n`);
 
     const sock = makeWASocket({
@@ -161,8 +174,8 @@ async function startWhatsAppListener() {
                 // Métadonnées non dispo en cache
             }
 
-            if (!groupSubject.toLowerCase().includes(TARGET_GROUP_KEYWORD)) {
-                continue; // Pas un groupe immobilier
+            if (normalizeGroupName(groupSubject) !== normalizeGroupName(TARGET_GROUP_NAME)) {
+                continue;
             }
 
             // Extraction du contenu

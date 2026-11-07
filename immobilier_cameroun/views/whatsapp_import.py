@@ -2,25 +2,34 @@
 whatsapp_import.py — immobilier_cameroun/views
 Vues d'administration pour l'import de messages et photos WhatsApp :
 - Import : coller texte + drag & drop 9 photos
-- Validation 1-clic : création de Bien + 5 PhotoBien + publication Facebook
+- Vérification humaine : création de Bien + photos + partage Facebook
 - Gestion des brouillons WhatsAppImmoDraft
 """
 import os
 import uuid
 import logging
-from decimal import Decimal
+import hmac
+from django.db import transaction
+from decimal import Decimal, InvalidOperation
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.admin.views.decorators import staff_member_required
-from django.contrib.auth.decorators import login_required
 from django.contrib import messages
-from django.http import JsonResponse, HttpResponseBadRequest
+from django.http import JsonResponse
 from django.views.decorators.http import require_POST, require_http_methods
 from django.core.files import File
 from django.conf import settings
 from django.utils import timezone
 from django.contrib.auth import get_user_model
 
-from ..models import Bien, PhotoBien, StatutBien, PeriodePrix
+from ..models import (
+    Bien,
+    PhotoBien,
+    StatutBien,
+    PeriodePrix,
+    TypeBien,
+    TypeTransaction,
+    VILLES_CAMEROUN,
+)
 from ..models_whatsapp_draft import WhatsappImmoDraft
 from ..services.whatsapp_parser import parse_immo_text, select_best_photos, improve_description
 from ..services.facebook_publisher import publier_bien_sur_facebook
@@ -71,7 +80,53 @@ def _get_admin_owner(request_user):
 # WORKFLOW VALIDATION D'UN BROUILLON -> BIEN + 5 PHOTOS + FACEBOOK
 # ─────────────────────────────────────────────────────────────────
 
-def execute_draft_validation(draft: WhatsappImmoDraft, user=None) -> Bien:
+def _validate_draft_for_publication(draft: WhatsappImmoDraft) -> None:
+    if not draft.details_reviewed_at or not draft.details_reviewed_by_id:
+        raise ValueError("Vérifiez et enregistrez les informations de l'annonce avant publication.")
+
+    required_fields = {
+        "titre": draft.parsed_titre.strip(),
+        "prix": draft.parsed_prix,
+        "ville": draft.parsed_ville,
+        "quartier": draft.parsed_quartier.strip(),
+        "type de bien": draft.parsed_type_bien,
+        "type de transaction": draft.parsed_type_transaction,
+    }
+    missing_fields = [label for label, value in required_fields.items() if not value]
+    if draft.parsed_prix is not None:
+        if not draft.parsed_prix.is_finite() or draft.parsed_prix <= 0:
+            missing_fields.append("prix valide supérieur à zéro")
+        elif draft.parsed_prix.adjusted() > 13:
+            missing_fields.append("prix dans la limite autorisée")
+        elif draft.parsed_prix != draft.parsed_prix.to_integral_value():
+            missing_fields.append("prix entier en XAF")
+    if draft.parsed_ville and draft.parsed_ville not in dict(VILLES_CAMEROUN):
+        missing_fields.append("ville valide")
+    if draft.parsed_type_bien and draft.parsed_type_bien not in TypeBien.values:
+        missing_fields.append("type de bien valide")
+    if draft.parsed_type_transaction and draft.parsed_type_transaction not in TypeTransaction.values:
+        missing_fields.append("type de transaction valide")
+    description = (
+        draft.ai_improved_description
+        or draft.parsed_description
+        or draft.raw_text
+    )
+    if not description.strip():
+        missing_fields.append("description")
+
+    if missing_fields:
+        raise ValueError(
+            "Complétez ou corrigez ces informations avant publication : "
+            + ", ".join(dict.fromkeys(missing_fields))
+            + "."
+        )
+
+
+def execute_draft_validation(
+    draft: WhatsappImmoDraft,
+    user=None,
+    republishing_consent_confirmed=False,
+) -> Bien:
     """
     Exécute la création automatique d'un Bien officiel à partir d'un brouillon validé :
     1. Crée l'instance Bien avec statut PUBLIE
@@ -79,62 +134,90 @@ def execute_draft_validation(draft: WhatsappImmoDraft, user=None) -> Bien:
     3. Déclenche la publication sur la Page Facebook E-Shelle via get_facebook_page_credentials()
     4. Met à jour le brouillon (APPROVED, post_id, created_bien)
     """
-    proprietaire = user or draft.created_by or _get_admin_owner(user)
+    if not republishing_consent_confirmed:
+        raise ValueError("Confirmez l'autorisation de republication avant toute diffusion.")
 
-    # 1. Création du Bien
-    periode = PeriodePrix.PAR_MOIS if draft.parsed_type_transaction == "LOCATION" else PeriodePrix.PRIX_FIXE
-    desc_finale = draft.ai_improved_description or draft.parsed_description or draft.raw_text
+    with transaction.atomic():
+        draft = WhatsappImmoDraft.objects.select_for_update().get(pk=draft.pk)
+        if draft.status == WhatsappImmoDraft.Status.APPROVED and draft.created_bien_id:
+            return draft.created_bien
+        if draft.status != WhatsappImmoDraft.Status.PENDING:
+            raise ValueError("Seuls les brouillons en attente peuvent être publiés.")
+        _validate_draft_for_publication(draft)
 
-    bien = Bien.objects.create(
-        titre=draft.parsed_titre or f"Bien immobilier à {draft.parsed_quartier or draft.parsed_ville}",
-        type_bien=draft.parsed_type_bien,
-        type_transaction=draft.parsed_type_transaction,
-        description=desc_finale,
-        prix=draft.parsed_prix or Decimal("0"),
-        devise="XAF",
-        periode_prix=periode,
-        ville=draft.parsed_ville or "Yaoundé",
-        quartier=draft.parsed_quartier or "Centre",
-        statut=StatutBien.PUBLIE,
-        proprietaire=proprietaire,
-        publie_par_admin=True,
-        note_admin=f"Importé via WhatsApp ({draft.whatsapp_group_name}) — Contact source : {draft.source_name} ({draft.source_phone})",
-        date_publication=timezone.now(),
-    )
+        proprietaire = user or draft.created_by or _get_admin_owner(user)
+        periode = (
+            PeriodePrix.PAR_MOIS
+            if draft.parsed_type_transaction == TypeTransaction.LOCATION
+            else PeriodePrix.PRIX_FIXE
+        )
+        desc_finale = draft.ai_improved_description or draft.parsed_description or draft.raw_text
 
-    # 2. Création des PhotoBien (max 5 retenues)
-    selected_photos = draft.ai_selected_photos_json or draft.raw_images_json or []
-    for idx, rel_path in enumerate(selected_photos[:5]):
-        abs_path = os.path.join(settings.MEDIA_ROOT, rel_path.replace("/", os.sep))
-        if os.path.exists(abs_path):
-            try:
-                with open(abs_path, "rb") as f:
-                    filename = os.path.basename(abs_path)
-                    photo_obj = PhotoBien(
-                        bien=bien,
-                        legende=f"Vue {idx + 1} — {bien.titre[:80]}",
-                        est_photo_principale=(idx == 0),
-                        ordre=idx,
-                    )
-                    photo_obj.image.save(filename, File(f), save=True)
-            except Exception as e:
-                logger.warning(f"[execute_draft_validation] Erreur copie photo {abs_path}: {e}")
+        now = timezone.now()
+        bien = Bien.objects.create(
+            titre=draft.parsed_titre,
+            type_bien=draft.parsed_type_bien,
+            type_transaction=draft.parsed_type_transaction,
+            description=desc_finale,
+            prix=draft.parsed_prix,
+            devise="XAF",
+            periode_prix=periode,
+            ville=draft.parsed_ville,
+            quartier=draft.parsed_quartier,
+            statut=StatutBien.PUBLIE,
+            proprietaire=proprietaire,
+            publie_par_admin=True,
+            note_admin=f"Importé via WhatsApp ({draft.whatsapp_group_name}) — Contact source : {draft.source_name} ({draft.source_phone})",
+            date_publication=now,
+        )
 
-    # 3. Publication sur la Page Facebook officielle
+        selected_photos = draft.ai_selected_photos_json or draft.raw_images_json or []
+        for idx, rel_path in enumerate(selected_photos[:5]):
+            abs_path = os.path.join(settings.MEDIA_ROOT, rel_path.replace("/", os.sep))
+            if not os.path.exists(abs_path):
+                continue
+            with open(abs_path, "rb") as photo_file:
+                filename = os.path.basename(abs_path)
+                photo_obj = PhotoBien(
+                    bien=bien,
+                    legende=f"Vue {idx + 1} — {bien.titre[:80]}",
+                    est_photo_principale=(idx == 0),
+                    ordre=idx,
+                )
+                photo_obj.image.save(filename, File(photo_file), save=True)
+
+        draft.status = WhatsappImmoDraft.Status.APPROVED
+        draft.created_bien = bien
+        draft.republishing_authorized_at = now
+        draft.republishing_authorized_by = user
+        draft.save(
+            update_fields=[
+                "status",
+                "created_bien",
+                "republishing_authorized_at",
+                "republishing_authorized_by",
+                "updated_at",
+            ]
+        )
+
     fb_post_id = None
     try:
         fb_post_id = publier_bien_sur_facebook(bien, draft=draft)
-    except Exception as e:
-        logger.error(f"[execute_draft_validation] Exception publication Facebook: {e}")
-
-    # 4. Mise à jour du brouillon
-    draft.status = WhatsappImmoDraft.Status.APPROVED
-    draft.created_bien = bien
+    except Exception:
+        logger.exception(
+            "[execute_draft_validation] Exception publication Facebook pour le bien %s",
+            bien.pk,
+        )
     if fb_post_id:
         draft.facebook_post_id = fb_post_id
-    draft.save()
+        draft.save(update_fields=["facebook_post_id", "updated_at"])
 
-    logger.info(f"[execute_draft_validation] Bien {bien.pk} créé avec succès depuis draft {draft.uuid}. FB: {fb_post_id}")
+    logger.info(
+        "[execute_draft_validation] Bien %s publié depuis le brouillon %s. FB: %s",
+        bien.pk,
+        draft.uuid,
+        fb_post_id,
+    )
     return bien
 
 
@@ -199,7 +282,7 @@ def import_whatsapp_view(request):
             quality_score = min(quality_score + 8.0, 100.0)
 
         # Création du brouillon
-        draft = WhatsappImmoDraft.objects.create(
+        WhatsappImmoDraft.objects.create(
             uuid=draft_uuid,
             raw_text=raw_text,
             raw_images_json=saved_rel_paths,
@@ -207,11 +290,11 @@ def import_whatsapp_view(request):
             source_phone=source_phone,
             whatsapp_group_name=group_name,
             parsed_titre=parsed.get("titre", ""),
-            parsed_type_bien=parsed.get("type_bien", "STUDIO"),
-            parsed_type_transaction=parsed.get("type_transaction", "LOCATION"),
+            parsed_type_bien=parsed.get("type_bien", ""),
+            parsed_type_transaction=parsed.get("type_transaction", ""),
             parsed_prix=parsed.get("prix"),
             parsed_conditions=parsed.get("conditions", ""),
-            parsed_ville=parsed.get("ville", "Yaoundé"),
+            parsed_ville=parsed.get("ville", ""),
             parsed_quartier=parsed.get("quartier", ""),
             parsed_description=parsed.get("description", raw_text),
             ai_improved_description=ai_description,
@@ -270,7 +353,17 @@ def valider_draft_view(request, draft_uuid):
         messages.info(request, "Ce brouillon a déjà été validé et publié.")
         return redirect("immobilier:whatsapp_drafts")
 
-    bien = execute_draft_validation(draft, user=request.user)
+    try:
+        bien = execute_draft_validation(
+            draft,
+            user=request.user,
+            republishing_consent_confirmed=(
+                request.POST.get("confirm_republishing") == "on"
+            ),
+        )
+    except ValueError as exc:
+        messages.error(request, str(exc))
+        return redirect("immobilier:modifier_whatsapp_draft", draft_uuid=draft.uuid)
 
     msg = f"🎉 Le bien « {bien.titre} » a été validé et publié sur E-Shelle !"
     if draft.facebook_post_id:
@@ -309,9 +402,37 @@ def modifier_draft_view(request, draft_uuid):
     draft = get_object_or_404(WhatsappImmoDraft, uuid=draft_uuid)
 
     if request.method == "POST":
+        if request.POST.get("confirm_details_reviewed") != "on":
+            messages.error(request, "Confirmez avoir vérifié les informations de l'annonce.")
+            return redirect("immobilier:modifier_whatsapp_draft", draft_uuid=draft.uuid)
+
         draft.parsed_titre = request.POST.get("titre", draft.parsed_titre).strip()
         draft.parsed_quartier = request.POST.get("quartier", draft.parsed_quartier).strip()
-        draft.parsed_ville = request.POST.get("ville", draft.parsed_ville).strip()
+        valid_villes = dict(VILLES_CAMEROUN)
+        ville = request.POST.get("ville", draft.parsed_ville).strip()
+        if ville and ville not in valid_villes:
+            messages.error(request, "Veuillez choisir une ville de la liste.")
+            return render(
+                request,
+                "immobilier_cameroun/admin/modifier_draft.html",
+                {
+                    "draft": draft,
+                    "villes": VILLES_CAMEROUN,
+                    "types_bien": TypeBien.choices,
+                    "types_transaction": TypeTransaction.choices,
+                },
+            )
+        draft.parsed_ville = ville
+        draft.parsed_type_bien = request.POST.get("type_bien", draft.parsed_type_bien).strip()
+        draft.parsed_type_transaction = request.POST.get(
+            "type_transaction", draft.parsed_type_transaction
+        ).strip()
+        if draft.parsed_type_bien not in TypeBien.values:
+            messages.error(request, "Veuillez choisir un type de bien valide.")
+            return redirect("immobilier:modifier_whatsapp_draft", draft_uuid=draft.uuid)
+        if draft.parsed_type_transaction not in TypeTransaction.values:
+            messages.error(request, "Veuillez choisir une transaction valide.")
+            return redirect("immobilier:modifier_whatsapp_draft", draft_uuid=draft.uuid)
         draft.source_name = request.POST.get("source_name", draft.source_name).strip()
         draft.source_phone = request.POST.get("source_phone", draft.source_phone).strip()
         draft.parsed_conditions = request.POST.get("conditions", draft.parsed_conditions).strip()
@@ -320,15 +441,37 @@ def modifier_draft_view(request, draft_uuid):
         prix_raw = request.POST.get("prix", "").strip()
         if prix_raw:
             try:
-                draft.parsed_prix = Decimal(prix_raw.replace(" ", ""))
-            except Exception:
-                pass
+                parsed_prix = Decimal(prix_raw.replace(" ", ""))
+                if (
+                    not parsed_prix.is_finite()
+                    or parsed_prix <= 0
+                    or parsed_prix.adjusted() > 13
+                    or parsed_prix != parsed_prix.to_integral_value()
+                ):
+                    raise ValueError
+                draft.parsed_prix = parsed_prix
+            except (InvalidOperation, ValueError):
+                messages.error(request, "Le prix doit être un nombre valide.")
+                return redirect("immobilier:modifier_whatsapp_draft", draft_uuid=draft.uuid)
+        else:
+            draft.parsed_prix = None
 
+        draft.details_reviewed_at = timezone.now()
+        draft.details_reviewed_by = request.user
         draft.save()
         messages.success(request, "Brouillon mis à jour avec succès.")
         return redirect("immobilier:whatsapp_drafts")
 
-    return render(request, "immobilier_cameroun/admin/modifier_draft.html", {"draft": draft})
+    return render(
+        request,
+        "immobilier_cameroun/admin/modifier_draft.html",
+        {
+            "draft": draft,
+            "villes": VILLES_CAMEROUN,
+            "types_bien": TypeBien.choices,
+            "types_transaction": TypeTransaction.choices,
+        },
+    )
 
 
 # ─────────────────────────────────────────────────────────────────
@@ -351,13 +494,21 @@ def internal_whatsapp_ingest(request):
     - ou JSON avec images en base64
     """
     # 1. Vérification du token de sécurité interne
-    expected_secret = getattr(settings, "INTERNAL_WHATSAPP_SECRET", "eshelle_immo_listener_secret_2026")
-    provided_secret = (
-        request.headers.get("X-Internal-Secret")
-        or request.POST.get("secret")
-        or request.GET.get("secret")
-    )
-    if not provided_secret or provided_secret != expected_secret:
+    expected_secret = settings.INTERNAL_WHATSAPP_SECRET
+    provided_secret = request.headers.get("X-Internal-Secret", "")
+    if (
+        len(expected_secret) < 32
+        or expected_secret == "replace-with-a-random-secret-of-at-least-32-characters"
+    ):
+        logger.error("INTERNAL_WHATSAPP_SECRET n'est pas configuré correctement.")
+        return JsonResponse(
+            {"status": "error", "message": "Service d'ingestion non configuré."},
+            status=503,
+        )
+    if not provided_secret or not hmac.compare_digest(
+        provided_secret.encode("utf-8"),
+        expected_secret.encode("utf-8"),
+    ):
         return JsonResponse({"status": "error", "message": "Accès non autorisé."}, status=403)
 
     raw_text = ""
@@ -433,11 +584,11 @@ def internal_whatsapp_ingest(request):
         source_phone=source_phone,
         whatsapp_group_name=group_name,
         parsed_titre=parsed.get("titre", "Bien immobilier WhatsApp"),
-        parsed_type_bien=parsed.get("type_bien", "STUDIO"),
-        parsed_type_transaction=parsed.get("type_transaction", "LOCATION"),
+        parsed_type_bien=parsed.get("type_bien", ""),
+        parsed_type_transaction=parsed.get("type_transaction", ""),
         parsed_prix=parsed.get("prix"),
         parsed_conditions=parsed.get("conditions", ""),
-        parsed_ville=parsed.get("ville", "Yaoundé"),
+        parsed_ville=parsed.get("ville", ""),
         parsed_quartier=parsed.get("quartier", ""),
         parsed_description=parsed.get("description", raw_text),
         ai_improved_description=ai_desc,
@@ -460,4 +611,3 @@ def internal_whatsapp_ingest(request):
         "photos_count": len(saved_rel_paths),
         "selected_photos_count": len(ai_selected_photos),
     })
-

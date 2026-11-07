@@ -326,9 +326,11 @@ class WhatsappImmoDraftAdmin(admin.ModelAdmin):
     search_fields = ["parsed_titre", "parsed_quartier", "source_name", "source_phone", "raw_text"]
     readonly_fields = [
         "uuid", "created_at", "updated_at", "ai_quality_score",
-        "facebook_post_id", "created_bien"
+        "facebook_post_id", "created_bien", "republishing_authorized_at",
+        "republishing_authorized_by", "details_reviewed_at", "details_reviewed_by",
+        "status",
     ]
-    actions = ["action_valider_et_publier", "action_rejeter"]
+    actions = ["action_rejeter"]
 
     STATUS_COLORS = {
         "PENDING":  ("#F4A261", "#ffffff"),
@@ -362,18 +364,29 @@ class WhatsappImmoDraftAdmin(admin.ModelAdmin):
         )
     ai_quality_badge.short_description = "Score IA"
 
-    @admin.action(description="🚀 Valider et publier le bien sélectionné (+ Facebook)")
-    def action_valider_et_publier(self, request, queryset):
-        from .views.whatsapp_import import execute_draft_validation
-        count = 0
-        for draft in queryset.filter(status=WhatsappImmoDraft.Status.PENDING):
-            bien = execute_draft_validation(draft, user=request.user)
-            if bien:
-                count += 1
-        self.message_user(request, f"{count} bien(s) validé(s) et publié(s) avec succès sur E-Shelle & Facebook.")
+    def save_model(self, request, obj, form, change):
+        reviewed_fields = {
+            "raw_text",
+            "raw_images_json",
+            "source_name",
+            "source_phone",
+            "parsed_titre",
+            "parsed_type_bien",
+            "parsed_type_transaction",
+            "parsed_prix",
+            "parsed_conditions",
+            "parsed_ville",
+            "parsed_quartier",
+            "parsed_description",
+            "ai_improved_description",
+            "ai_selected_photos_json",
+        }
+        if change and reviewed_fields.intersection(form.changed_data):
+            obj.details_reviewed_at = None
+            obj.details_reviewed_by = None
+        super().save_model(request, obj, form, change)
 
     @admin.action(description="❌ Rejeter les brouillons sélectionnés")
     def action_rejeter(self, request, queryset):
         updated = queryset.update(status=WhatsappImmoDraft.Status.REJECTED)
         self.message_user(request, f"{updated} brouillon(s) rejeté(s).")
-

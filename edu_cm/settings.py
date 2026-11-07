@@ -16,6 +16,7 @@ CAMPAY_PUBLIC_BASE_URL = os.getenv("CAMPAY_PUBLIC_BASE_URL", "").strip().rstrip(
 
 # Sécurité
 SECRET_KEY = os.getenv("DJANGO_SECRET_KEY", "dev-secret-key-change-me")
+INTERNAL_WHATSAPP_SECRET = os.getenv("INTERNAL_WHATSAPP_SECRET", "").strip()
 DEBUG = os.getenv("DJANGO_DEBUG", "False").lower() in ("1", "true", "yes")
 
 ALLOWED_HOSTS = [h.strip() for h in os.getenv(

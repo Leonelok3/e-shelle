@@ -7,7 +7,6 @@ import os
 import logging
 import requests
 from typing import Optional
-from django.conf import settings
 from django.utils.text import slugify
 
 logger = logging.getLogger("facebook_immo")
@@ -46,8 +45,6 @@ def publier_bien_sur_facebook(bien, draft=None) -> Optional[str]:
         phone = draft.source_phone
     elif hasattr(bien.proprietaire, "profil_immo"):
         phone = bien.proprietaire.profil_immo.whatsapp or bien.proprietaire.profil_immo.telephone
-    if not phone:
-        phone = getattr(settings, "IMMO_WHATSAPP_CONTACT", "+237 600 000 000")
 
     url_absolue = bien._url_absolue()
 
@@ -63,16 +60,22 @@ def publier_bien_sur_facebook(bien, draft=None) -> Optional[str]:
     # Hashtags locaux
     v_tag = f"#{slugify(ville).replace('-', '_').title()}" if ville else "#Cameroun"
     q_tag = f"#{slugify(quartier).replace('-', '_').title()}" if quartier else ""
-    hashtags = f"#EShelle #ImmobilierCameroun {v_tag} {q_tag} #LocationCameroun #Yaounde #Douala"
+    transaction_tag = (
+        "#LocationImmobiliere"
+        if bien.type_transaction in ("LOCATION", "COLOCATION")
+        else "#VenteImmobiliere"
+    )
+    hashtags = f"#EShelle #ImmobilierCameroun {transaction_tag} {v_tag} {q_tag}"
 
+    contact_line = f"📱 Contact WhatsApp : {phone}\n" if phone else ""
     message = (
         f"🏠 NOUVEAU SUR E-SHELLE IMMOBILIER !\n"
         f"✨ {titre}\n\n"
         f"📍 Quartier : {quartier}, {ville}\n"
         f"💰 Loyer / Prix : {prix_str}{cond_txt}\n\n"
         f"📝 Aperçu :\n{desc_summary}\n\n"
-        f"📱 Contact direct WhatsApp démarcheur : {phone}\n"
-        f"👉 Voir toutes les photos & détails certifiés : {url_absolue}\n\n"
+        f"{contact_line}"
+        f"👉 Voir toutes les photos & détails de l'annonce : {url_absolue}\n\n"
         f"{hashtags}"
     )
 
