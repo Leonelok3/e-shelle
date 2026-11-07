@@ -133,6 +133,102 @@ class RedeemViewTests(TestCase):
         self.assertEqual(self.cc_7.used_by_id, self.user.id)
 
 
+class SubscriptionReferralCommissionTests(TestCase):
+    def setUp(self):
+        from billing.models import AffiliateProfile, Referral
+
+        self.affiliate_user = User.objects.create_user(
+            username="subscription-affiliate",
+            email="affiliate@test.com",
+            password="test-password",
+        )
+        self.customer = User.objects.create_user(
+            username="referred-customer",
+            email="customer@test.com",
+            password="test-password",
+        )
+        self.affiliate = AffiliateProfile.objects.create(
+            user=self.affiliate_user,
+            ref_code="SUBSCRIBER",
+            is_enabled=True,
+        )
+        Referral.objects.create(
+            affiliate=self.affiliate,
+            referred_user=self.customer,
+        )
+
+    def test_provider_subscription_gets_one_thirty_percent_commission(self):
+        from billing.affiliates import create_commission_for_transaction
+        from billing.models import Commission, Transaction
+
+        transaction = Transaction.objects.create(
+            user=self.customer,
+            amount=Decimal("10000"),
+            currency="XAF",
+            type="CREDIT",
+            status="COMPLETED",
+            metadata={"product_type": "provider_subscription"},
+        )
+
+        commission = Commission.objects.get(transaction=transaction)
+        self.assertEqual(commission.affiliate, self.affiliate)
+        self.assertEqual(commission.rate, Decimal("0.30"))
+        self.assertEqual(commission.amount, Decimal("3000.00"))
+        self.assertEqual(create_commission_for_transaction(transaction), commission)
+
+    def test_wallet_topups_and_non_subscription_purchases_do_not_earn_referral_commission(self):
+        from billing.affiliates import create_commission_for_transaction
+        from billing.models import Commission, Transaction
+
+        for payment_method, metadata in (
+            ("WALLET_TOPUP", {}),
+            ("CARD", {"product_type": "affiliate_product"}),
+        ):
+            with self.subTest(payment_method=payment_method):
+                transaction = Transaction.objects.create(
+                    user=self.customer,
+                    amount=Decimal("10000"),
+                    currency="XAF",
+                    type="CREDIT",
+                    status="COMPLETED",
+                    payment_method=payment_method,
+                    metadata=metadata,
+                )
+                self.assertIsNone(create_commission_for_transaction(transaction))
+                self.assertFalse(Commission.objects.filter(transaction=transaction).exists())
+
+    def test_paid_customer_subscription_is_eligible_for_referral_commission(self):
+        from billing.models import Commission, Subscription, Transaction
+
+        plan = SubscriptionPlan.objects.create(
+            name="Monthly customer plan",
+            slug="monthly-customer-plan",
+            duration_days=30,
+            price_usd=Decimal("10.00"),
+            is_active=True,
+        )
+        subscription = Subscription.objects.create(
+            user=self.customer,
+            plan=plan,
+            starts_at=timezone.now(),
+            expires_at=timezone.now() + timedelta(days=30),
+            is_active=True,
+        )
+        transaction = Transaction.objects.create(
+            user=self.customer,
+            plan=plan,
+            amount=Decimal("10.00"),
+            currency="USD",
+            type="CREDIT",
+            status="COMPLETED",
+            related_subscription=subscription,
+        )
+
+        commission = Commission.objects.get(transaction=transaction)
+        self.assertEqual(commission.affiliate, self.affiliate)
+        self.assertEqual(commission.amount, Decimal("5.00"))
+
+
 class ResellerSystemTests(TestCase):
     def setUp(self):
         self.provider_user = User.objects.create_user(username="prov1", email="prov@test.com", password="password")
@@ -244,4 +340,3 @@ class ResellerSystemTests(TestCase):
         self.assertIsNotNone(commission)
         self.assertEqual(commission.amount, Decimal("500.00"))
         self.assertEqual(commission.status, "PAID")
-

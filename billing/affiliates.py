@@ -4,11 +4,14 @@ from django.db import transaction as db_transaction
 from django.utils import timezone
 
 from .models import AffiliateProfile, Referral, Commission, Transaction
-from .services import has_active_access
 
 
 DEFAULT_AFFILIATE_RATE = Decimal("0.50")
 PROVIDER_SUBSCRIPTION_RATE = Decimal("0.30")
+SUBSCRIPTION_PRODUCT_TYPES = {
+    "business_key_subscription",
+    "provider_subscription",
+}
 
 
 def affiliate_is_allowed(user) -> bool:
@@ -80,13 +83,23 @@ def _commission_base_for_transaction(tx: Transaction) -> Decimal:
     return Decimal("0.00")
 
 
+def _is_subscription_transaction(tx: Transaction) -> bool:
+    if tx.related_subscription_id:
+        return True
+    return (tx.metadata or {}).get("product_type") in SUBSCRIPTION_PRODUCT_TYPES
+
+
 @db_transaction.atomic
 def create_commission_for_transaction(tx: Transaction) -> Commission | None:
     """
-    Crée la commission (si applicable) pour une transaction COMPLETED.
+    Crée une commission pour un abonnement payé par un client parrainé.
     Idempotent: si commission déjà existante => retourne.
     """
-    if tx.status != "COMPLETED" or not tx.user_id:
+    if (
+        tx.status != "COMPLETED"
+        or not tx.user_id
+        or not _is_subscription_transaction(tx)
+    ):
         return None
 
     # Déjà créée ?
