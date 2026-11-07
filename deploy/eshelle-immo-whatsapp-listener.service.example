@@ -1,0 +1,19 @@
+[Unit]
+Description=E-Shelle WhatsApp Immobilier Listener
+Wants=network-online.target
+After=network-online.target eshelle.service
+
+[Service]
+Type=simple
+User=eshelle
+WorkingDirectory=/home/eshelle/app/immobilier_cameroun/worker_whatsapp_listener
+EnvironmentFile=/home/eshelle/app/immobilier_cameroun/worker_whatsapp_listener/.env
+ExecStart=/usr/bin/node listener.js
+Restart=on-failure
+RestartSec=5
+UMask=0077
+NoNewPrivileges=true
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target

@@ -21,7 +21,7 @@ Le worker traite les nouveaux messages reçus après sa connexion ; il ne récup
    openssl rand -hex 32
    ```
 
-3. Renseigner la même valeur dans l'environnement privé de Django (`INTERNAL_WHATSAPP_SECRET`) et dans le fichier `.env` privé du worker. Ce fichier ne doit pas être partagé ni committé. L'API répond `503` si le secret serveur n'est pas configuré; le worker refuse de démarrer si son secret ou le nom du groupe est absent.
+3. Renseigner la même valeur dans l'environnement privé de Django (`/home/eshelle/app/.env`) et dans le fichier `.env` privé du worker. Ne partage pas cette valeur. L'API répond `503` si le secret serveur n'est pas configuré; le worker refuse de démarrer si son secret ou le nom du groupe est absent.
 4. Copier `immobilier_cameroun/worker_whatsapp_listener/.env.example` vers `.env` et configurer au minimum :
 
    ```dotenv
@@ -31,15 +31,35 @@ Le worker traite les nouveaux messages reçus après sa connexion ; il ne récup
    ```
 
    Le nom du groupe est comparé exactement après retrait des espaces, signes et emojis décoratifs. Les emojis peuvent donc rester dans le vrai nom du groupe. Remplacer le domaine de l'URL seulement si l'installation utilise une autre adresse accessible depuis le worker.
-5. Dans le répertoire `immobilier_cameroun/worker_whatsapp_listener`, installer les dépendances Node déclarées dans `package.json`, puis démarrer le worker avec `npm start`. Sur le VPS, le faire tourner dans un service supervisé sous l'utilisateur de l'application. Le répertoire `auth_info_baileys` contient la session WhatsApp : limiter ses permissions au compte de service et ne jamais le committer.
-6. Associer uniquement le compte WhatsApp autorisé au worker et vérifier dans ses journaux qu'il indique le groupe exact attendu.
-7. Configurer le jeton d'accès de la page Meta/Facebook via la configuration privée déjà utilisée par `get_facebook_page_credentials()`. Sans jeton valide, les fiches restent publiées sur E-Shelle et le partage Facebook échoue; le tableau des brouillons indique si un identifiant de publication Facebook a été enregistré.
-8. Appliquer la migration Django avant de démarrer la nouvelle version :
+5. Déployer d'abord la partie Django et appliquer les migrations :
 
    ```bash
-   .venv/bin/python manage.py migrate
-   .venv/bin/python manage.py check
+   cd /home/eshelle/app
+   sudo -u eshelle git pull --ff-only origin main
+   sudo -u eshelle .venv/bin/python manage.py migrate
+   sudo -u eshelle .venv/bin/python manage.py check
+   sudo systemctl restart eshelle
+   sudo systemctl is-active eshelle
+   curl --fail --silent --show-error --output /dev/null \
+     --write-out 'Accueil : HTTP %{http_code}\n' \
+     'https://e-shelle.com/'
    ```
+
+6. Dans le répertoire `immobilier_cameroun/worker_whatsapp_listener`, installer les dépendances Node déclarées dans `package.json`. Sur le VPS, vérifier le chemin de Node (`command -v node`), adapter `ExecStart` dans l'exemple `deploy/eshelle-immo-whatsapp-listener.service.example` si nécessaire, puis installer et démarrer le service :
+
+   ```bash
+   cd /home/eshelle/app/immobilier_cameroun/worker_whatsapp_listener
+   sudo -u eshelle npm install --omit=dev
+   cd /home/eshelle/app
+   sudo cp /home/eshelle/app/deploy/eshelle-immo-whatsapp-listener.service.example /etc/systemd/system/eshelle-immo-whatsapp-listener.service
+   sudo systemctl daemon-reload
+   sudo systemctl enable --now eshelle-immo-whatsapp-listener
+   sudo systemctl status eshelle-immo-whatsapp-listener --no-pager
+   ```
+
+   Le répertoire `auth_info_baileys` contient la session WhatsApp. Le `.gitignore` l'exclut de Git; le service utilise un masque de permissions privé. Ne jamais copier, partager ni committer cette session.
+7. Consulter `sudo journalctl -u eshelle-immo-whatsapp-listener -f`, puis associer uniquement le compte WhatsApp autorisé en scannant le QR avec **Appareils connectés**. Ne partage pas le QR ni les fichiers de session. Vérifier dans les journaux que le worker indique le groupe exact attendu.
+8. Configurer le jeton d'accès de la page Meta/Facebook via la configuration privée déjà utilisée par `get_facebook_page_credentials()`. Sans jeton valide, les fiches restent publiées sur E-Shelle et le partage Facebook échoue; le tableau des brouillons indique si un identifiant de publication Facebook a été enregistré.
 
 ## Premier test conseillé
 
