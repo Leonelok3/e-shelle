@@ -6,8 +6,14 @@ class PublicMetaReviewPagesTests(TestCase):
         response = self.client.get("/")
 
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, "Vendez en continu avec l’IA")
+        self.assertContains(
+            response,
+            "E-Shelle : l’intelligence artificielle au service des entreprises africaines",
+        )
+        self.assertContains(response, "L’intelligence artificielle au service des")
+        self.assertContains(response, "entreprises africaines")
         self.assertContains(response, "App ID 1841260056892991 · API Cloud directe")
+        self.assertContains(response, "FOURNISSEUR CERTIFIÉ META TECH PROVIDER")
         self.assertContains(response, "Connecter WhatsApp")
         self.assertContains(response, 'href="/business/restaurants/"')
         self.assertContains(response, 'href="/business/grossistes/"')
