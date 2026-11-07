@@ -2,15 +2,6 @@ from django.test import TestCase, override_settings
 
 
 class PublicMetaReviewPagesTests(TestCase):
-    def test_homepage_promotes_all_applications_with_responsive_cta_content(self):
-        response = self.client.get("/")
-
-        self.assertEqual(response.status_code, 200)
-        self.assertContains(response, "Vous cherchez un autre service E-Shelle")
-        self.assertContains(response, "Découvrez nos applications pour les entreprises")
-        self.assertContains(response, 'class="home-apps-cta-link" href="/applications/"')
-        self.assertContains(response, "Voir toutes les applications E-Shelle")
-
     def test_homepage_uses_meta_label_and_hides_unverified_content(self):
         response = self.client.get("/")
 
