@@ -1,7 +1,7 @@
 {% extends "ocd_live/base_ocd.html" %}
 {% load static %}
 
-{% block title %}OCD LIVE — Les Opportunités C'est Dehors | Le Hub Business & Directs en Afrique{% endblock %}
+{% block title %}OCD LIVE — Réservez votre passage en direct pour présenter &amp; vendre | E-Shelle{% endblock %}
 
 {% block content %}
 <!-- HERO SECTION IMMERSIVE STUDIO -->
@@ -9,43 +9,37 @@
   <div class="ocd-hero-container">
     <div class="ocd-hero-content">
       <div class="ocd-hero-eyebrow">
-        <span>⚡ LE MOUVEMENT DES AFFAIRES EN AFRIQUE</span>
+        <span>🎙️ LA SCÈNE COMMERCIALE EN DIRECT D'E-SHELLE</span>
       </div>
       <h1 class="ocd-hero-title">
-        Arrêtez d'attendre dans un bureau.<br>
-        <span class="gradient-orange">Les Opportunités, C'est Dehors !</span>
+        Passez en direct devant des milliers de clients.<br>
+        <span class="gradient-orange">Présentez, convainquez et vendez sur OCD Live !</span>
       </h1>
       <p class="ocd-hero-desc">
-        Participez aux masterclasses en direct des entrepreneurs de terrain, découvrez des opportunités d'investissement vérifiées et réservez vos séances de consultation d'affaires exclusives au Cameroun et dans toute l'Afrique.
+        <strong>OCD Live :</strong> Réservez votre passage en direct pour présenter vos produits et services devant l'audience E-Shelle au Cameroun et en Afrique. Réservez votre créneau, montez sur scène, répondez aux questions en direct et multipliez vos ventes.
       </p>
 
       <div class="ocd-hero-cta-group">
-        {% if next_live %}
-          <a href="{% url 'ocd_live:live_detail' slug=next_live.slug %}" class="ocd-btn ocd-btn-primary">
-            🔴 Accéder au Direct de la Semaine →
-          </a>
-        {% else %}
-          <a href="#prochains-directs" class="ocd-btn ocd-btn-primary">
-            📅 Voir les Prochains Directs →
-          </a>
-        {% endif %}
-        <a href="{% url 'ocd_live:opportunities_list' %}" class="ocd-btn ocd-btn-glow">
-          💼 Explorer les Opportunités Vérifiées
+        <a href="{% url 'ocd_live:reservation' %}" class="ocd-btn ocd-btn-primary" style="font-size:1.05rem; padding:1rem 2rem;">
+          🎙️ Réserver Mon Passage Live →
+        </a>
+        <a href="#tarifs-live" class="ocd-btn ocd-btn-glow">
+          💎 Découvrir les Packages
         </a>
       </div>
 
       <div class="ocd-hero-stats">
         <div class="ocd-stat-item">
-          <strong>+150 M FCFA</strong>
-          <span>Projets Financés</span>
+          <strong>+50 000</strong>
+          <span>Acheteurs &amp; Spectateurs</span>
         </div>
         <div class="ocd-stat-item">
           <strong>100%</strong>
-          <span>Opportunités Auditées</span>
+          <span>Directs Accompagnés</span>
         </div>
         <div class="ocd-stat-item">
-          <strong>15 000+</strong>
-          <span>Membres Actifs</span>
+          <strong>4 Formules</strong>
+          <span>De 1h à 5h de Live</span>
         </div>
       </div>
     </div>
@@ -54,7 +48,7 @@
     <div class="ocd-hero-visual">
       <div class="ocd-backlit-stage">
         <div class="ocd-stage-mural-wrapper">
-          <img src="{% static 'ocd_live/img/ocd_live_logo.png' %}" alt="OCD Live — Les Opportunités C'est Dehors" class="ocd-stage-mural-img" onerror="this.onerror=null;this.src='{% static 'ocd_live/img/ocd_live_logo.svg' %}';">
+          <img src="{% static 'ocd_live/img/ocd_live_logo.png' %}" alt="OCD Live — Présentez et vendez en direct" class="ocd-stage-mural-img" onerror="this.onerror=null;this.src='{% static 'ocd_live/img/ocd_live_logo.svg' %}';">
         </div>
         
         <div class="ocd-live-countdown-banner">
@@ -278,95 +272,99 @@
   </div>
 </section>
 
-<!-- SECTION FORMULES & PASS OCD LIVE -->
-<section class="ocd-section" style="background:radial-gradient(circle at 50% 50%, rgba(255,102,0,0.08) 0%, transparent 60%)">
+<!-- SECTION FORMULES & PACKAGES OCD LIVE -->
+<section id="tarifs-live" class="ocd-section" style="background:radial-gradient(circle at 50% 50%, rgba(255,102,0,0.08) 0%, transparent 60%)">
   <div class="ocd-section-header">
-    <span class="ocd-section-eyebrow">ADHÉSION &amp; BILLETTERIE</span>
-    <h2 class="ocd-section-title">Choisissez Votre Pass d'Accès</h2>
+    <span class="ocd-section-eyebrow">TARIFS &amp; FORMULES DE PASSAGE</span>
+    <h2 class="ocd-section-title">Choisissez Votre Formule de Diffusion</h2>
     <p class="ocd-section-subtitle">
-      Accédez aux directs exclusifs, recevez les dossiers confidentiels et réservez des créneaux privés avec nos experts.
+      Prenez l'antenne sur OCD Live selon vos objectifs de vente : de la présentation rapide au live marathon complet.
     </p>
   </div>
 
   <div class="ocd-pricing-grid">
-    {% for pkg in packages %}
-      <div class="ocd-pricing-card {% if pkg.is_popular %}popular{% endif %}">
-        {% if pkg.is_popular %}
+    {% for pkg in live_packages %}
+      <div class="ocd-pricing-card {% if pkg.est_recommande %}popular{% endif %}">
+        {% if pkg.est_recommande %}
           <div class="ocd-pricing-badge">★ Formule Recommandée</div>
         {% endif %}
 
-        <h3 class="ocd-pricing-name">{{ pkg.name }}</h3>
+        <h3 class="ocd-pricing-name">{{ pkg.nom }}</h3>
+        <div style="color:var(--ocd-text-amber); font-weight:700; font-size:0.9rem; margin-bottom:0.5rem;">
+          ⏱️ Durée : {{ pkg.duree_display }}
+        </div>
         <div class="ocd-pricing-price">
-          {{ pkg.price_xaf|floatformat:0 }} <span>FCFA / {{ pkg.duration_days }} jours</span>
+          {{ pkg.prix_chiffre_formate }} <span>XAF</span>
         </div>
 
-        <ul class="ocd-features-list">
-          {% for feat in pkg.feature_list %}
-            <li>{{ feat }}</li>
-          {% empty %}
-            <li>Accès prioritaire aux sessions Live</li>
-            <li>Replays illimités des masterclasses</li>
-            <li>Alertes instantanées WhatsApp</li>
-            <li>Dossiers de synthèse téléchargeables</li>
-          {% endfor %}
-        </ul>
+        <p style="font-size:0.9rem; color:#CBD5E1; line-height:1.6; margin-bottom:1.5rem;">
+          {{ pkg.description }}
+        </p>
 
-        <a href="{% url 'ocd_live:book_package' package_code=pkg.code %}" class="ocd-btn {% if pkg.is_popular %}ocd-btn-primary{% else %}ocd-btn-glow{% endif %}" style="width:100%;margin-top:auto">
-          Prendre ce Pass par MoMo / Orange Money
+        <a href="{% url 'ocd_live:reservation' %}?package={{ pkg.id }}" class="ocd-btn {% if pkg.est_recommande %}ocd-btn-primary{% else %}ocd-btn-glow{% endif %}" style="width:100%;margin-top:auto">
+          Réserver ce Pass Live →
         </a>
       </div>
     {% empty %}
+      <!-- Fallback 4 cartes officielles -->
       <div class="ocd-pricing-card">
-        <h3 class="ocd-pricing-name">Pass Ticket 1 Live</h3>
-        <div class="ocd-pricing-price">2 500 <span>FCFA / session</span></div>
-        <ul class="ocd-features-list">
-          <li>Accès en direct à la session choisie</li>
-          <li>Accès au Replay officiel pendant 30 jours</li>
-          <li>Rappel et lien direct sur WhatsApp</li>
-        </ul>
-        <a href="{% url 'ocd_live:live_list' %}" class="ocd-btn ocd-btn-glow">Choisir une session Live</a>
+        <h3 class="ocd-pricing-name">Pass Découverte</h3>
+        <div style="color:var(--ocd-text-amber); font-weight:700; font-size:0.9rem; margin-bottom:0.5rem;">⏱️ 60 min (1h)</div>
+        <div class="ocd-pricing-price">10 000 <span>XAF</span></div>
+        <p style="font-size:0.9rem; color:#CBD5E1; line-height:1.6; margin-bottom:1.5rem;">Présentation simple de produit ou service. Idéal pour faire connaître une offre.</p>
+        <a href="{% url 'ocd_live:reservation' %}" class="ocd-btn ocd-btn-glow" style="width:100%;margin-top:auto">Réserver ce Pass →</a>
       </div>
       <div class="ocd-pricing-card popular">
-        <div class="ocd-pricing-badge">★ Le Plus Choisi</div>
-        <h3 class="ocd-pricing-name">Pass Membre Mensuel</h3>
-        <div class="ocd-pricing-price">15 000 <span>FCFA / mois</span></div>
-        <ul class="ocd-features-list">
-          <li>Accès illimité à tous les Lives du mois</li>
-          <li>Bibliothèque complète de tous les Replays</li>
-          <li>Dossiers confidentiels des opportunités</li>
-          <li>Canal VIP WhatsApp des membres</li>
-        </ul>
-        <a href="https://wa.me/237680625082?text=Je%20souhaite%20activer%20le%20Pass%20Membre%20Mensuel%20OCD%20Live" class="ocd-btn ocd-btn-primary">S'abonner maintenant</a>
+        <div class="ocd-pricing-badge">★ Formule Recommandée</div>
+        <h3 class="ocd-pricing-name">Pass Business</h3>
+        <div style="color:var(--ocd-text-amber); font-weight:700; font-size:0.9rem; margin-bottom:0.5rem;">⏱️ 120 min (2h)</div>
+        <div class="ocd-pricing-price">20 000 <span>XAF</span></div>
+        <p style="font-size:0.9rem; color:#CBD5E1; line-height:1.6; margin-bottom:1.5rem;">Présentation + démo produit + questions-réponses en direct avec l'audience.</p>
+        <a href="{% url 'ocd_live:reservation' %}" class="ocd-btn ocd-btn-primary" style="width:100%;margin-top:auto">Réserver ce Pass →</a>
+      </div>
+      <div class="ocd-pricing-card">
+        <h3 class="ocd-pricing-name">Pass Premium</h3>
+        <div style="color:var(--ocd-text-amber); font-weight:700; font-size:0.9rem; margin-bottom:0.5rem;">⏱️ 180 min (3h)</div>
+        <div class="ocd-pricing-price">30 000 <span>XAF</span></div>
+        <p style="font-size:0.9rem; color:#CBD5E1; line-height:1.6; margin-bottom:1.5rem;">Présentation + démo + interview exclusive et mise en avant sur nos canaux.</p>
+        <a href="{% url 'ocd_live:reservation' %}" class="ocd-btn ocd-btn-glow" style="width:100%;margin-top:auto">Réserver ce Pass →</a>
+      </div>
+      <div class="ocd-pricing-card">
+        <h3 class="ocd-pricing-name">Pass Marathon</h3>
+        <div style="color:var(--ocd-text-amber); font-weight:700; font-size:0.9rem; margin-bottom:0.5rem;">⏱️ 300 min (5h)</div>
+        <div class="ocd-pricing-price">50 000 <span>XAF</span></div>
+        <p style="font-size:0.9rem; color:#CBD5E1; line-height:1.6; margin-bottom:1.5rem;">Événement complet, plusieurs produits, invités et prises de commandes continues.</p>
+        <a href="{% url 'ocd_live:reservation' %}" class="ocd-btn ocd-btn-glow" style="width:100%;margin-top:auto">Réserver ce Pass →</a>
       </div>
     {% endfor %}
   </div>
 </section>
 
-<!-- SECTION LE MANIFESTE : LES OPPORTUNITÉS C'EST DEHORS -->
+<!-- SECTION LE NOUVEAU POSITIONNEMENT : RÉSERVER, PRÉSENTER, VENDRE -->
 <section class="ocd-section" style="padding-top:2rem">
   <div style="background:linear-gradient(145deg, rgba(20,29,24,0.95) 0%, rgba(10,15,12,0.95) 100%);border:1px solid var(--ocd-border-glass);border-radius:28px;padding:clamp(2rem, 5vw, 4rem);display:grid;grid-template-columns:1fr 1fr;gap:3rem;align-items:center">
     <div>
-      <span class="ocd-section-eyebrow">LA PHILOSOPHIE OCD</span>
+      <span class="ocd-section-eyebrow">VENDRE EN DIRECT SUR E-SHELLE</span>
       <h2 style="font-family:'Outfit';font-size:clamp(1.8rem, 3.5vw, 2.6rem);font-weight:900;color:#FFF;line-height:1.15;margin-bottom:1.5rem">
-        L'Afrique n'attend pas.<br>
-        Le vrai business se passe sur le terrain.
+        Ne laissez plus vos produits dans l'ombre.<br>
+        Montez en direct face à vos futurs clients.
       </h2>
       <p style="color:#CBD5E1;font-size:1.05rem;line-height:1.7;margin-bottom:1.5rem">
-        <strong>OCD</strong> est né d'un constat simple : des millions d'idées restent bloquées sur des feuilles de papier ou dans des discussions de salon. Pendant ce temps, les opportunités réelles — dans l'agriculture, l'immobilier, le commerce et les services — sont là, dehors, prêtes à être saisies par ceux qui agissent.
+        <strong>OCD Live</strong> est la scène des entrepreneurs, commerçants et prestataires qui passent à l'action. Réservez votre créneau de diffusion, montrez vos produits, expliquez vos services et convertissez l'audience E-Shelle en clients réels.
       </p>
       <div style="display:flex;flex-direction:column;gap:0.75rem;margin-bottom:2rem">
         <div style="display:flex;align-items:center;gap:10px;color:#FFF;font-weight:700">
-          <span style="color:var(--ocd-primary);font-size:1.2rem">✓</span> Des experts qui vivent et travaillent sur le terrain
+          <span style="color:var(--ocd-success);font-size:1.2rem">✓</span> Une audience qualifiée d'acheteurs au Cameroun et en Afrique
         </div>
         <div style="display:flex;align-items:center;gap:10px;color:#FFF;font-weight:700">
-          <span style="color:var(--ocd-primary);font-size:1.2rem">✓</span> Des chiffres réels, sans fausses promesses
+          <span style="color:var(--ocd-success);font-size:1.2rem">✓</span> Prise de commandes en direct via WhatsApp et téléphone
         </div>
         <div style="display:flex;align-items:center;gap:10px;color:#FFF;font-weight:700">
-          <span style="color:var(--ocd-primary);font-size:1.2rem">✓</span> Un réseau panafricain d'entraide et de co-investissement
+          <span style="color:var(--ocd-success);font-size:1.2rem">✓</span> Briefing technique et cadrage assurés par la régie E-Shelle
         </div>
       </div>
-      <a href="https://wa.me/237680625082?text=Bonjour,%20je%20souhaite%20rejoindre%20le%20réseau%20OCD%20Live" target="_blank" rel="noopener" class="ocd-btn ocd-btn-primary">
-        Rejoindre la Communauté Terrain 🚀
+      <a href="{% url 'ocd_live:reservation' %}" class="ocd-btn ocd-btn-primary" style="padding:1rem 2rem; font-size:1rem;">
+        🎙️ Réserver Mon Passage Live Maintenant 🚀
       </a>
     </div>
 

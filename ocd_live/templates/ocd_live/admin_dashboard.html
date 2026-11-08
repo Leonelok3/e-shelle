@@ -1,0 +1,324 @@
+{% extends "ocd_live/base_ocd.html" %}
+{% load static %}
+
+{% block title %}Dashboard Régie Admin — OCD Live | E-Shelle{% endblock %}
+
+{% block content %}
+<section class="ocd-section" style="padding-top:2.5rem; padding-bottom:5rem;">
+  <div style="max-width:1380px; margin:0 auto; padding:0 1rem;">
+    
+    <!-- En-tête Admin -->
+    <div style="display:flex; flex-wrap:wrap; justify-content:space-between; align-items:center; gap:1.5rem; margin-bottom:2.5rem;">
+      <div>
+        <div class="ocd-hero-eyebrow" style="display:inline-flex; align-items:center; gap:8px; margin-bottom:0.5rem;">
+          <span>🔒 ESPACE RÉGIE OFFICIELLE (STAFF)</span>
+        </div>
+        <h1 style="font-family:'Outfit',sans-serif; font-size:clamp(1.8rem, 3.5vw, 2.4rem); font-weight:900; color:#FFFFFF; margin:0;">
+          Tableau de Bord Régie &amp; Réservations Live
+        </h1>
+        <p style="color:#94A3B8; font-size:0.92rem; margin:4px 0 0;">
+          Gestion des candidatures, validation des paiements et régulation des créneaux de diffusion.
+        </p>
+      </div>
+
+      <div style="display:flex; gap:0.75rem;">
+        <a href="/admin/ocd_live/livebooking/" target="_blank" class="ocd-btn ocd-btn-glow" style="padding:0.75rem 1.25rem; font-size:0.88rem;">
+          ⚙️ Django Admin
+        </a>
+        <a href="{% url 'ocd_live:reservation' %}" target="_blank" class="ocd-btn ocd-btn-primary" style="padding:0.75rem 1.25rem; font-size:0.88rem;">
+          + Nouveau Live Public
+        </a>
+      </div>
+    </div>
+
+    <!-- 4 KPI Cards en haut -->
+    <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(240px, 1fr)); gap:1.25rem; margin-bottom:2.5rem;">
+      
+      <!-- Total demandes -->
+      <div class="ocd-card" style="padding:1.5rem; background:rgba(18,25,21,0.92); border:1px solid rgba(255,255,255,0.12);">
+        <span style="font-size:0.8rem; font-weight:800; color:#94A3B8; text-transform:uppercase;">Total Réservations</span>
+        <div style="font-family:'Outfit',sans-serif; font-size:2.5rem; font-weight:900; color:#FFF; margin:6px 0;">
+          {{ total_demandes }}
+        </div>
+        <span style="font-size:0.78rem; color:#94A3B8;">Toutes demandes confondues</span>
+      </div>
+
+      <!-- En attente -->
+      <div class="ocd-card" style="padding:1.5rem; background:rgba(245,158,11,0.1); border:1px solid #F59E0B;">
+        <span style="font-size:0.8rem; font-weight:800; color:#FBBF24; text-transform:uppercase;">En Attente (Action Requise)</span>
+        <div style="font-family:'Outfit',sans-serif; font-size:2.5rem; font-weight:900; color:#FBBF24; margin:6px 0;">
+          {{ en_attente_count }}
+        </div>
+        <span style="font-size:0.78rem; color:#CBD5E1;">Paiements ou preuves à valider</span>
+      </div>
+
+      <!-- Validées -->
+      <div class="ocd-card" style="padding:1.5rem; background:rgba(16,185,129,0.1); border:1px solid #10B981;">
+        <span style="font-size:0.8rem; font-weight:800; color:#4ADE80; text-transform:uppercase;">Validées &amp; Confirmées</span>
+        <div style="font-family:'Outfit',sans-serif; font-size:2.5rem; font-weight:900; color:#4ADE80; margin:6px 0;">
+          {{ validees_count }}
+        </div>
+        <span style="font-size:0.78rem; color:#DCFCE7;">Créneaux verrouillés pour le direct</span>
+      </div>
+
+      <!-- Chiffre d'affaires validé -->
+      <div class="ocd-card" style="padding:1.5rem; background:rgba(230,81,0,0.12); border:1px solid #FF7A00;">
+        <span style="font-size:0.8rem; font-weight:800; color:#FF9500; text-transform:uppercase;">Revenu Confirmé</span>
+        <div style="font-family:'Outfit',sans-serif; font-size:2.1rem; font-weight:900; color:#FF7A00; margin:6px 0;">
+          {{ revenu_confirme|floatformat:0 }} <span style="font-size:1rem; color:#FFF;">XAF</span>
+        </div>
+        <span style="font-size:0.78rem; color:#CBD5E1;">Somme des réservations validées</span>
+      </div>
+
+    </div>
+
+    <!-- Barre de Filtres et Recherche -->
+    <div class="ocd-card" style="padding:1.5rem; margin-bottom:2rem; background:rgba(18,25,21,0.92); border:1px solid var(--ocd-border-glass);">
+      <form method="GET" action="" style="display:flex; flex-wrap:wrap; gap:1rem; align-items:center; justify-content:space-between;">
+        
+        <!-- Filtre par statut -->
+        <div style="display:flex; flex-wrap:wrap; gap:0.5rem; align-items:center;">
+          <span style="font-size:0.85rem; font-weight:700; color:#94A3B8;">Statut :</span>
+          <a href="?{% if date_filter %}date={{ date_filter }}&{% endif %}{% if q %}q={{ q }}&{% endif %}" 
+             class="ocd-btn {% if not statut_filter %}ocd-btn-primary{% else %}ocd-btn-glow{% endif %}" style="padding:0.4rem 0.85rem; font-size:0.82rem;">
+            Tous
+          </a>
+          <a href="?statut=en_attente_validation_admin{% if date_filter %}&date={{ date_filter }}{% endif %}{% if q %}&q={{ q }}{% endif %}" 
+             class="ocd-btn {% if statut_filter == 'en_attente_validation_admin' %}ocd-btn-primary{% else %}ocd-btn-glow{% endif %}" style="padding:0.4rem 0.85rem; font-size:0.82rem;">
+            À Valider
+          </a>
+          <a href="?statut=en_attente_paiement{% if date_filter %}&date={{ date_filter }}{% endif %}{% if q %}&q={{ q }}{% endif %}" 
+             class="ocd-btn {% if statut_filter == 'en_attente_paiement' %}ocd-btn-primary{% else %}ocd-btn-glow{% endif %}" style="padding:0.4rem 0.85rem; font-size:0.82rem;">
+            Attente Paiement
+          </a>
+          <a href="?statut=validee_admin{% if date_filter %}&date={{ date_filter }}{% endif %}{% if q %}&q={{ q }}{% endif %}" 
+             class="ocd-btn {% if statut_filter == 'validee_admin' %}ocd-btn-primary{% else %}ocd-btn-glow{% endif %}" style="padding:0.4rem 0.85rem; font-size:0.82rem;">
+            Validées
+          </a>
+          <a href="?statut=refusee{% if date_filter %}&date={{ date_filter }}{% endif %}{% if q %}&q={{ q }}{% endif %}" 
+             class="ocd-btn {% if statut_filter == 'refusee' %}ocd-btn-primary{% else %}ocd-btn-glow{% endif %}" style="padding:0.4rem 0.85rem; font-size:0.82rem;">
+            Refusées
+          </a>
+        </div>
+
+        <!-- Recherche textuelle & date -->
+        <div style="display:flex; flex-wrap:wrap; gap:0.75rem; align-items:center;">
+          <input type="date" name="date" value="{{ date_filter }}" placeholder="Date de direct" 
+                 style="padding:0.5rem 0.8rem; border-radius:8px; background:#0B100D; border:1px solid rgba(255,255,255,0.15); color:#FFF; font-size:0.85rem;">
+          
+          <input type="text" name="q" value="{{ q }}" placeholder="Code, nom, WhatsApp..." 
+                 style="padding:0.5rem 0.9rem; border-radius:8px; background:#0B100D; border:1px solid rgba(255,255,255,0.15); color:#FFF; font-size:0.85rem; min-width:200px;">
+          
+          <button type="submit" class="ocd-btn ocd-btn-primary" style="padding:0.5rem 1rem; font-size:0.85rem;">
+            Filtrer
+          </button>
+          {% if statut_filter or date_filter or q %}
+            <a href="{% url 'ocd_live:admin_dashboard' %}" class="ocd-btn ocd-btn-glow" style="padding:0.5rem 0.85rem; font-size:0.85rem;">
+              Réinitialiser
+            </a>
+          {% endif %}
+        </div>
+      </form>
+    </div>
+
+    <!-- Table des Demandes de Réservation -->
+    <div class="ocd-card" style="padding:0; overflow:hidden; background:rgba(18,25,21,0.92); border:1px solid var(--ocd-border-glass); margin-bottom:2.5rem;">
+      <div style="overflow-x:auto;">
+        <table style="width:100%; border-collapse:collapse; text-align:left; font-size:0.88rem;">
+          <thead>
+            <tr style="background:#0B100D; border-bottom:1px solid rgba(255,255,255,0.12); color:#94A3B8; text-transform:uppercase; font-size:0.75rem; letter-spacing:0.04em;">
+              <th style="padding:1rem 1.25rem;">Code &amp; Date Demande</th>
+              <th style="padding:1rem 1.25rem;">Entreprise &amp; Contact</th>
+              <th style="padding:1rem 1.25rem;">Live Pitch &amp; Secteur</th>
+              <th style="padding:1rem 1.25rem;">Créneau &amp; Formule</th>
+              <th style="padding:1rem 1.25rem;">Prix &amp; Preuve</th>
+              <th style="padding:1rem 1.25rem;">Statut</th>
+              <th style="padding:1rem 1.25rem; text-align:right;">Actions Régie</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for booking in page_obj %}
+              <tr style="border-bottom:1px solid rgba(255,255,255,0.06); transition:background 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.02)'" onmouseout="this.style.background='transparent'">
+                
+                <!-- Code & Date Demande -->
+                <td style="padding:1rem 1.25rem; vertical-align:top;">
+                  <strong style="color:#FBBF24; font-family:'Outfit'; font-size:0.95rem; display:block;">
+                    {{ booking.code_reservation }}
+                  </strong>
+                  <span style="font-size:0.75rem; color:#94A3B8;">{{ booking.date_creation|date:"d/m/Y H:i" }}</span>
+                </td>
+
+                <!-- Entreprise & Contact -->
+                <td style="padding:1rem 1.25rem; vertical-align:top;">
+                  <strong style="color:#FFF; display:block;">{{ booking.nom_entreprise }}</strong>
+                  <div style="color:#CBD5E1; font-size:0.82rem;">{{ booking.nom_complet }}</div>
+                  <div style="margin-top:4px;">
+                    <a href="https://wa.me/{{ booking.telephone_whatsapp|cut:' '|cut:'+' }}?text=Bonjour%20{{ booking.nom_complet|urlencode }},%20régie%20E-Shelle%20OCD%20Live%20concernant%20votre%20réservation%20{{ booking.code_reservation }}" target="_blank" rel="noopener" style="color:#25D366; text-decoration:none; font-weight:700; font-size:0.8rem;">
+                      💬 {{ booking.telephone_whatsapp }}
+                    </a>
+                  </div>
+                </td>
+
+                <!-- Live Pitch & Secteur -->
+                <td style="padding:1rem 1.25rem; vertical-align:top; max-width:280px;">
+                  <span style="display:inline-block; background:rgba(255,255,255,0.08); padding:2px 6px; border-radius:4px; font-size:0.72rem; color:#CBD5E1; margin-bottom:4px;">
+                    {{ booking.secteur_activite }}
+                  </span>
+                  <strong style="display:block; color:#FFF; font-size:0.88rem; line-height:1.3;">
+                    {{ booking.titre_du_live|truncatechars:45 }}
+                  </strong>
+                  <small style="color:#94A3B8; display:block; margin-top:2px;">
+                    {{ booking.produits_services|truncatechars:40 }}
+                  </small>
+                </td>
+
+                <!-- Créneau & Formule -->
+                <td style="padding:1rem 1.25rem; vertical-align:top;">
+                  <strong style="color:#FF7A00; display:block; font-size:0.9rem;">
+                    📅 {{ booking.date_choisie|date:"d/m/Y" }}
+                  </strong>
+                  <div style="color:#FFF; font-weight:700; font-size:0.85rem;">
+                    ⏰ {{ booking.heure_choisie|date:"H:i" }} ({{ booking.duree_minutes }} min)
+                  </div>
+                  <small style="color:#94A3B8;">{{ booking.package.nom }}</small>
+                </td>
+
+                <!-- Prix & Preuve -->
+                <td style="padding:1rem 1.25rem; vertical-align:top;">
+                  <strong style="color:#10B981; font-size:1rem; display:block;">
+                    {{ booking.prix_formate }}
+                  </strong>
+                  <span style="font-size:0.78rem; color:#94A3B8;">{{ booking.mode_paiement|default:"Non spécifié" }}</span>
+                  
+                  <div style="margin-top:6px;">
+                    {% if booking.preuve_paiement %}
+                      <a href="{{ booking.preuve_paiement.url }}" target="_blank" style="display:inline-flex; align-items:center; gap:4px; color:#60A5FA; text-decoration:none; font-size:0.75rem; font-weight:700; background:rgba(59,130,246,0.15); padding:2px 6px; border-radius:4px;">
+                        🖼️ Voir reçu
+                      </a>
+                    {% elif booking.reference_paiement %}
+                      <code style="font-size:0.72rem; color:#FBBF24;">{{ booking.reference_paiement|truncatechars:15 }}</code>
+                    {% else %}
+                      <span style="font-size:0.72rem; color:#EF4444;">Sans preuve</span>
+                    {% endif %}
+                  </div>
+                </td>
+
+                <!-- Statut -->
+                <td style="padding:1rem 1.25rem; vertical-align:top;">
+                  <span style="display:inline-block; padding:4px 10px; border-radius:99px; font-weight:800; font-size:0.72rem; color:#FFF; background:{{ booking.statut_badge_color }};">
+                    {{ booking.get_statut_display }}
+                  </span>
+                  {% if booking.message_admin %}
+                    <small style="display:block; color:#94A3B8; font-size:0.72rem; margin-top:4px;">
+                      Note: {{ booking.message_admin|truncatechars:30 }}
+                    </small>
+                  {% endif %}
+                </td>
+
+                <!-- Actions Régie -->
+                <td style="padding:1rem 1.25rem; vertical-align:top; text-align:right;">
+                  <div style="display:flex; flex-direction:column; gap:6px; align-items:flex-end;">
+                    
+                    <!-- Fiche PDF -->
+                    <a href="{% url 'ocd_live:fiche_pdf' code=booking.code_reservation %}" target="_blank" class="ocd-btn ocd-btn-glow" style="padding:0.35rem 0.75rem; font-size:0.78rem;">
+                      📄 Fiche PDF
+                    </a>
+
+                    <!-- Boutons de transition de statut -->
+                    {% if booking.statut != 'validee_admin' and booking.statut != 'confirmee' and booking.statut != 'terminee' %}
+                      <form method="POST" action="{% url 'ocd_live:admin_action' booking_id=booking.id %}" style="display:inline;">
+                        {% csrf_token %}
+                        <input type="hidden" name="action" value="valider">
+                        <button type="submit" onclick="return confirm('Confirmer la validation du passage pour {{ booking.code_reservation }} ? Le créneau sera verrouillé.')" 
+                                style="background:#16A34A; color:#FFF; border:none; padding:0.35rem 0.75rem; border-radius:6px; font-weight:800; font-size:0.78rem; cursor:pointer;">
+                          ✓ Valider la demande
+                        </button>
+                      </form>
+                    {% endif %}
+
+                    {% if booking.statut != 'refusee' and booking.statut != 'terminee' %}
+                      <form method="POST" action="{% url 'ocd_live:admin_action' booking_id=booking.id %}" style="display:inline;">
+                        {% csrf_token %}
+                        <input type="hidden" name="action" value="refuser">
+                        <button type="submit" onclick="return confirm('Refuser la demande {{ booking.code_reservation }} ?')" 
+                                style="background:rgba(239,68,68,0.2); color:#F87171; border:1px solid #EF4444; padding:0.3rem 0.65rem; border-radius:6px; font-weight:700; font-size:0.75rem; cursor:pointer;">
+                          ✗ Refuser
+                        </button>
+                      </form>
+                    {% endif %}
+
+                    {% if booking.statut == 'validee_admin' %}
+                      <form method="POST" action="{% url 'ocd_live:admin_action' booking_id=booking.id %}" style="display:inline;">
+                        {% csrf_token %}
+                        <input type="hidden" name="action" value="terminee">
+                        <button type="submit" onclick="return confirm('Marquer la session comme terminée ?')" 
+                                style="background:#8B5CF6; color:#FFF; border:none; padding:0.3rem 0.65rem; border-radius:6px; font-weight:700; font-size:0.75rem; cursor:pointer;">
+                          Clôturer (Terminée)
+                        </button>
+                      </form>
+                    {% endif %}
+
+                  </div>
+                </td>
+              </tr>
+            {% empty %}
+              <tr>
+                <td colspan="7" style="padding:3rem; text-align:center; color:#94A3B8;">
+                  Aucune demande de réservation trouvée avec ces critères.
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Pagination -->
+      {% if page_obj.has_other_pages %}
+        <div style="padding:1.25rem; background:#0B100D; border-top:1px solid rgba(255,255,255,0.08); display:flex; justify-content:center; gap:0.5rem;">
+          {% if page_obj.has_previous %}
+            <a href="?page={{ page_obj.previous_page_number }}{% if statut_filter %}&statut={{ statut_filter }}{% endif %}{% if date_filter %}&date={{ date_filter }}{% endif %}{% if q %}&q={{ q }}{% endif %}" class="ocd-btn ocd-btn-glow" style="padding:0.4rem 0.8rem; font-size:0.82rem;">← Précédent</a>
+          {% endif %}
+          <span style="padding:0.4rem 0.8rem; font-size:0.85rem; color:#FFF; align-self:center;">
+            Page {{ page_obj.number }} sur {{ page_obj.paginator.num_pages }}
+          </span>
+          {% if page_obj.has_next %}
+            <a href="?page={{ page_obj.next_page_number }}{% if statut_filter %}&statut={{ statut_filter }}{% endif %}{% if date_filter %}&date={{ date_filter }}{% endif %}{% if q %}&q={{ q }}{% endif %}" class="ocd-btn ocd-btn-glow" style="padding:0.4rem 0.8rem; font-size:0.82rem;">Suivant →</a>
+          {% endif %}
+        </div>
+      {% endif %}
+    </div>
+
+    <!-- Création Rapide de Créneau par l'Admin -->
+    <div class="ocd-card" style="padding:2rem; background:rgba(18,25,21,0.92); border:1px solid var(--ocd-border-glass);">
+      <h3 style="font-family:'Outfit',sans-serif; font-size:1.2rem; color:#FFF; margin:0 0 1rem;">
+        ➕ Ouvrir un nouveau créneau de diffusion Live
+      </h3>
+      <form method="POST" action="{% url 'ocd_live:admin_dashboard' %}" style="display:flex; flex-wrap:wrap; gap:1rem; align-items:flex-end;">
+        {% csrf_token %}
+        <input type="hidden" name="create_slot" value="1">
+        
+        <div>
+          <label style="display:block; font-size:0.82rem; font-weight:700; color:#CBD5E1; margin-bottom:0.35rem;">Date du direct</label>
+          <input type="date" name="slot_date" required style="padding:0.65rem 0.85rem; border-radius:8px; background:#0B100D; border:1px solid rgba(255,255,255,0.15); color:#FFF; font-size:0.88rem;">
+        </div>
+
+        <div>
+          <label style="display:block; font-size:0.82rem; font-weight:700; color:#CBD5E1; margin-bottom:0.35rem;">Heure de début</label>
+          <input type="time" name="heure_debut" required style="padding:0.65rem 0.85rem; border-radius:8px; background:#0B100D; border:1px solid rgba(255,255,255,0.15); color:#FFF; font-size:0.88rem;">
+        </div>
+
+        <div>
+          <label style="display:block; font-size:0.82rem; font-weight:700; color:#CBD5E1; margin-bottom:0.35rem;">Heure de fin</label>
+          <input type="time" name="heure_fin" required style="padding:0.65rem 0.85rem; border-radius:8px; background:#0B100D; border:1px solid rgba(255,255,255,0.15); color:#FFF; font-size:0.88rem;">
+        </div>
+
+        <button type="submit" class="ocd-btn ocd-btn-primary" style="padding:0.7rem 1.4rem; font-size:0.88rem; font-weight:800;">
+          + Créer ce créneau
+        </button>
+      </form>
+    </div>
+
+  </div>
+</section>
+{% endblock %}
+

@@ -1,0 +1,533 @@
+{% extends "ocd_live/base_ocd.html" %}
+{% load static %}
+
+{% block title %}Réserver votre passage en Direct — OCD Live | E-Shelle{% endblock %}
+
+{% block meta_description %}Réservez votre créneau en direct sur OCD Live pour présenter vos produits et services devant des milliers d'acheteurs au Cameroun et en Afrique.{% endblock %}
+
+{% block content %}
+<section class="ocd-section" style="padding-top: 2.5rem; padding-bottom: 5rem;">
+  <div style="max-width: 1040px; margin: 0 auto; padding: 0 1rem;">
+    
+    <!-- En-tête de page -->
+    <div style="text-align: center; margin-bottom: 2.5rem;">
+      <div class="ocd-hero-eyebrow" style="display:inline-flex; align-items:center; gap:8px; margin-bottom:1rem;">
+        <span>🎙️ RÉSERVATION OFFICIELLE OCD LIVE</span>
+      </div>
+      <h1 style="font-family:'Outfit',sans-serif; font-size:clamp(1.9rem, 4vw, 2.8rem); font-weight:900; color:#FFFFFF; line-height:1.15; margin:0 0 1rem;">
+        Réservez votre passage en direct<br>
+        <span class="gradient-orange">Présentez vos offres &amp; Vendez en direct</span>
+      </h1>
+      <p style="font-size:clamp(1rem, 2vw, 1.15rem); color:#94A3B8; max-width:760px; margin:0 auto; line-height:1.6;">
+        Prenez l'antenne devant l'audience qualifiée <strong>E-Shelle</strong> au Cameroun et en Afrique. 
+        Choisissez votre créneau, sélectionnez votre durée et validez votre passage pour démarrer vos ventes.
+      </p>
+    </div>
+
+    <!-- Stepper visuel -->
+    <div style="background:rgba(18,25,21,0.85); border:1px solid var(--ocd-border-glass); border-radius:18px; padding:1.25rem 1.5rem; margin-bottom:2.5rem; backdrop-filter:blur(10px);">
+      <div style="display:grid; grid-template-columns:repeat(4, 1fr); gap:0.5rem; text-align:center;">
+        <div style="display:flex; flex-direction:column; align-items:center; gap:6px;">
+          <div style="width:34px; height:34px; border-radius:50%; background:linear-gradient(135deg, #16A34A, #10B981); color:#FFF; font-weight:900; display:flex; align-items:center; justify-content:center; font-size:0.9rem; box-shadow:0 0 12px rgba(22,163,74,0.5);">1</div>
+          <span style="font-size:0.78rem; font-weight:800; color:#FFF; text-transform:uppercase; letter-spacing:0.04em;">Ton Activité</span>
+        </div>
+        <div style="display:flex; flex-direction:column; align-items:center; gap:6px;">
+          <div style="width:34px; height:34px; border-radius:50%; background:linear-gradient(135deg, #FF7A00, #D35400); color:#FFF; font-weight:900; display:flex; align-items:center; justify-content:center; font-size:0.9rem; box-shadow:0 0 12px rgba(211,84,0,0.5);">2</div>
+          <span style="font-size:0.78rem; font-weight:800; color:#FFF; text-transform:uppercase; letter-spacing:0.04em;">Ton Créneau</span>
+        </div>
+        <div style="display:flex; flex-direction:column; align-items:center; gap:6px;">
+          <div style="width:34px; height:34px; border-radius:50%; background:linear-gradient(135deg, #FBBF24, #D97706); color:#FFF; font-weight:900; display:flex; align-items:center; justify-content:center; font-size:0.9rem; box-shadow:0 0 12px rgba(251,191,36,0.4);">3</div>
+          <span style="font-size:0.78rem; font-weight:800; color:#FFF; text-transform:uppercase; letter-spacing:0.04em;">Ton Package</span>
+        </div>
+        <div style="display:flex; flex-direction:column; align-items:center; gap:6px;">
+          <div style="width:34px; height:34px; border-radius:50%; background:linear-gradient(135deg, #E65100, #C8521A); color:#FFF; font-weight:900; display:flex; align-items:center; justify-content:center; font-size:0.9rem; box-shadow:0 0 12px rgba(230,81,0,0.5);">4</div>
+          <span style="font-size:0.78rem; font-weight:800; color:#FFF; text-transform:uppercase; letter-spacing:0.04em;">Paiement</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Alertes d'erreur globales si présentes -->
+    {% if errors %}
+      <div style="background:rgba(239,68,68,0.15); border:1px solid #EF4444; border-radius:14px; padding:1.2rem 1.5rem; margin-bottom:2rem; color:#FCA5A5;">
+        <strong style="color:#FFF; display:block; margin-bottom:0.4rem; font-size:1.05rem;">⚠️ Attention, veuillez corriger les erreurs suivantes :</strong>
+        <ul style="margin:0; padding-left:1.2rem; font-size:0.92rem;">
+          {% for field, msg in errors.items %}
+            <li>{{ msg }}</li>
+          {% endfor %}
+        </ul>
+      </div>
+    {% endif %}
+
+    <!-- Formulaire Unique & Complet -->
+    <form method="POST" action="{% url 'ocd_live:reservation' %}" enctype="multipart/form-data" id="ocdReservationForm">
+      {% csrf_token %}
+
+      <!-- ================================================================= -->
+      <!-- ÉTAPE 1 : TON ACTIVITÉ ET TES COORDONNÉES -->
+      <!-- ================================================================= -->
+      <div class="ocd-card" style="padding:2.2rem; margin-bottom:2rem; background:rgba(18,25,21,0.92); border:1px solid var(--ocd-border-glass);">
+        <div style="display:flex; align-items:center; gap:12px; margin-bottom:1.5rem; border-bottom:1px solid var(--ocd-border-subtle); padding-bottom:1rem;">
+          <span style="width:36px; height:36px; border-radius:50%; background:#16A34A; color:#FFF; font-weight:900; display:flex; align-items:center; justify-content:center;">1</span>
+          <div>
+            <h2 style="font-family:'Outfit',sans-serif; font-size:1.4rem; color:#FFF; margin:0;">Étape 1 : Votre Activité &amp; Vos Contacts</h2>
+            <p style="margin:2px 0 0; color:#94A3B8; font-size:0.88rem;">Dites-nous qui vous êtes et ce que vous souhaitez proposer à l'audience.</p>
+          </div>
+        </div>
+
+        <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(280px, 1fr)); gap:1.25rem; margin-bottom:1.25rem;">
+          <div>
+            <label style="display:block; font-weight:700; color:#CBD5E1; font-size:0.88rem; margin-bottom:0.4rem;">
+              Nom complet du présentateur <span style="color:#EF4444">*</span>
+            </label>
+            <input type="text" name="nom_complet" value="{{ form_data.nom_complet|default:'' }}" required placeholder="Ex : Mamadou Kemgne" 
+                   style="width:100%; padding:0.85rem 1rem; border-radius:10px; background:#0B100D; border:1px solid rgba(255,255,255,0.15); color:#FFF; font-size:0.95rem;">
+          </div>
+
+          <div>
+            <label style="display:block; font-weight:700; color:#CBD5E1; font-size:0.88rem; margin-bottom:0.4rem;">
+              Téléphone WhatsApp (Cameroun / International) <span style="color:#EF4444">*</span>
+            </label>
+            <input type="tel" name="telephone_whatsapp" value="{{ form_data.telephone_whatsapp|default:'' }}" required placeholder="Ex : 680625082 ou +237 680 625 082" 
+                   style="width:100%; padding:0.85rem 1rem; border-radius:10px; background:#0B100D; border:1px solid rgba(255,255,255,0.15); color:#FFF; font-size:0.95rem;">
+            <small style="color:#94A3B8; font-size:0.75rem;">Utilisé pour les rappels régie et le contact direct des acheteurs.</small>
+          </div>
+
+          <div>
+            <label style="display:block; font-weight:700; color:#CBD5E1; font-size:0.88rem; margin-bottom:0.4rem;">
+              Adresse Email <span style="color:#EF4444">*</span>
+            </label>
+            <input type="email" name="email" value="{{ form_data.email|default:'' }}" required placeholder="Ex : contact@monentreprise.cm" 
+                   style="width:100%; padding:0.85rem 1rem; border-radius:10px; background:#0B100D; border:1px solid rgba(255,255,255,0.15); color:#FFF; font-size:0.95rem;">
+          </div>
+
+          <div>
+            <label style="display:block; font-weight:700; color:#CBD5E1; font-size:0.88rem; margin-bottom:0.4rem;">
+              Nom de l'entreprise ou marque <span style="color:#EF4444">*</span>
+            </label>
+            <input type="text" name="nom_entreprise" value="{{ form_data.nom_entreprise|default:'' }}" required placeholder="Ex : AgriTech Cameroun SARL" 
+                   style="width:100%; padding:0.85rem 1rem; border-radius:10px; background:#0B100D; border:1px solid rgba(255,255,255,0.15); color:#FFF; font-size:0.95rem;">
+          </div>
+        </div>
+
+        <div style="margin-bottom:1.25rem;">
+          <label style="display:block; font-weight:700; color:#CBD5E1; font-size:0.88rem; margin-bottom:0.4rem;">
+            Secteur d'activité <span style="color:#EF4444">*</span>
+          </label>
+          <select name="secteur_activite" required style="width:100%; padding:0.85rem 1rem; border-radius:10px; background:#0B100D; border:1px solid rgba(255,255,255,0.15); color:#FFF; font-size:0.95rem;">
+            <option value="">Sélectionnez votre secteur...</option>
+            {% for code, label in secteurs %}
+              <option value="{{ code }}" {% if form_data.secteur_activite == code %}selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <div style="margin-bottom:1.25rem;">
+          <label style="display:block; font-weight:700; color:#CBD5E1; font-size:0.88rem; margin-bottom:0.4rem;">
+            Titre de votre passage en Direct <span style="color:#EF4444">*</span>
+          </label>
+          <input type="text" name="titre_du_live" value="{{ form_data.titre_du_live|default:'' }}" required placeholder="Ex : Découverte et démo de nos générateurs solaires 5kW pour PME" 
+                 style="width:100%; padding:0.85rem 1rem; border-radius:10px; background:#0B100D; border:1px solid rgba(255,255,255,0.15); color:#FFF; font-size:0.95rem;">
+          <small style="color:#94A3B8; font-size:0.75rem;">Un titre accrocheur qui donne envie à l'audience de se connecter.</small>
+        </div>
+
+        <div style="margin-bottom:1.25rem;">
+          <label style="display:block; font-weight:700; color:#CBD5E1; font-size:0.88rem; margin-bottom:0.4rem;">
+            Description de ce que vous allez présenter <span style="color:#EF4444">*</span>
+          </label>
+          <textarea name="description_activite" rows="3" required placeholder="Décrivez votre pitch : avantages clients, problème résolu, offres spéciales pour le direct..." 
+                    style="width:100%; padding:0.85rem 1rem; border-radius:10px; background:#0B100D; border:1px solid rgba(255,255,255,0.15); color:#FFF; font-size:0.95rem; resize:vertical;">{{ form_data.description_activite|default:'' }}</textarea>
+        </div>
+
+        <div style="margin-bottom:1.25rem;">
+          <label style="display:block; font-weight:700; color:#CBD5E1; font-size:0.88rem; margin-bottom:0.4rem;">
+            Liste de vos produits ou services présentés <span style="color:#EF4444">*</span>
+          </label>
+          <textarea name="produits_services" rows="2" required placeholder="Ex : Pack Solaire 3kVA (550 000 XAF), Installation offerte, Garantie 2 ans..." 
+                    style="width:100%; padding:0.85rem 1rem; border-radius:10px; background:#0B100D; border:1px solid rgba(255,255,255,0.15); color:#FFF; font-size:0.95rem; resize:vertical;">{{ form_data.produits_services|default:'' }}</textarea>
+        </div>
+
+        <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(280px, 1fr)); gap:1.25rem;">
+          <div>
+            <label style="display:block; font-weight:700; color:#CBD5E1; font-size:0.88rem; margin-bottom:0.4rem;">
+              Lien de votre site web ou page réseaux sociaux (optionnel)
+            </label>
+            <input type="url" name="lien_site_ou_page" value="{{ form_data.lien_site_ou_page|default:'' }}" placeholder="https://facebook.com/mapage ou https://monsite.com" 
+                   style="width:100%; padding:0.85rem 1rem; border-radius:10px; background:#0B100D; border:1px solid rgba(255,255,255,0.15); color:#FFF; font-size:0.95rem;">
+          </div>
+          <div>
+            <label style="display:block; font-weight:700; color:#CBD5E1; font-size:0.88rem; margin-bottom:0.4rem;">
+              Lien direct WhatsApp Business / Catalogue (optionnel)
+            </label>
+            <input type="text" name="lien_whatsapp" value="{{ form_data.lien_whatsapp|default:'' }}" placeholder="https://wa.me/237680625082" 
+                   style="width:100%; padding:0.85rem 1rem; border-radius:10px; background:#0B100D; border:1px solid rgba(255,255,255,0.15); color:#FFF; font-size:0.95rem;">
+          </div>
+        </div>
+      </div>
+
+      <!-- ================================================================= -->
+      <!-- ÉTAPE 2 : TON CRÉNEAU (CALENDRIER DES SLOTS DISPONIBLES) -->
+      <!-- ================================================================= -->
+      <div class="ocd-card" style="padding:2.2rem; margin-bottom:2rem; background:rgba(18,25,21,0.92); border:1px solid var(--ocd-border-glass);">
+        <div style="display:flex; align-items:center; gap:12px; margin-bottom:1.5rem; border-bottom:1px solid var(--ocd-border-subtle); padding-bottom:1rem;">
+          <span style="width:36px; height:36px; border-radius:50%; background:#FF7A00; color:#FFF; font-weight:900; display:flex; align-items:center; justify-content:center;">2</span>
+          <div>
+            <h2 style="font-family:'Outfit',sans-serif; font-size:1.4rem; color:#FFF; margin:0;">Étape 2 : Votre Créneau de Passage (Date &amp; Heure)</h2>
+            <p style="margin:2px 0 0; color:#94A3B8; font-size:0.88rem;">
+              Seuls les créneaux disponibles s'affichent ci-dessous (1 seul passage à la fois, aucun double booking).
+            </p>
+          </div>
+        </div>
+
+        <!-- Champ caché stockant le slot_id choisi -->
+        <input type="hidden" name="slot_id" id="selectedSlotInput" value="{{ form_data.slot_id|default:selected_slot_id|default:'' }}" required>
+
+        {% if available_slots %}
+          <!-- Sélecteur rapide de dates & grille des heures -->
+          <div style="margin-bottom:1.5rem;">
+            <label style="display:block; font-weight:700; color:#CBD5E1; font-size:0.9rem; margin-bottom:0.75rem;">
+              1. Choisissez une date parmi les 14 prochains jours disponibles :
+            </label>
+            <div id="datePillContainer" style="display:flex; gap:0.6rem; overflow-x:auto; padding-bottom:0.75rem; -webkit-overflow-scrolling:touch;">
+              <!-- Pills générés par JavaScript groupant les créneaux par date -->
+            </div>
+          </div>
+
+          <div>
+            <label style="display:block; font-weight:700; color:#CBD5E1; font-size:0.9rem; margin-bottom:0.75rem;">
+              2. Choisissez votre heure de direct :
+            </label>
+            <div id="slotsGridContainer" style="display:grid; grid-template-columns:repeat(auto-fill, minmax(210px, 1fr)); gap:0.85rem;">
+              {% for slot in available_slots %}
+                <div class="ocd-slot-pill" 
+                     data-slot-id="{{ slot.id }}" 
+                     data-slot-date="{{ slot.date|date:'Y-m-d' }}"
+                     data-slot-date-display="{{ slot.date|date:'l d F Y' }}"
+                     data-slot-time="{{ slot.heure_debut|date:'H:i' }} - {{ slot.heure_fin|date:'H:i' }}"
+                     style="padding:0.9rem 1.1rem; border-radius:12px; background:rgba(0,0,0,0.5); border:1px solid rgba(255,255,255,0.12); cursor:pointer; transition:var(--ocd-transition); text-align:center;">
+                  <div style="font-size:0.8rem; color:#94A3B8; margin-bottom:4px;">{{ slot.date|date:'d/m/Y' }}</div>
+                  <strong style="display:block; font-size:1.05rem; color:#FFF;">{{ slot.heure_debut|date:'H:i' }} à {{ slot.heure_fin|date:'H:i' }}</strong>
+                  <span style="display:inline-block; margin-top:4px; font-size:0.72rem; color:#10B981; font-weight:700;">● Disponible</span>
+                </div>
+              {% endfor %}
+            </div>
+          </div>
+
+          <div id="slotSummaryBanner" style="display:none; margin-top:1.5rem; padding:0.9rem 1.25rem; background:rgba(22,163,74,0.15); border:1px solid #16A34A; border-radius:10px; color:#DCFCE7; font-size:0.92rem;">
+            <strong>Créneau sélectionné :</strong> <span id="slotSelectedText">—</span>
+          </div>
+
+        {% else %}
+          <div style="padding:2rem; background:rgba(211,84,0,0.12); border:1px solid var(--ocd-primary); border-radius:12px; text-align:center;">
+            <p style="margin:0 0 1rem; color:#FFF; font-weight:700;">Aucun créneau ouvert pour les 14 prochains jours actuellement.</p>
+            <a href="https://wa.me/237680625082?text=Bonjour,%20je%20souhaite%20réserver%20un%20créneau%20spécifique%20OCD%20Live" target="_blank" rel="noopener" class="ocd-btn ocd-btn-primary">
+              Contacter la régie par WhatsApp pour ouvrir une date
+            </a>
+          </div>
+        {% endif %}
+      </div>
+
+      <!-- ================================================================= -->
+      <!-- ÉTAPE 3 : TON PACKAGE / TA DURÉE (4 CARTES CLIQUABLES) -->
+      <!-- ================================================================= -->
+      <div class="ocd-card" style="padding:2.2rem; margin-bottom:2rem; background:rgba(18,25,21,0.92); border:1px solid var(--ocd-border-glass);">
+        <div style="display:flex; align-items:center; gap:12px; margin-bottom:1.5rem; border-bottom:1px solid var(--ocd-border-subtle); padding-bottom:1rem;">
+          <span style="width:36px; height:36px; border-radius:50%; background:#FBBF24; color:#0A0E0C; font-weight:900; display:flex; align-items:center; justify-content:center;">3</span>
+          <div>
+            <h2 style="font-family:'Outfit',sans-serif; font-size:1.4rem; color:#FFF; margin:0;">Étape 3 : Votre Formule &amp; Votre Durée</h2>
+            <p style="margin:2px 0 0; color:#94A3B8; font-size:0.88rem;">Cliquez sur la carte de votre choix. Le montant total se met à jour en direct.</p>
+          </div>
+        </div>
+
+        <!-- Champ caché stockant le package_id choisi -->
+        <input type="hidden" name="package_id" id="selectedPackageInput" value="{{ form_data.package_id|default:selected_package_id|default:'' }}" required>
+
+        <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(220px, 1fr)); gap:1.25rem;">
+          {% for pkg in packages %}
+            <div class="ocd-pkg-card {% if pkg.est_recommande %}recommended{% endif %}" 
+                 data-pkg-id="{{ pkg.id }}" 
+                 data-pkg-name="{{ pkg.nom }}" 
+                 data-pkg-duration="{{ pkg.duree_display }}"
+                 data-pkg-price="{{ pkg.prix_xaf|floatformat:0 }}"
+                 style="position:relative; background:rgba(10,14,12,0.95); border:2px solid {% if pkg.est_recommande %}#FF7A00{% else %}rgba(255,255,255,0.12){% endif %}; border-radius:16px; padding:1.5rem; cursor:pointer; transition:var(--ocd-transition); display:flex; flex-direction:column; justify-content:space-between;">
+              
+              {% if pkg.est_recommande %}
+                <div style="position:absolute; top:-12px; left:50%; transform:translateX(-50%); background:linear-gradient(90deg,#FF7A00,#E65100); color:#FFF; padding:3px 12px; border-radius:99px; font-size:0.72rem; font-weight:800; letter-spacing:0.06em; text-transform:uppercase; box-shadow:0 2px 10px rgba(255,122,0,0.5);">
+                  ★ Recommandé
+                </div>
+              {% endif %}
+
+              <div>
+                <h3 style="font-family:'Outfit',sans-serif; font-size:1.2rem; color:#FFF; margin:0 0 0.5rem;">{{ pkg.nom }}</h3>
+                <div style="display:inline-flex; align-items:center; gap:6px; background:rgba(255,255,255,0.06); padding:4px 10px; border-radius:6px; font-size:0.82rem; color:#CBD5E1; font-weight:700; margin-bottom:1rem;">
+                  ⏱️ Durée : {{ pkg.duree_display }}
+                </div>
+                <div style="font-family:'Outfit',sans-serif; font-size:1.75rem; font-weight:900; color:#FF7A00; margin-bottom:1rem;">
+                  {{ pkg.prix_xaf|floatformat:0 }} <span style="font-size:0.85rem; color:#94A3B8; font-weight:600;">XAF</span>
+                </div>
+                <p style="font-size:0.85rem; color:#CBD5E1; line-height:1.5; margin:0 0 1.25rem;">
+                  {{ pkg.description }}
+                </p>
+              </div>
+
+              <div class="pkg-select-btn" style="width:100%; padding:0.65rem 1rem; border-radius:8px; text-align:center; font-weight:800; font-size:0.85rem; background:rgba(255,255,255,0.08); color:#FFF; border:1px solid rgba(255,255,255,0.15); transition:var(--ocd-transition);">
+                Sélectionner cette formule
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+      </div>
+
+      <!-- ================================================================= -->
+      <!-- ÉTAPE 4 : PAIEMENT POUR CONFIRMER LA RÉSERVATION -->
+      <!-- ================================================================= -->
+      <div class="ocd-card" style="padding:2.2rem; margin-bottom:2rem; background:rgba(18,25,21,0.92); border:1px solid var(--ocd-border-glass);">
+        <div style="display:flex; align-items:center; gap:12px; margin-bottom:1.5rem; border-bottom:1px solid var(--ocd-border-subtle); padding-bottom:1rem;">
+          <span style="width:36px; height:36px; border-radius:50%; background:#E65100; color:#FFF; font-weight:900; display:flex; align-items:center; justify-content:center;">4</span>
+          <div>
+            <h2 style="font-family:'Outfit',sans-serif; font-size:1.4rem; color:#FFF; margin:0;">Étape 4 : Paiement Requis pour Confirmer Votre Passage</h2>
+            <p style="margin:2px 0 0; color:#94A3B8; font-size:0.88rem;">
+              Règle de confirmation officielle E-Shelle / OCD Live.
+            </p>
+          </div>
+        </div>
+
+        <!-- Alerte Règle Métier -->
+        <div style="background:rgba(234,88,12,0.15); border:1px solid #EA580C; border-radius:12px; padding:1.25rem 1.5rem; margin-bottom:1.75rem; color:#FED7AA;">
+          <strong style="color:#FFF; display:block; font-size:1rem; margin-bottom:0.35rem;">
+            🔒 Règle de confirmation stricte :
+          </strong>
+          Paiement requis pour confirmer ton passage. Sans paiement ou preuve de paiement, ta demande reste en attente et le créneau n'est pas bloqué.
+        </div>
+
+        <!-- Récapitulatif interactif du montant total -->
+        <div style="background:#0B100D; border:1px solid rgba(255,255,255,0.12); border-radius:14px; padding:1.25rem 1.75rem; margin-bottom:1.75rem; display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:1rem;">
+          <div>
+            <span style="font-size:0.85rem; color:#94A3B8; text-transform:uppercase; font-weight:700; letter-spacing:0.04em;">Montant Total de la prestation :</span>
+            <div id="livePriceSummary" style="font-family:'Outfit',sans-serif; font-size:2.2rem; font-weight:900; color:#10B981; line-height:1.1; margin-top:4px;">
+              0 XAF
+            </div>
+            <div id="livePkgDetailSummary" style="font-size:0.85rem; color:#CBD5E1; margin-top:4px;">
+              Veuillez sélectionner un package à l'étape 3
+            </div>
+          </div>
+          <div style="text-align:right;">
+            <span style="display:inline-block; background:rgba(255,122,0,0.15); color:#FF7A00; padding:4px 10px; border-radius:6px; font-size:0.78rem; font-weight:800;">
+              Facturation officielle E-Shelle
+            </span>
+          </div>
+        </div>
+
+        <!-- Mode de règlement -->
+        <div style="margin-bottom:1.75rem;">
+          <label style="display:block; font-weight:700; color:#CBD5E1; font-size:0.9rem; margin-bottom:0.75rem;">
+            Sélectionnez votre mode de paiement <span style="color:#EF4444">*</span>
+          </label>
+          <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(200px, 1fr)); gap:1rem;">
+            <label style="display:flex; align-items:center; gap:10px; background:#0B100D; padding:1rem; border-radius:10px; border:1px solid rgba(255,255,255,0.12); cursor:pointer;">
+              <input type="radio" name="mode_paiement" value="MTN MoMo" required {% if form_data.mode_paiement == 'MTN MoMo' %}checked{% endif %}>
+              <div>
+                <strong style="color:#FFF; display:block;">MTN Mobile Money</strong>
+                <span style="font-size:0.75rem; color:#FBBF24;">Régie : +237 680 625 082</span>
+              </div>
+            </label>
+
+            <label style="display:flex; align-items:center; gap:10px; background:#0B100D; padding:1rem; border-radius:10px; border:1px solid rgba(255,255,255,0.12); cursor:pointer;">
+              <input type="radio" name="mode_paiement" value="Orange Money" required {% if form_data.mode_paiement == 'Orange Money' %}checked{% endif %}>
+              <div>
+                <strong style="color:#FFF; display:block;">Orange Money</strong>
+                <span style="font-size:0.75rem; color:#FF7A00;">Régie : +237 680 625 082</span>
+              </div>
+            </label>
+
+            <label style="display:flex; align-items:center; gap:10px; background:#0B100D; padding:1rem; border-radius:10px; border:1px solid rgba(255,255,255,0.12); cursor:pointer;">
+              <input type="radio" name="mode_paiement" value="Transfert" required {% if form_data.mode_paiement == 'Transfert' %}checked{% endif %}>
+              <div>
+                <strong style="color:#FFF; display:block;">Transfert / Virement</strong>
+                <span style="font-size:0.75rem; color:#94A3B8;">Banque / Express Union</span>
+              </div>
+            </label>
+          </div>
+        </div>
+
+        <!-- Instructions de paiement détaillées -->
+        <div style="background:rgba(0,0,0,0.5); border:1px solid rgba(255,255,255,0.08); border-radius:12px; padding:1.25rem; margin-bottom:1.75rem; font-size:0.88rem; line-height:1.6; color:#CBD5E1;">
+          <strong style="color:#FFF; display:block; margin-bottom:0.4rem;">📱 Instructions pour le transfert :</strong>
+          1. Effectuez le paiement du montant de la formule choisie sur l'un des comptes officiels ci-dessus.<br>
+          2. Conservez la référence de transaction SMS (ex: <code>TX-998811...</code>).<br>
+          3. Prenez une capture d'écran du reçu et téléversez-la ci-dessous pour accélérer la validation par l'administrateur.
+        </div>
+
+        <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(280px, 1fr)); gap:1.25rem; margin-bottom:1.5rem;">
+          <div>
+            <label style="display:block; font-weight:700; color:#CBD5E1; font-size:0.88rem; margin-bottom:0.4rem;">
+              Référence de transaction / Numéro SMS
+            </label>
+            <input type="text" name="reference_paiement" value="{{ form_data.reference_paiement|default:'' }}" placeholder="Ex : MP261108.1234.A00123" 
+                   style="width:100%; padding:0.85rem 1rem; border-radius:10px; background:#0B100D; border:1px solid rgba(255,255,255,0.15); color:#FFF; font-size:0.95rem;">
+          </div>
+
+          <div>
+            <label style="display:block; font-weight:700; color:#CBD5E1; font-size:0.88rem; margin-bottom:0.4rem;">
+              Preuve de paiement (capture d'écran)
+            </label>
+            <input type="file" name="preuve_paiement" accept="image/*" 
+                   style="width:100%; padding:0.7rem 1rem; border-radius:10px; background:#0B100D; border:1px solid rgba(255,255,255,0.15); color:#FFF; font-size:0.85rem;">
+            <small style="color:#94A3B8; font-size:0.75rem;">JPG, PNG, WebP (max 5 Mo)</small>
+          </div>
+        </div>
+
+        <!-- Bouton CTA Principal d'envoi -->
+        <div style="margin-top:2rem;">
+          <button type="submit" class="ocd-btn ocd-btn-primary" style="width:100%; padding:1.2rem; font-size:1.15rem; font-weight:900; letter-spacing:0.02em; border-radius:14px; box-shadow:0 8px 30px rgba(230,81,0,0.6);">
+            🚀 ENVOYER MA DEMANDE &amp; RÉSERVER MON PASSAGE EN DIRECT
+          </button>
+          <div style="text-align:center; margin-top:0.85rem; font-size:0.82rem; color:#94A3B8;">
+            ✓ Confirmation immédiate avec code de suivi &bull; Fiche de réservation PDF téléchargeable dès l'envoi
+          </div>
+        </div>
+      </div>
+    </form>
+  </div>
+</section>
+
+<!-- Scripts d'interactivité dynamique (Mobile-First) -->
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+  const slotPills = document.querySelectorAll(".ocd-slot-pill");
+  const pkgCards = document.querySelectorAll(".ocd-pkg-card");
+  const slotInput = document.getElementById("selectedSlotInput");
+  const pkgInput = document.getElementById("selectedPackageInput");
+  const livePriceSummary = document.getElementById("livePriceSummary");
+  const livePkgDetailSummary = document.getElementById("livePkgDetailSummary");
+  const slotSummaryBanner = document.getElementById("slotSummaryBanner");
+  const slotSelectedText = document.getElementById("slotSelectedText");
+
+  // Regroupement dynamique des dates pour barre de sélection horizontale
+  const datePillContainer = document.getElementById("datePillContainer");
+  const uniqueDates = {};
+
+  slotPills.forEach(pill => {
+    const d = pill.getAttribute("data-slot-date");
+    const dDisp = pill.getAttribute("data-slot-date-display");
+    if (!uniqueDates[d]) {
+      uniqueDates[d] = dDisp;
+    }
+  });
+
+  const dateKeys = Object.keys(uniqueDates);
+  if (datePillContainer && dateKeys.length > 0) {
+    // Bouton "Toutes les dates"
+    const allPill = document.createElement("button");
+    allPill.type = "button";
+    allPill.className = "ocd-btn ocd-btn-glow active";
+    allPill.innerText = "Toutes les dates";
+    allPill.style.padding = "0.45rem 0.9rem";
+    allPill.style.fontSize = "0.82rem";
+    allPill.style.whiteSpace = "nowrap";
+    allPill.addEventListener("click", () => filterSlotsByDate("all", allPill));
+    datePillContainer.appendChild(allPill);
+
+    dateKeys.forEach(dk => {
+      const b = document.createElement("button");
+      b.type = "button";
+      b.className = "ocd-btn ocd-btn-glow";
+      b.innerText = uniqueDates[dk];
+      b.style.padding = "0.45rem 0.9rem";
+      b.style.fontSize = "0.82rem";
+      b.style.whiteSpace = "nowrap";
+      b.addEventListener("click", () => filterSlotsByDate(dk, b));
+      datePillContainer.appendChild(b);
+    });
+  }
+
+  function filterSlotsByDate(selectedDate, activeBtn) {
+    document.querySelectorAll("#datePillContainer button").forEach(btn => btn.classList.remove("active"));
+    if (activeBtn) activeBtn.classList.add("active");
+
+    slotPills.forEach(pill => {
+      if (selectedDate === "all" || pill.getAttribute("data-slot-date") === selectedDate) {
+        pill.style.display = "block";
+      } else {
+        pill.style.display = "none";
+      }
+    });
+  }
+
+  // Sélection d'un Slot
+  slotPills.forEach(pill => {
+    pill.addEventListener("click", function() {
+      slotPills.forEach(p => {
+        p.style.borderColor = "rgba(255,255,255,0.12)";
+        p.style.background = "rgba(0,0,0,0.5)";
+      });
+      this.style.borderColor = "#FF7A00";
+      this.style.background = "rgba(255,122,0,0.18)";
+
+      const slotId = this.getAttribute("data-slot-id");
+      const slotDate = this.getAttribute("data-slot-date-display");
+      const slotTime = this.getAttribute("data-slot-time");
+      slotInput.value = slotId;
+
+      if (slotSummaryBanner && slotSelectedText) {
+        slotSelectedText.textContent = `${slotDate} de ${slotTime}`;
+        slotSummaryBanner.style.display = "block";
+      }
+    });
+  });
+
+  // Sélection d'un Package
+  pkgCards.forEach(card => {
+    card.addEventListener("click", function() {
+      pkgCards.forEach(c => {
+        c.style.borderColor = c.classList.contains("recommended") ? "#FF7A00" : "rgba(255,255,255,0.12)";
+        c.style.background = "rgba(10,14,12,0.95)";
+        const b = c.querySelector(".pkg-select-btn");
+        if (b) {
+          b.innerText = "Sélectionner cette formule";
+          b.style.background = "rgba(255,255,255,0.08)";
+          b.style.color = "#FFF";
+        }
+      });
+
+      this.style.borderColor = "#10B981";
+      this.style.background = "rgba(16,185,129,0.12)";
+      const selBtn = this.querySelector(".pkg-select-btn");
+      if (selBtn) {
+        selBtn.innerText = "✓ Formule Sélectionnée";
+        selBtn.style.background = "#10B981";
+        selBtn.style.color = "#FFF";
+      }
+
+      const pkgId = this.getAttribute("data-pkg-id");
+      const pkgName = this.getAttribute("data-pkg-name");
+      const pkgDur = this.getAttribute("data-pkg-duration");
+      const pkgPrice = this.getAttribute("data-pkg-price");
+
+      pkgInput.value = pkgId;
+      if (livePriceSummary) {
+        livePriceSummary.textContent = `${parseInt(pkgPrice).toLocaleString()} XAF`;
+      }
+      if (livePkgDetailSummary) {
+        livePkgDetailSummary.textContent = `${pkgName} (${pkgDur}) — Paiement direct mobile money ou virement`;
+      }
+    });
+  });
+
+  // Pré-sélection au chargement si valeurs existantes
+  if (slotInput.value) {
+    const initSlot = document.querySelector(`.ocd-slot-pill[data-slot-id="${slotInput.value}"]`);
+    if (initSlot) initSlot.click();
+  }
+
+  if (pkgInput.value) {
+    const initPkg = document.querySelector(`.ocd-pkg-card[data-pkg-id="${pkgInput.value}"]`);
+    if (initPkg) initPkg.click();
+  } else {
+    // Par défaut, sélectionner la formule recommandée si disponible
+    const recPkg = document.querySelector(".ocd-pkg-card.recommended") || document.querySelector(".ocd-pkg-card");
+    if (recPkg) recPkg.click();
+  }
+});
+</script>
+{% endblock %}
+

@@ -935,7 +935,7 @@ urlpatterns = [
     # ── Artist Hub (Group Opus / Casting Fashion Week Douala) ─────────
     path("artist-hub/", include("artist_hub.urls", namespace="artist_hub")),
 
-    # ── OCD LIVE — Les Opportunités C'est Dehors ──────────────────────
+    # ── OCD LIVE — Réservez votre passage en direct & Vendez sur E-Shelle ──
     path("ocd-live/", include("ocd_live.urls", namespace="ocd_live")),
 
 

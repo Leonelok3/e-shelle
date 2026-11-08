@@ -4,9 +4,9 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>{% block title %}OCD LIVE — Les Opportunités C'est Dehors | E-Shelle{% endblock %}</title>
+  <title>{% block title %}OCD LIVE — Réservez votre passage en direct pour présenter &amp; vendre | E-Shelle{% endblock %}</title>
   
-  <meta name="description" content="{% block meta_description %}Plateforme immersive des opportunités d'affaires réelles en Afrique. Sessions Live, Masterclasses terrain, investissements vérifiés et networking entrepreneurial.{% endblock %}">
+  <meta name="description" content="{% block meta_description %}OCD Live : Réservez votre passage en direct pour présenter vos produits et services devant l'audience E-Shelle au Cameroun et en Afrique. Réservez votre live, présentez, vendez.{% endblock %}">
   
   <!-- Fonts Google -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -722,30 +722,30 @@
         <img src="{% static 'ocd_live/img/ocd_live_logo.png' %}" alt="OCD Live Logo" class="ocd-brand-logo-img" onerror="this.onerror=null;this.src='{% static 'ocd_live/img/ocd_live_logo.svg' %}';">
         <div class="ocd-brand-text">
           <div class="ocd-brand-title">OCD <span>LIVE</span></div>
-          <div class="ocd-brand-subtitle">Les Opportunités C'est Dehors</div>
+          <div class="ocd-brand-subtitle">Présentez &amp; Vendez en Direct</div>
         </div>
       </a>
 
       <nav>
         <ul class="ocd-nav-menu">
           <li><a href="{% url 'ocd_live:index' %}" class="ocd-nav-link {% if request.resolver_match.url_name == 'index' %}active{% endif %}">Accueil</a></li>
-          <li><a href="{% url 'ocd_live:opportunities_list' %}" class="ocd-nav-link {% if 'opportunite' in request.path %}active{% endif %}">Opportunités Terrain</a></li>
-          <li><a href="{% url 'ocd_live:live_list' %}" class="ocd-nav-link {% if 'direct' in request.path %}active{% endif %}">Directs &amp; Masterclasses</a></li>
+          <li><a href="{% url 'ocd_live:reservation' %}" class="ocd-nav-link {% if 'reserver' in request.path %}active{% endif %}" style="color:#FF7A00;font-weight:800">🎙️ Réserver un Live</a></li>
+          <li><a href="{% url 'ocd_live:live_list' %}" class="ocd-nav-link {% if 'direct' in request.path %}active{% endif %}">Directs &amp; Sessions</a></li>
           <li><a href="{% url 'ocd_live:dashboard' %}" class="ocd-nav-link {% if 'mon-espace' in request.path %}active{% endif %}">Mon Espace</a></li>
           <li><a href="/" class="ocd-nav-link" style="color:var(--ocd-text-muted)">← Écosystème E-Shelle</a></li>
         </ul>
       </nav>
 
       <div class="ocd-nav-actions">
-        <a href="https://wa.me/237680625082?text=Bonjour%20OCD%20Live,%20je%20souhaite%20rejoindre%20le%20prochain%20direct" target="_blank" rel="noopener" class="ocd-btn ocd-btn-glow" style="padding:0.6rem 1.1rem;font-size:0.85rem">
-          💬 Canal WhatsApp
+        <a href="{% url 'ocd_live:reservation' %}" class="ocd-btn ocd-btn-primary" style="padding:0.6rem 1.15rem;font-size:0.85rem">
+          🎙️ Réserver mon Live
         </a>
         {% if user.is_authenticated %}
-          <a href="{% url 'ocd_live:dashboard' %}" class="ocd-btn ocd-btn-primary" style="padding:0.6rem 1.2rem;font-size:0.85rem">
+          <a href="{% url 'ocd_live:dashboard' %}" class="ocd-btn ocd-btn-glow" style="padding:0.6rem 1.1rem;font-size:0.85rem">
             👤 Mon Compte
           </a>
         {% else %}
-          <a href="{% url 'account_login' %}?next={{ request.path }}" class="ocd-btn ocd-btn-primary" style="padding:0.6rem 1.2rem;font-size:0.85rem">
+          <a href="{% url 'account_login' %}?next={{ request.path }}" class="ocd-btn ocd-btn-glow" style="padding:0.6rem 1.1rem;font-size:0.85rem">
             Se Connecter
           </a>
         {% endif %}
@@ -777,11 +777,11 @@
           <img src="{% static 'ocd_live/img/ocd_live_logo.png' %}" alt="OCD Live" class="ocd-brand-logo-img" onerror="this.onerror=null;this.src='{% static 'ocd_live/img/ocd_live_logo.svg' %}';">
           <div class="ocd-brand-text">
             <div class="ocd-brand-title">OCD <span>LIVE</span></div>
-            <div class="ocd-brand-subtitle">Les Opportunités C'est Dehors</div>
+            <div class="ocd-brand-subtitle">Présentez &amp; Vendez en Direct</div>
           </div>
         </div>
         <p style="font-size:0.92rem;line-height:1.6;color:#94A3B8;max-width:320px">
-          Le hub vidéo &amp; terrain incontournable pour saisir les opportunités d'affaires, d'investissements et d'entrepreneuriat au Cameroun et partout en Afrique.
+          OCD Live : Réservez votre passage en direct pour présenter vos produits et services devant l'audience E-Shelle au Cameroun et en Afrique.
         </p>
       </div>
 
@@ -789,9 +789,10 @@
         <h4 style="color:#FFF;font-size:1rem;margin-bottom:1.25rem;font-family:'Outfit'">Navigation</h4>
         <ul style="list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:0.65rem;font-size:0.9rem">
           <li><a href="{% url 'ocd_live:index' %}" style="color:#94A3B8;text-decoration:none">Accueil</a></li>
-          <li><a href="{% url 'ocd_live:opportunities_list' %}" style="color:#94A3B8;text-decoration:none">Opportunités vérifiées</a></li>
-          <li><a href="{% url 'ocd_live:live_list' %}" style="color:#94A3B8;text-decoration:none">Programme des Lives</a></li>
+          <li><a href="{% url 'ocd_live:reservation' %}" style="color:#FF7A00;text-decoration:none;font-weight:700">🎙️ Réserver un Live</a></li>
+          <li><a href="{% url 'ocd_live:live_list' %}" style="color:#94A3B8;text-decoration:none">Programme des Directs</a></li>
           <li><a href="{% url 'ocd_live:dashboard' %}" style="color:#94A3B8;text-decoration:none">Espace Membre</a></li>
+          <li><a href="{% url 'ocd_live:admin_dashboard' %}" style="color:#94A3B8;text-decoration:none">Dashboard Régie</a></li>
         </ul>
       </div>
 
