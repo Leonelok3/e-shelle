@@ -13,8 +13,704 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   
-  <!-- CSS OCD Live -->
+  <!-- CSS Externe & Styles Intégrés Garantie 100% Chargement Immédiat -->
   <link rel="stylesheet" href="{% static 'ocd_live/css/ocd_live.css' %}">
+  <style>
+    :root {
+      --ocd-primary: #D35400;
+      --ocd-primary-hover: #E65100;
+      --ocd-primary-light: #FF7A00;
+      --ocd-copper: #C8521A;
+      --ocd-glow-amber: rgba(255, 179, 0, 0.45);
+      --ocd-glow-orange: rgba(211, 84, 0, 0.35);
+      
+      --ocd-bg-deep: #0A0E0C;
+      --ocd-bg-surface: #111714;
+      --ocd-bg-card: rgba(18, 25, 21, 0.88);
+      --ocd-bg-card-hover: rgba(26, 36, 30, 0.95);
+      --ocd-border-glass: rgba(255, 179, 0, 0.28);
+      --ocd-border-subtle: rgba(255, 255, 255, 0.08);
+
+      --ocd-text-main: #F8FAFC;
+      --ocd-text-muted: #94A3B8;
+      --ocd-text-amber: #FBBF24;
+      --ocd-success: #10B981;
+      --ocd-danger: #EF4444;
+
+      --ocd-radius-sm: 8px;
+      --ocd-radius-md: 16px;
+      --ocd-radius-lg: 24px;
+      --ocd-radius-full: 9999px;
+      --ocd-transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    * { box-sizing: border-box; }
+
+    /* Base Body & Layout */
+    .ocd-body {
+      margin: 0;
+      padding: 0;
+      background-color: var(--ocd-bg-deep);
+      background-image: 
+        radial-gradient(circle at 18% 15%, rgba(211, 84, 0, 0.16) 0%, transparent 45%),
+        radial-gradient(circle at 82% 22%, rgba(251, 191, 36, 0.12) 0%, transparent 45%),
+        radial-gradient(circle at 50% 85%, rgba(211, 84, 0, 0.08) 0%, transparent 55%),
+        linear-gradient(180deg, #070B09 0%, #0D1310 100%);
+      color: var(--ocd-text-main);
+      font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* Navbar OCD Live */
+    .ocd-navbar {
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      background: rgba(8, 12, 10, 0.92);
+      border-bottom: 1px solid var(--ocd-border-glass);
+      padding: 0.85rem 1.5rem;
+      transition: var(--ocd-transition);
+    }
+
+    .ocd-nav-container {
+      max-width: 1320px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1.5rem;
+    }
+
+    .ocd-brand {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      text-decoration: none;
+    }
+
+    .ocd-brand-logo-img {
+      height: 52px;
+      width: auto;
+      border-radius: 8px;
+      filter: drop-shadow(0 2px 10px rgba(211, 84, 0, 0.5));
+    }
+
+    .ocd-brand-text {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .ocd-brand-title {
+      font-family: 'Outfit', sans-serif;
+      font-size: 1.4rem;
+      font-weight: 900;
+      color: #FFFFFF;
+      letter-spacing: -0.02em;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      line-height: 1.1;
+    }
+
+    .ocd-brand-title span {
+      color: #FF7A00;
+      background: linear-gradient(135deg, #FF9500 0%, #D35400 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .ocd-brand-subtitle {
+      font-size: 0.7rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.14em;
+      color: var(--ocd-text-amber);
+      margin-top: 2px;
+    }
+
+    .ocd-nav-menu {
+      display: flex;
+      align-items: center;
+      gap: 1.75rem;
+      list-style: none;
+      margin: 0;
+      padding: 0;
+    }
+
+    .ocd-nav-link {
+      color: #CBD5E1;
+      text-decoration: none;
+      font-size: 0.95rem;
+      font-weight: 600;
+      transition: var(--ocd-transition);
+      position: relative;
+      padding: 6px 0;
+    }
+
+    .ocd-nav-link:hover, .ocd-nav-link.active {
+      color: #FFFFFF;
+    }
+
+    .ocd-nav-link.active::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      height: 2px;
+      background: linear-gradient(90deg, #D35400, #FBBF24);
+      border-radius: 99px;
+      box-shadow: 0 0 10px #D35400;
+    }
+
+    .ocd-nav-actions {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    /* Buttons */
+    .ocd-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 0.8rem 1.5rem;
+      border-radius: var(--ocd-radius-full);
+      font-weight: 800;
+      font-size: 0.92rem;
+      text-decoration: none;
+      cursor: pointer;
+      border: none;
+      transition: var(--ocd-transition);
+      line-height: 1;
+    }
+
+    .ocd-btn-primary {
+      background: linear-gradient(135deg, #E65100 0%, #C8521A 100%);
+      color: #FFFFFF !important;
+      box-shadow: 0 4px 22px rgba(200, 82, 26, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.25);
+    }
+
+    .ocd-btn-primary:hover {
+      background: linear-gradient(135deg, #FF6600 0%, #D35400 100%);
+      transform: translateY(-2px);
+      box-shadow: 0 8px 30px rgba(211, 84, 0, 0.75);
+      color: #FFFFFF !important;
+    }
+
+    .ocd-btn-glow {
+      background: rgba(211, 84, 0, 0.16);
+      color: #FFB300 !important;
+      border: 1px solid rgba(255, 179, 0, 0.45);
+    }
+
+    .ocd-btn-glow:hover {
+      background: rgba(211, 84, 0, 0.28);
+      color: #FFFFFF !important;
+      border-color: #FF7A00;
+      box-shadow: 0 0 20px rgba(255, 122, 0, 0.45);
+    }
+
+    /* Badges */
+    .ocd-badge-live {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 5px 14px;
+      background: rgba(239, 68, 68, 0.18);
+      border: 1px solid rgba(239, 68, 68, 0.5);
+      color: #FCA5A5;
+      border-radius: var(--ocd-radius-full);
+      font-size: 0.78rem;
+      font-weight: 800;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+
+    .ocd-badge-live .pulse-dot {
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      background-color: #EF4444;
+      box-shadow: 0 0 10px #EF4444;
+      animation: ocd-pulse 1.5s infinite;
+    }
+
+    @keyframes ocd-pulse {
+      0% { transform: scale(0.95); opacity: 1; }
+      50% { transform: scale(1.35); opacity: 0.55; }
+      100% { transform: scale(0.95); opacity: 1; }
+    }
+
+    /* Hero Section */
+    .ocd-hero {
+      padding: 4.5rem 1.5rem 3.5rem;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .ocd-hero-container {
+      max-width: 1280px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: 1.15fr 0.85fr;
+      align-items: center;
+      gap: 3.5rem;
+    }
+
+    .ocd-hero-eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 16px;
+      border-radius: var(--ocd-radius-full);
+      background: rgba(211, 84, 0, 0.15);
+      border: 1px solid rgba(255, 179, 0, 0.4);
+      color: #FCD34D;
+      font-size: 0.82rem;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      margin-bottom: 1.25rem;
+    }
+
+    .ocd-hero-title {
+      font-family: 'Outfit', sans-serif;
+      font-size: clamp(2.5rem, 5vw, 4.2rem);
+      font-weight: 900;
+      line-height: 1.1;
+      color: #FFFFFF;
+      margin: 0 0 1.5rem;
+      letter-spacing: -0.03em;
+    }
+
+    .ocd-hero-title .gradient-orange {
+      background: linear-gradient(135deg, #FFA000 0%, #D35400 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      display: inline-block;
+    }
+
+    .ocd-hero-desc {
+      font-size: clamp(1.05rem, 1.5vw, 1.25rem);
+      line-height: 1.65;
+      color: #CBD5E1;
+      margin: 0 0 2.25rem;
+      max-width: 620px;
+    }
+
+    .ocd-hero-cta-group {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 1.25rem;
+      margin-bottom: 2.5rem;
+    }
+
+    .ocd-hero-stats {
+      display: flex;
+      align-items: center;
+      gap: 2.5rem;
+      padding-top: 1.5rem;
+      border-top: 1px solid var(--ocd-border-subtle);
+    }
+
+    .ocd-stat-item strong {
+      display: block;
+      font-size: 1.8rem;
+      font-weight: 900;
+      color: #FFFFFF;
+      font-family: 'Outfit', sans-serif;
+      line-height: 1.2;
+    }
+
+    .ocd-stat-item span {
+      font-size: 0.82rem;
+      color: var(--ocd-text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      font-weight: 600;
+    }
+
+    /* Hero Visual Showcase Stage (Mural Effect) */
+    .ocd-hero-visual {
+      position: relative;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .ocd-backlit-stage {
+      position: relative;
+      width: 100%;
+      max-width: 520px;
+      background: radial-gradient(circle at center, rgba(211, 84, 0, 0.28) 0%, rgba(13, 19, 16, 0.98) 75%);
+      border: 1px solid var(--ocd-border-glass);
+      border-radius: var(--ocd-radius-lg);
+      padding: 2.25rem 1.75rem;
+      box-shadow: 0 35px 90px rgba(0, 0, 0, 0.85), 0 0 60px rgba(211, 84, 0, 0.2);
+      text-align: center;
+    }
+
+    .ocd-stage-mural-wrapper {
+      position: relative;
+      border-radius: 18px;
+      overflow: hidden;
+      box-shadow: 0 15px 40px rgba(0, 0, 0, 0.6), 0 0 30px rgba(255, 179, 0, 0.35);
+      border: 2px solid rgba(255, 179, 0, 0.4);
+      background: #000;
+    }
+
+    .ocd-stage-mural-img {
+      width: 100%;
+      height: auto;
+      display: block;
+      transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .ocd-backlit-stage:hover .ocd-stage-mural-img {
+      transform: scale(1.04);
+    }
+
+    .ocd-live-countdown-banner {
+      margin-top: 1.5rem;
+      background: rgba(5, 8, 6, 0.88);
+      border: 1px solid rgba(255, 179, 0, 0.35);
+      border-radius: var(--ocd-radius-md);
+      padding: 1rem 1.25rem;
+      backdrop-filter: blur(12px);
+    }
+
+    .ocd-countdown-title {
+      font-size: 0.78rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      color: var(--ocd-text-amber);
+      margin-bottom: 0.5rem;
+      letter-spacing: 0.08em;
+    }
+
+    .ocd-countdown-timer {
+      display: flex;
+      justify-content: center;
+      gap: 0.85rem;
+    }
+
+    .ocd-timer-box {
+      background: rgba(255, 255, 255, 0.07);
+      padding: 6px 12px;
+      border-radius: var(--ocd-radius-sm);
+      min-width: 54px;
+    }
+
+    .ocd-timer-box strong {
+      font-size: 1.25rem;
+      font-weight: 900;
+      color: #FFFFFF;
+      display: block;
+      font-family: monospace;
+    }
+
+    .ocd-timer-box span {
+      font-size: 0.65rem;
+      color: var(--ocd-text-muted);
+      text-transform: uppercase;
+      font-weight: 700;
+    }
+
+    /* Sections */
+    .ocd-section {
+      padding: 5rem 1.5rem;
+      max-width: 1320px;
+      margin: 0 auto;
+    }
+
+    .ocd-section-header {
+      text-align: center;
+      max-width: 780px;
+      margin: 0 auto 3.5rem;
+    }
+
+    .ocd-section-eyebrow {
+      color: #FF7A00;
+      font-size: 0.82rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      margin-bottom: 0.5rem;
+      display: block;
+    }
+
+    .ocd-section-title {
+      font-family: 'Outfit', sans-serif;
+      font-size: clamp(2rem, 3.5vw, 2.75rem);
+      font-weight: 900;
+      color: #FFFFFF;
+      letter-spacing: -0.02em;
+      margin: 0 0 1rem;
+    }
+
+    .ocd-section-subtitle {
+      color: #94A3B8;
+      font-size: 1.05rem;
+      line-height: 1.6;
+      margin: 0;
+    }
+
+    /* Grid & Cards */
+    .ocd-grid-3 {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+      gap: 2rem;
+    }
+
+    .ocd-card {
+      background: var(--ocd-bg-card);
+      border: 1px solid var(--ocd-border-subtle);
+      border-radius: var(--ocd-radius-md);
+      padding: 1.75rem;
+      transition: var(--ocd-transition);
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+    }
+
+    .ocd-card:hover {
+      transform: translateY(-5px);
+      background: var(--ocd-bg-card-hover);
+      border-color: var(--ocd-border-glass);
+      box-shadow: 0 20px 45px rgba(0, 0, 0, 0.7), 0 0 25px rgba(211, 84, 0, 0.18);
+    }
+
+    .ocd-card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 1.25rem;
+    }
+
+    .ocd-card-cat {
+      font-size: 0.75rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--ocd-text-amber);
+      background: rgba(251, 191, 36, 0.12);
+      padding: 4px 10px;
+      border-radius: var(--ocd-radius-full);
+    }
+
+    .ocd-card-status {
+      font-size: 0.72rem;
+      font-weight: 700;
+      color: #4ADE80;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .ocd-card-title {
+      font-family: 'Outfit', sans-serif;
+      font-size: 1.35rem;
+      font-weight: 800;
+      color: #FFFFFF;
+      margin: 0 0 0.75rem;
+      line-height: 1.3;
+    }
+
+    .ocd-card-desc {
+      color: #94A3B8;
+      font-size: 0.92rem;
+      line-height: 1.55;
+      margin: 0 0 1.5rem;
+      flex-grow: 1;
+    }
+
+    .ocd-metrics-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+      padding: 1rem;
+      background: rgba(0, 0, 0, 0.45);
+      border-radius: var(--ocd-radius-sm);
+      margin-bottom: 1.5rem;
+      border: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .ocd-metric-col strong {
+      display: block;
+      font-size: 1.05rem;
+      font-weight: 900;
+      color: #FFFFFF;
+    }
+
+    .ocd-metric-col span {
+      font-size: 0.72rem;
+      color: var(--ocd-text-muted);
+      text-transform: uppercase;
+      font-weight: 600;
+    }
+
+    /* Packages / Pricing Cards */
+    .ocd-pricing-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 2rem;
+      align-items: stretch;
+    }
+
+    .ocd-pricing-card {
+      background: var(--ocd-bg-card);
+      border: 1px solid var(--ocd-border-subtle);
+      border-radius: var(--ocd-radius-lg);
+      padding: 2.5rem 2rem;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      transition: var(--ocd-transition);
+    }
+
+    .ocd-pricing-card.popular {
+      border-color: #E65100;
+      background: linear-gradient(175deg, rgba(38, 22, 14, 0.96) 0%, rgba(14, 20, 16, 0.96) 100%);
+      box-shadow: 0 25px 60px rgba(0, 0, 0, 0.75), 0 0 40px rgba(211, 84, 0, 0.3);
+      transform: scale(1.02);
+    }
+
+    .ocd-pricing-badge {
+      position: absolute;
+      top: -14px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: linear-gradient(90deg, #E65100, #FBBF24);
+      color: #000000;
+      font-size: 0.75rem;
+      font-weight: 900;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      padding: 4px 14px;
+      border-radius: var(--ocd-radius-full);
+      box-shadow: 0 4px 15px rgba(230, 81, 0, 0.4);
+    }
+
+    .ocd-pricing-name {
+      font-family: 'Outfit', sans-serif;
+      font-size: 1.45rem;
+      font-weight: 800;
+      color: #FFFFFF;
+      margin: 0 0 0.5rem;
+    }
+
+    .ocd-pricing-price {
+      font-size: 2.4rem;
+      font-weight: 900;
+      color: #FFFFFF;
+      margin: 0 0 1.5rem;
+      font-family: 'Outfit', sans-serif;
+    }
+
+    .ocd-pricing-price span {
+      font-size: 0.95rem;
+      color: var(--ocd-text-muted);
+      font-weight: 600;
+    }
+
+    .ocd-features-list {
+      list-style: none;
+      padding: 0;
+      margin: 0 0 2rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.85rem;
+      flex-grow: 1;
+    }
+
+    .ocd-features-list li {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      font-size: 0.92rem;
+      color: #CBD5E1;
+    }
+
+    .ocd-features-list li::before {
+      content: '✓';
+      color: #FF7A00;
+      font-weight: 900;
+      font-size: 1rem;
+    }
+
+    /* Footer OCD */
+    .ocd-footer {
+      border-top: 1px solid var(--ocd-border-glass);
+      background: rgba(5, 8, 6, 0.98);
+      padding: 3.5rem 1.5rem 2rem;
+      color: var(--ocd-text-muted);
+    }
+
+    .ocd-footer-container {
+      max-width: 1320px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: 1.5fr 1fr 1fr 1fr;
+      gap: 3rem;
+      margin-bottom: 3rem;
+    }
+
+    .ocd-footer-bottom {
+      max-width: 1320px;
+      margin: 0 auto;
+      padding-top: 2rem;
+      border-top: 1px solid var(--ocd-border-subtle);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.85rem;
+    }
+
+    /* Responsive */
+    @media (max-width: 992px) {
+      .ocd-hero-container {
+        grid-template-columns: 1fr;
+        text-align: center;
+      }
+      .ocd-hero-desc {
+        margin: 0 auto 2.25rem;
+      }
+      .ocd-hero-cta-group {
+        justify-content: center;
+      }
+      .ocd-hero-stats {
+        justify-content: center;
+      }
+      .ocd-footer-container {
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+
+    @media (max-width: 768px) {
+      .ocd-nav-menu {
+        display: none;
+      }
+      .ocd-grid-3 {
+        grid-template-columns: 1fr;
+      }
+      .ocd-footer-container {
+        grid-template-columns: 1fr;
+      }
+      .ocd-footer-bottom {
+        flex-direction: column;
+        gap: 1rem;
+        text-align: center;
+      }
+    }
+  </style>
   {% block extra_head %}{% endblock %}
 </head>
 <body class="ocd-body">
@@ -23,7 +719,7 @@
   <header class="ocd-navbar">
     <div class="ocd-nav-container">
       <a href="{% url 'ocd_live:index' %}" class="ocd-brand">
-        <img src="{% static 'ocd_live/img/ocd_live_logo.svg' %}" alt="OCD Live Logo" class="ocd-brand-logo-img">
+        <img src="{% static 'ocd_live/img/ocd_live_logo.png' %}" alt="OCD Live Logo" class="ocd-brand-logo-img" onerror="this.onerror=null;this.src='{% static 'ocd_live/img/ocd_live_logo.svg' %}';">
         <div class="ocd-brand-text">
           <div class="ocd-brand-title">OCD <span>LIVE</span></div>
           <div class="ocd-brand-subtitle">Les Opportunités C'est Dehors</div>
@@ -78,7 +774,7 @@
     <div class="ocd-footer-container">
       <div>
         <div class="ocd-brand" style="margin-bottom:1rem">
-          <img src="{% static 'ocd_live/img/ocd_live_logo.svg' %}" alt="OCD Live" class="ocd-brand-logo-img">
+          <img src="{% static 'ocd_live/img/ocd_live_logo.png' %}" alt="OCD Live" class="ocd-brand-logo-img" onerror="this.onerror=null;this.src='{% static 'ocd_live/img/ocd_live_logo.svg' %}';">
           <div class="ocd-brand-text">
             <div class="ocd-brand-title">OCD <span>LIVE</span></div>
             <div class="ocd-brand-subtitle">Les Opportunités C'est Dehors</div>

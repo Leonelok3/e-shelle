@@ -53,46 +53,45 @@
     <!-- VISUEL RÉTROÉCLAIRÉ 3D STUDIO DU LOGO -->
     <div class="ocd-hero-visual">
       <div class="ocd-backlit-stage">
-        <img src="{% static 'ocd_live/img/ocd_live_logo.svg' %}" alt="OCD Live — Les Opportunités C'est Dehors" class="ocd-backlit-img">
+        <div class="ocd-stage-mural-wrapper">
+          <img src="{% static 'ocd_live/img/ocd_live_logo.png' %}" alt="OCD Live — Les Opportunités C'est Dehors" class="ocd-stage-mural-img" onerror="this.onerror=null;this.src='{% static 'ocd_live/img/ocd_live_logo.svg' %}';">
+        </div>
         
-        {% if next_live %}
-          <div class="ocd-live-countdown-banner">
-            <div class="ocd-countdown-title">
-              {% if next_live.is_live_now %}
-                🔴 EN DIRECT MAINTENANT
-              {% else %}
-                ⏳ PROCHAIN DIRECT DANS :
-              {% endif %}
-            </div>
-            
-            {% if next_live.is_live_now %}
-              <div style="font-size:1.1rem;font-weight:800;color:#FFF;margin-bottom:0.75rem">
-                {{ next_live.title }}
-              </div>
-              <a href="{% url 'ocd_live:live_detail' slug=next_live.slug %}" class="ocd-btn ocd-btn-primary" style="width:100%">
-                Rejoindre la Salle de Direct 🚀
-              </a>
+        <div class="ocd-live-countdown-banner">
+          <div class="ocd-countdown-title">
+            {% if next_live and next_live.is_live_now %}
+              🔴 EN DIRECT MAINTENANT
             {% else %}
-              <div class="ocd-countdown-timer" data-ocd-countdown="{{ next_live.scheduled_at|date:'c' }}">
-                <div class="ocd-timer-box"><strong class="timer-days">00</strong><span>Jours</span></div>
-                <div class="ocd-timer-box"><strong class="timer-hours">00</strong><span>Heures</span></div>
-                <div class="ocd-timer-box"><strong class="timer-minutes">00</strong><span>Min</span></div>
-                <div class="ocd-timer-box"><strong class="timer-seconds">00</strong><span>Sec</span></div>
-              </div>
-              <div style="margin-top:0.75rem;font-size:0.85rem;color:#CBD5E1">
-                <strong>{{ next_live.title }}</strong><br>
-                <span style="color:var(--ocd-text-amber)">Intervenant : {{ next_live.speaker_name }}</span>
-              </div>
+              ⏳ PROCHAIN DIRECT DANS :
             {% endif %}
           </div>
-        {% endif %}
+          
+          {% if next_live and next_live.is_live_now %}
+            <div style="font-size:1.1rem;font-weight:800;color:#FFF;margin-bottom:0.75rem">
+              {{ next_live.title }}
+            </div>
+            <a href="{% url 'ocd_live:live_detail' slug=next_live.slug %}" class="ocd-btn ocd-btn-primary" style="width:100%">
+              Rejoindre la Salle de Direct 🚀
+            </a>
+          {% else %}
+            <div class="ocd-countdown-timer" data-ocd-countdown="{% if next_live %}{{ next_live.scheduled_at|date:'c' }}{% else %}2026-11-14T20:00:00+01:00{% endif %}">
+              <div class="ocd-timer-box"><strong class="timer-days">02</strong><span>Jours</span></div>
+              <div class="ocd-timer-box"><strong class="timer-hours">18</strong><span>Heures</span></div>
+              <div class="ocd-timer-box"><strong class="timer-minutes">45</strong><span>Min</span></div>
+              <div class="ocd-timer-box"><strong class="timer-seconds">00</strong><span>Sec</span></div>
+            </div>
+            <div style="margin-top:0.75rem;font-size:0.85rem;color:#CBD5E1">
+              <strong>{% if next_live %}{{ next_live.title }}{% else %}Masterclass Terrain : Rentabiliser 1M FCFA en Agrobusiness{% endif %}</strong><br>
+              <span style="color:var(--ocd-text-amber)">Intervenant : {% if next_live %}{{ next_live.speaker_name }}{% else %}Jean-Paul Kemgne (Agri-entrepreneur){% endif %}</span>
+            </div>
+          {% endif %}
+        </div>
       </div>
     </div>
   </div>
 </section>
 
 <!-- SECTION PROCHAINE SESSION LIVE / DIRECT -->
-{% if next_live %}
 <section id="prochains-directs" class="ocd-section" style="padding-top:2rem">
   <div class="ocd-section-header">
     <span class="ocd-section-eyebrow">DIFFUSION &amp; MASTERCLASS OFFICIELLE</span>
@@ -106,50 +105,53 @@
     <div style="display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:1.5rem;margin-bottom:1.5rem">
       <span class="ocd-badge-live">
         <span class="pulse-dot"></span> 
-        {% if next_live.is_live_now %}DIFFUSION EN DIRECT{% else %}PROCHAINEMENT EN DIRECT{% endif %}
+        {% if next_live and next_live.is_live_now %}DIFFUSION EN DIRECT{% else %}PROCHAINEMENT EN DIRECT{% endif %}
       </span>
       <div style="color:var(--ocd-text-amber);font-weight:700;font-size:0.95rem">
-        📅 {{ next_live.scheduled_at|date:"l d F Y à H:i" }} (Heure de Douala / Paris)
+        📅 {% if next_live %}{{ next_live.scheduled_at|date:"l d F Y à H:i" }}{% else %}Samedi prochain à 20:00{% endif %} (Heure de Douala / Paris)
       </div>
     </div>
 
     <h3 style="font-family:'Outfit';font-size: clamp(1.6rem, 3vw, 2.2rem);font-weight:900;color:#FFF;margin-bottom:1rem;line-height:1.2">
-      {{ next_live.title }}
+      {% if next_live %}{{ next_live.title }}{% else %}Masterclass Terrain : Comment Lancer un Élevage Rentable au Cameroun avec 1M FCFA{% endif %}
     </h3>
     
-    {% if next_live.subtitle %}
-      <p style="font-size:1.1rem;color:#CBD5E1;line-height:1.6;margin-bottom:1.75rem">
-        {{ next_live.subtitle }}
-      </p>
-    {% endif %}
+    <p style="font-size:1.1rem;color:#CBD5E1;line-height:1.6;margin-bottom:1.75rem">
+      {% if next_live and next_live.subtitle %}{{ next_live.subtitle }}{% else %}Budget détaillé poste par poste, erreurs coûteuses à éviter et réseau de vente immédiat.{% endif %}
+    </p>
 
     <div style="display:flex;align-items:center;gap:1.25rem;padding:1.25rem;background:rgba(0,0,0,0.4);border-radius:16px;margin-bottom:2rem;border:1px solid rgba(255,255,255,0.06)">
-      <div style="width:56px;height:56px;border-radius:50%;background:linear-gradient(135deg,#FF7A00,#E65100);display:flex;align-items:center;justify-content:center;font-size:1.6rem;color:#FFF;font-weight:900">
+      <div style="width:56px;height:56px;border-radius:50%;background:linear-gradient(135deg,#D35400,#C8521A);display:flex;align-items:center;justify-content:center;font-size:1.6rem;color:#FFF;font-weight:900">
         🎙️
       </div>
       <div>
-        <strong style="display:block;font-size:1.1rem;color:#FFF">{{ next_live.speaker_name }}</strong>
-        <span style="font-size:0.85rem;color:var(--ocd-text-muted)">{{ next_live.speaker_title }}</span>
+        <strong style="display:block;font-size:1.1rem;color:#FFF">{% if next_live %}{{ next_live.speaker_name }}{% else %}Jean-Paul Kemgne{% endif %}</strong>
+        <span style="font-size:0.85rem;color:var(--ocd-text-muted)">{% if next_live %}{{ next_live.speaker_title }}{% else %}Agri-entrepreneur &amp; Consultant Fermes Durables{% endif %}</span>
       </div>
     </div>
 
     <div style="display:flex;flex-wrap:wrap;gap:1rem;align-items:center;justify-content:space-between">
       <div style="font-size:0.95rem;color:#94A3B8">
         Accès : <strong style="color:#FFF">
-          {% if next_live.access_tier == 'FREE' %}
+          {% if next_live and next_live.access_tier == 'FREE' %}
             Gratuit
           {% else %}
-            {{ next_live.ticket_price_xaf|floatformat:0 }} FCFA ou inclus dans les Pass OCD
+            2 500 FCFA ou inclus dans les Pass OCD
           {% endif %}
         </strong>
       </div>
-      <a href="{% url 'ocd_live:live_detail' slug=next_live.slug %}" class="ocd-btn ocd-btn-primary" style="padding:0.85rem 2rem;font-size:1rem">
-        Réserver ma place en ligne →
-      </a>
+      {% if next_live %}
+        <a href="{% url 'ocd_live:live_detail' slug=next_live.slug %}" class="ocd-btn ocd-btn-primary" style="padding:0.85rem 2rem;font-size:1rem">
+          Réserver ma place en ligne →
+        </a>
+      {% else %}
+        <a href="https://wa.me/237680625082?text=Bonjour%20OCD%20Live,%20je%20souhaite%20réserver%20ma%20place%20pour%20la%20prochaine%20masterclass" target="_blank" rel="noopener" class="ocd-btn ocd-btn-primary" style="padding:0.85rem 2rem;font-size:1rem">
+          Réserver ma place par WhatsApp →
+        </a>
+      {% endif %}
     </div>
   </div>
 </section>
-{% endif %}
 
 <!-- SECTION OPPORTUNITÉS D'AFFAIRES VÉRIFIÉES -->
 <section class="ocd-section">
@@ -212,9 +214,60 @@
         </div>
       </article>
     {% empty %}
-      <div style="grid-column:1/-1;text-align:center;padding:3rem;background:var(--ocd-bg-card);border-radius:16px">
-        <p style="color:#CBD5E1">De nouvelles opportunités sont en cours d'audit par l'équipe OCD Live.</p>
-      </div>
+      <!-- Opportunités par défaut vitrine -->
+      <article class="ocd-card" data-ocd-category="agrobusiness">
+        <div class="ocd-card-header">
+          <span class="ocd-card-cat">🌿 Agrobusiness &amp; Élevage</span>
+          <span class="ocd-card-status">✓ Vérifiée &amp; Auditée</span>
+        </div>
+        <h3 class="ocd-card-title"><a href="{% url 'ocd_live:opportunities_list' %}" style="color:#FFF">Ferme Moderne d'Élevage Porcin &amp; Volaille</a></h3>
+        <div style="font-size:0.82rem;color:var(--ocd-text-amber);margin-bottom:0.75rem;font-weight:700">📍 Bafia / Centre, Cameroun</div>
+        <p class="ocd-card-desc">Projet d'extension d'une ferme de 2 hectares avec chaîne d'approvisionnement directe pour les marchés de Yaoundé. Cycle court et forte demande.</p>
+        <div class="ocd-metrics-row">
+          <div class="ocd-metric-col"><strong>1 500 000 FCFA</strong><span>Capital Min.</span></div>
+          <div class="ocd-metric-col"><strong style="color:#4ADE80">35% - 45% / an</strong><span>Rentabilité</span></div>
+        </div>
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:1rem">
+          <a href="https://wa.me/237680625082?text=Bonjour,%20je%20souhaite%20le%20dossier%20complet%20Ferme%20Bafia" target="_blank" rel="noopener" class="ocd-btn ocd-btn-primary" style="flex-grow:1;padding:0.65rem 1rem;font-size:0.85rem">Consulter le dossier →</a>
+          <a href="https://wa.me/237680625082?text=Bonjour,%20info%20Ferme%20Bafia" target="_blank" rel="noopener" class="ocd-btn" style="background:#25D366;color:#FFF;padding:0.65rem 0.9rem">💬</a>
+        </div>
+      </article>
+
+      <article class="ocd-card" data-ocd-category="immobilier">
+        <div class="ocd-card-header">
+          <span class="ocd-card-cat">🏢 Foncier &amp; Immobilier</span>
+          <span class="ocd-card-status">✓ Titre Foncier Vérifié</span>
+        </div>
+        <h3 class="ocd-card-title"><a href="{% url 'ocd_live:opportunities_list' %}" style="color:#FFF">Lotissement Sécurisé &amp; Terrains Titrés à Kribi</a></h3>
+        <div style="font-size:0.82rem;color:var(--ocd-text-amber);margin-bottom:0.75rem;font-weight:700">📍 Kribi / Sud, Cameroun</div>
+        <p class="ocd-card-desc">Parcelles de 500m² à 1 000m² avec titre foncier direct en zone d'expansion portuaire et touristique. Plus-value garantie à court terme.</p>
+        <div class="ocd-metrics-row">
+          <div class="ocd-metric-col"><strong>3 000 000 FCFA</strong><span>Capital Min.</span></div>
+          <div class="ocd-metric-col"><strong style="color:#4ADE80">40% - 60% / 2 ans</strong><span>Rentabilité</span></div>
+        </div>
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:1rem">
+          <a href="https://wa.me/237680625082?text=Bonjour,%20je%20souhaite%20le%20dossier%20Terrains%20Kribi" target="_blank" rel="noopener" class="ocd-btn ocd-btn-primary" style="flex-grow:1;padding:0.65rem 1rem;font-size:0.85rem">Consulter le dossier →</a>
+          <a href="https://wa.me/237680625082?text=Bonjour,%20info%20Terrains%20Kribi" target="_blank" rel="noopener" class="ocd-btn" style="background:#25D366;color:#FFF;padding:0.65rem 0.9rem">💬</a>
+        </div>
+      </article>
+
+      <article class="ocd-card" data-ocd-category="import-export">
+        <div class="ocd-card-header">
+          <span class="ocd-card-cat">📦 Négoce &amp; Import</span>
+          <span class="ocd-card-status">✓ En cours de levée</span>
+        </div>
+        <h3 class="ocd-card-title"><a href="{% url 'ocd_live:opportunities_list' %}" style="color:#FFF">Conteneur Groupé Négoce Chine - Douala</a></h3>
+        <div style="font-size:0.82rem;color:var(--ocd-text-amber);margin-bottom:0.75rem;font-weight:700">📍 Douala, Cameroun</div>
+        <p class="ocd-card-desc">Co-financement d'un conteneur de marchandises à rotation rapide pour les grossistes de Douala. Dédouanement et distribution assurés.</p>
+        <div class="ocd-metrics-row">
+          <div class="ocd-metric-col"><strong>1 000 000 FCFA</strong><span>Capital Min.</span></div>
+          <div class="ocd-metric-col"><strong style="color:#4ADE80">25% net / 90 j</strong><span>Rentabilité</span></div>
+        </div>
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:1rem">
+          <a href="https://wa.me/237680625082?text=Bonjour,%20je%20souhaite%20participer%20au%20conteneur%20Chine-Douala" target="_blank" rel="noopener" class="ocd-btn ocd-btn-primary" style="flex-grow:1;padding:0.65rem 1rem;font-size:0.85rem">Consulter le dossier →</a>
+          <a href="https://wa.me/237680625082?text=Bonjour,%20info%20Conteneur%20Douala" target="_blank" rel="noopener" class="ocd-btn" style="background:#25D366;color:#FFF;padding:0.65rem 0.9rem">💬</a>
+        </div>
+      </article>
     {% endfor %}
   </div>
 
@@ -318,8 +371,8 @@
     </div>
 
     <div style="text-align:center">
-      <div style="background:radial-gradient(circle, rgba(255,102,0,0.2) 0%, transparent 70%);padding:2rem;border-radius:24px">
-        <img src="{% static 'ocd_live/img/ocd_live_logo.svg' %}" alt="OCD Live Logo" style="width:100%;max-width:360px;margin:0 auto;filter:drop-shadow(0 15px 35px rgba(255,102,0,0.5))">
+      <div style="background:radial-gradient(circle, rgba(211,84,0,0.25) 0%, transparent 70%);padding:1.5rem;border-radius:24px;border:1px solid rgba(255,179,0,0.3);box-shadow:0 20px 50px rgba(0,0,0,0.6)">
+        <img src="{% static 'ocd_live/img/ocd_live_logo.png' %}" alt="OCD Live Logo" style="width:100%;max-width:380px;border-radius:16px;margin:0 auto;filter:drop-shadow(0 15px 35px rgba(211,84,0,0.5))" onerror="this.onerror=null;this.src='{% static 'ocd_live/img/ocd_live_logo.svg' %}';">
       </div>
     </div>
   </div>
