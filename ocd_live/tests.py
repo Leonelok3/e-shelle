@@ -571,3 +571,12 @@ class OCDLiveModuleTests(TestCase):
         self.assertTrue(booking.offre_flash_active)
         self.assertEqual(booking.offre_flash_titre, "Offre Exceptionnelle Direct 25%")
         self.assertEqual(booking.offre_flash_reduction_pct, 25)
+
+    def test_guide_pdf_generation_and_view(self):
+        """Vérifie le téléchargement du Guide Officiel OCD Live au format PDF (200 OK, application/pdf)."""
+        url = reverse("ocd_live:guide_pdf")
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response["Content-Type"], "application/pdf")
+        self.assertTrue(len(response.content) > 10000)
+        self.assertTrue(response.content.startswith(b"%PDF"))

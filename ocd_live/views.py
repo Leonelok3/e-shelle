@@ -730,6 +730,16 @@ def live_fiche_pdf(request, code):
     return response
 
 
+def live_guide_pdf(request):
+    """Télécharge le Guide Officiel d'Utilisation OCD Live au format PDF (5 pages)."""
+    from .services.guide_pdf_service import generate_guide_pdf
+    pdf_bytes = generate_guide_pdf()
+    response = HttpResponse(pdf_bytes, content_type="application/pdf")
+    response["Content-Disposition"] = 'inline; filename="Guide_Officiel_OCD_Live_E-Shelle.pdf"'
+    response["Referrer-Policy"] = "same-origin"
+    return response
+
+
 @staff_member_required
 def live_admin_dashboard(request):
     """Tableau de bord administrateur OCD Live (protégé login staff)."""

@@ -9,6 +9,7 @@ urlpatterns = [
     
     # Système officiel de Réservation Live Pitch & Vente
     path("reserver/", views.live_reservation, name="reservation"),
+    path("guide-pdf/", views.live_guide_pdf, name="guide_pdf"),
     path("suivi/<str:code>/", views.live_suivi, name="suivi"),
     path("boutique/<str:code>/", views.live_boutique, name="boutique"),
     path("b/<str:code>/", views.live_boutique, name="boutique_short"),
