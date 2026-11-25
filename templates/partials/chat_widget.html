@@ -67,7 +67,7 @@
       <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
         <path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z"/>
       </svg>
-      <span class="es-chat-float__ping"></span>
+      <span class="es-chat-float__badge" aria-hidden="true">1</span>
     </span>
     <span>E-Shelle AI</span>
   </button>
@@ -146,12 +146,13 @@
   color: #fff;
   border: none;
   font-family: 'Plus Jakarta Sans', sans-serif;
-  font-size: .9rem;
+  font-size: 1rem;
   font-weight: 700;
-  background: linear-gradient(135deg, #22c55e, #16a34a);
+  background: #075c3b;
   box-shadow: 0 16px 36px rgba(0,0,0,.35), 0 8px 24px rgba(34,197,94,.24);
   cursor: pointer;
   transition: transform .18s ease, box-shadow .18s ease;
+  animation: esChatPulse 3s ease-out infinite;
 }
 .es-chat-float__link:hover {
   transform: translateY(-2px);
@@ -204,15 +205,27 @@
   position: relative;
   display: inline-flex;
 }
-.es-chat-float__ping {
+.es-chat-float__badge {
   position: absolute;
-  top: -4px;
-  right: -5px;
-  width: 8px;
-  height: 8px;
+  top: -9px;
+  right: -10px;
+  display: grid;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+  border: 2px solid #fff;
   border-radius: 999px;
-  background: #facc15;
-  box-shadow: 0 0 0 4px rgba(250,204,21,.18);
+  background: #B00020;
+  color: #fff;
+  font: 800 12px/1 'Plus Jakarta Sans', sans-serif;
+  box-shadow: 0 2px 8px rgba(0,0,0,.25);
+}
+@keyframes esChatPulse {
+  0%, 86%, 100% { box-shadow: 0 16px 36px rgba(0,0,0,.35), 0 8px 24px rgba(34,197,94,.24); }
+  93% { box-shadow: 0 16px 36px rgba(0,0,0,.35), 0 0 0 9px rgba(14,122,79,.16); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .es-chat-float__link { animation: none; }
 }
 
 /* Chat Window Container */
@@ -437,8 +450,8 @@
 /* Responsive adjustments */
 @media (max-width: 640px) {
   .es-chat-float { right: 1rem; left: auto; bottom: 1rem; }
-  .es-chat-float__link span:last-child { display: none; }
-  .es-chat-float__link { width: 52px; height: 52px; justify-content: center; padding: 0; border-radius: 18px; }
+  .es-chat-float__link span:last-child { display: inline; }
+  .es-chat-float__link { width: auto; min-height: 52px; height: auto; justify-content: center; padding: .75rem 1rem; border-radius: 16px; }
   .es-chat-float__panel { display: none; }
   
   .esh-chat-window {
