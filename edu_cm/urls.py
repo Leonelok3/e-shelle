@@ -291,6 +291,18 @@ def home_view(request):
         ctx["geo_cities"] = []
         ctx["geo_services"] = []
         ctx["home_numbers"] = {"businesses": 0, "premium": 0, "products": 0, "leads": 0, "ads": 0, "events": 0}
+    # The homepage demo must be a real public restaurant page, never a fabricated listing.
+    try:
+        from resto.models import Restaurant
+        ctx["home_pilot_restaurant"] = (
+            Restaurant.objects.visible()
+            .filter(city__slug="douala")
+            .select_related("city", "neighborhood")
+            .order_by("-is_featured", "-views_count", "name")
+            .first()
+        )
+    except Exception:
+        ctx["home_pilot_restaurant"] = None
     return render(request, "home.html", ctx)
 
 
