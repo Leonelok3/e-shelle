@@ -80,7 +80,11 @@
         </div>
 
         <div style="display:flex;gap:.75rem;flex-wrap:wrap;margin-top:1.25rem">
-          <a href="{% url 'business_whatsapp_campaigns' %}" class="btn btn-primary">{% if LANGUAGE_CODE == 'en' %}WhatsApp campaigns{% else %}Campagnes WhatsApp{% endif %}</a>
+          {% if can_manage_whatsapp %}
+            <a href="{% url 'whatsapp_commerce:business_campaigns' current.id %}" class="btn btn-primary">{% if LANGUAGE_CODE == 'en' %}My WhatsApp campaigns{% else %}Mes campagnes WhatsApp{% endif %}</a>
+          {% else %}
+            <span class="btn btn-outline-white">{% if LANGUAGE_CODE == 'en' %}Campaigns: Business or Premium{% else %}Campagnes : Business ou Premium{% endif %}</span>
+          {% endif %}
           <a href="{{ public_url }}" target="_blank" rel="noopener" class="btn btn-primary">{% if LANGUAGE_CODE == 'en' %}View my profile{% else %}Voir ma boutique{% endif %}</a>
           <a href="{% url 'business:business_edit' current.id %}" class="btn btn-primary">{% if LANGUAGE_CODE == 'en' %}Edit profile{% else %}Modifier la fiche{% endif %}</a>
           <a href="{% url 'business:ai_delivery_kit' current.id %}" class="btn btn-primary">{% if LANGUAGE_CODE == 'en' %}AI customer kit{% else %}Kit IA client{% endif %}</a>
