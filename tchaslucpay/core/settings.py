@@ -96,6 +96,7 @@ else:
 
 AUTH_USER_MODEL = "tchaslucpay_accounts.CustomUser"
 LANGUAGE_CODE = "fr"
+LANGUAGES = [("fr", "Français")]
 TIME_ZONE = "Africa/Douala"
 USE_I18N = True
 USE_TZ = True

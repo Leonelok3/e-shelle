@@ -833,13 +833,7 @@
 
         {# Actions Allemagne #}
         <div class="navbar-actions" style="display: flex; align-items: center; gap: 0.75rem;">
-          <form action="{% url 'set_language' %}" method="post" style="display:inline-flex;align-items:center;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.15);border-radius:999px;padding:2px 4px;">
-            {% csrf_token %}
-            <input type="hidden" name="next" value="{{ request.get_full_path }}">
-            <button type="submit" name="language" value="fr" style="border:none;background:{% if LANGUAGE_CODE == 'fr' %}rgba(224,168,0,0.3){% else %}transparent{% endif %};color:{% if LANGUAGE_CODE == 'fr' %}#ffce00{% else %}#94a3b8{% endif %};font-size:0.75rem;font-weight:700;padding:2px 8px;border-radius:999px;cursor:pointer;">FR</button>
-            <span style="color:rgba(255,255,255,0.2);font-size:0.7rem;">|</span>
-            <button type="submit" name="language" value="en" style="border:none;background:{% if LANGUAGE_CODE == 'en' %}rgba(224,168,0,0.3){% else %}transparent{% endif %};color:{% if LANGUAGE_CODE == 'en' %}#ffce00{% else %}#94a3b8{% endif %};font-size:0.75rem;font-weight:700;padding:2px 8px;border-radius:999px;cursor:pointer;">EN</button>
-          </form>
+          <span class="language-fixed" aria-label="Langue du site : français">FR</span>
           {% if user.is_authenticated %}
             <a href="{% url 'germanprep:progress_dashboard' %}" class="btn btn-primary btn-sm" style="background: #E3000F !important; color: #fff !important; border: none !important; border-radius: 30px; font-weight: 700; padding: 0.45rem 1.15rem; font-size: 0.85rem; box-shadow: 0 4px 12px rgba(227, 0, 15, 0.2);">
               Mon espace →
@@ -964,13 +958,7 @@
         <a href="{% if request.is_immigration97 %}{% url 'germany_opportunities:premium_pricing' %}{% else %}{% url 'tarifs' %}#merchant-plans-title{% endif %}" class="btn btn-accent btn-sm" style="font-weight:800;">{% if LANGUAGE_CODE == 'en' %}Pricing{% else %}Tarifs{% endif %}</a>
 
         {# Sélecteur de langue FR / EN #}
-        <form action="{% url 'set_language' %}" method="post" class="esh-lang-toggle" aria-label="Choisir la langue" style="display:inline-flex;align-items:center;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.12);border-radius:999px;padding:2px 4px;margin-right:2px;">
-          {% csrf_token %}
-          <input type="hidden" name="next" value="{{ request.get_full_path }}">
-          <button type="submit" name="language" value="fr" title="Français" style="border:none;background:{% if LANGUAGE_CODE == 'fr' %}rgba(125,236,108,0.22){% else %}transparent{% endif %};color:{% if LANGUAGE_CODE == 'fr' %}#7dec6c{% else %}#94a3b8{% endif %};font-size:0.75rem;font-weight:800;padding:2px 8px;border-radius:999px;cursor:pointer;transition:all 0.2s;">FR</button>
-          <span style="color:rgba(255,255,255,0.2);font-size:0.7rem;line-height:1;">|</span>
-          <button type="submit" name="language" value="en" title="English" style="border:none;background:{% if LANGUAGE_CODE == 'en' %}rgba(125,236,108,0.22){% else %}transparent{% endif %};color:{% if LANGUAGE_CODE == 'en' %}#7dec6c{% else %}#94a3b8{% endif %};font-size:0.75rem;font-weight:800;padding:2px 8px;border-radius:999px;cursor:pointer;transition:all 0.2s;">EN</button>
-        </form>
+        <span class="language-fixed" aria-label="Langue du site : français">FR</span>
 
         {# Recherche #}
         <button class="btn-icon btn-ghost" id="search-btn" aria-label="Rechercher (Ctrl+K)" title="Rechercher">
@@ -1028,14 +1016,8 @@
     <div class="navbar-mobile" id="navbar-mobile" role="menu">
       <div style="padding:0 .5rem">
         <div style="display:flex;align-items:center;justify-content:space-between;padding:0.65rem 0.75rem;border-bottom:1px solid rgba(255,255,255,0.08);margin-bottom:0.5rem">
-          <span style="font-size:0.85rem;color:#94a3b8;font-weight:600;">🌐 Langue / Language</span>
-          <form action="{% url 'set_language' %}" method="post" style="display:inline-flex;align-items:center;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.12);border-radius:999px;padding:2px 4px;">
-            {% csrf_token %}
-            <input type="hidden" name="next" value="{{ request.get_full_path }}">
-            <button type="submit" name="language" value="fr" style="border:none;background:{% if LANGUAGE_CODE == 'fr' %}rgba(125,236,108,0.22){% else %}transparent{% endif %};color:{% if LANGUAGE_CODE == 'fr' %}#7dec6c{% else %}#94a3b8{% endif %};font-size:0.78rem;font-weight:800;padding:3px 10px;border-radius:999px;cursor:pointer;">FR</button>
-            <span style="color:rgba(255,255,255,0.2);font-size:0.7rem;">|</span>
-            <button type="submit" name="language" value="en" style="border:none;background:{% if LANGUAGE_CODE == 'en' %}rgba(125,236,108,0.22){% else %}transparent{% endif %};color:{% if LANGUAGE_CODE == 'en' %}#7dec6c{% else %}#94a3b8{% endif %};font-size:0.78rem;font-weight:800;padding:3px 10px;border-radius:999px;cursor:pointer;">EN</button>
-          </form>
+          <span style="font-size:0.85rem;color:#94a3b8;font-weight:600;">🌐 Langue du site</span>
+          <span class="language-fixed" aria-label="Langue du site : français">FR</span>
         </div>
         <a href="/" class="nav-link" role="menuitem">🏠 {% if LANGUAGE_CODE == 'en' %}Home{% else %}Accueil{% endif %}</a>
         <a href="{% url 'marketing' %}" class="nav-link {% block nav_marketing_mobile %}{% endblock %}" role="menuitem">📣 Marketing</a>

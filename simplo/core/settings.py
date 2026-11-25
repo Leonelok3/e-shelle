@@ -98,6 +98,7 @@ else:
 AUTH_USER_MODEL = "simplo_accounts.CustomUser"
 
 LANGUAGE_CODE = "fr"
+LANGUAGES = [("fr", "Français")]
 TIME_ZONE = "Africa/Douala"
 USE_I18N = True
 USE_TZ = True
