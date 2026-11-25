@@ -41,8 +41,8 @@ def send_booking_whatsapp_confirmation(booking: Booking):
     logger.info("Envoi WhatsApp OCD Live vers %s pour ticket %s", clean_phone, booking.ticket_code)
 
     try:
-        from whatsapp_agent.services import envoyer_message
-        envoyer_message(clean_phone, message)
+        from whatsapp_agent.services import WhatsAppService
+        WhatsAppService.envoyer_message(clean_phone, message)
         booking.whatsapp_reminder_sent = True
         booking.save(update_fields=["whatsapp_reminder_sent"])
         return True

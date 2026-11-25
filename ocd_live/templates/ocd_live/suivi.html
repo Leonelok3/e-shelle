@@ -5,12 +5,12 @@
 
 {% block content %}
 <section class="ocd-section" style="padding-top:2.5rem; padding-bottom:5rem;">
-  <div style="max-width:960px; margin:0 auto; padding:0 1rem;">
+  <div style="max-width:1040px; margin:0 auto; padding:0 1rem;">
     
     <!-- En-tête de confirmation / suivi -->
     <div style="text-align:center; margin-bottom:2.5rem;">
       <span class="ocd-hero-eyebrow" style="display:inline-flex; align-items:center; gap:8px; margin-bottom:1rem;">
-        <span>📋 ESPACE SUIVI DE DOSSIER OCD LIVE</span>
+        <span>📋 ESPACE SUIVI &amp; BOUTIQUE OCD LIVE</span>
       </span>
       <h1 style="font-family:'Outfit',sans-serif; font-size:clamp(1.8rem, 3.5vw, 2.5rem); font-weight:900; color:#FFFFFF; margin:0 0 0.5rem;">
         Dossier : <span class="gradient-orange">{{ booking.code_reservation }}</span>
@@ -19,6 +19,56 @@
         Demande enregistrée le {{ booking.date_creation|date:"d F Y à H:i" }} &bull; Entreprise : <strong style="color:#FFF;">{{ booking.nom_entreprise }}</strong>
       </p>
     </div>
+
+    <!-- PRIVILÈGE ROYAL MARATHON VIP (5H) -->
+    {% if ecosystem.is_marathon_vip %}
+      <div style="background:linear-gradient(135deg, rgba(217,119,6,0.2) 0%, rgba(180,83,9,0.3) 50%, rgba(15,23,42,0.95) 100%); border:2px solid #F59E0B; border-radius:20px; padding:1.5rem 2rem; margin-bottom:2rem; box-shadow:0 0 30px rgba(245,158,11,0.25);">
+        <div style="display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:1.25rem;">
+          <div style="display:flex; align-items:center; gap:1rem;">
+            <div style="width:52px; height:52px; border-radius:50%; background:linear-gradient(135deg,#F59E0B,#D97706); display:flex; align-items:center; justify-content:center; font-size:1.8rem; box-shadow:0 0 15px rgba(245,158,11,0.5);">
+              👑
+            </div>
+            <div>
+              <span style="background:#F59E0B; color:#000; font-weight:900; font-size:0.75rem; padding:2px 8px; border-radius:99px; text-transform:uppercase;">
+                PRIVILÈGE ÉLITE &bull; PASS MARATHON 5H
+              </span>
+              <h2 style="font-family:'Outfit',sans-serif; font-size:1.3rem; color:#FFF; margin:3px 0 0;">
+                Vos avantages Marathon sont activés
+              </h2>
+              <p style="margin:2px 0 0; color:#FED7AA; font-size:0.85rem;">
+                Premium E-Shelle pendant 30 jours, avec accès WABA, Inbox et campagnes selon les validations requises.
+              </p>
+            </div>
+          </div>
+          <div>
+            <span style="background:rgba(245,158,11,0.15); border:1px solid #F59E0B; color:#FDE68A; padding:6px 14px; border-radius:99px; font-weight:800; font-size:0.82rem;">
+              ⭐ Formule Royale Confirmée
+            </span>
+          </div>
+        </div>
+      </div>
+    {% endif %}
+
+    {% if booking.is_payment_validated and not booking.user %}
+      <div class="ocd-card" style="padding:1.5rem 2rem; margin-bottom:2rem; background:rgba(56,189,248,0.08); border:1px solid rgba(56,189,248,0.35);">
+        <h2 style="font-size:1.1rem; color:#FFF; margin:0 0 0.5rem;">Rattachez vos avantages à votre compte E-Shelle</h2>
+        <p style="color:#CBD5E1; margin:0 0 1rem;">
+          Cela vous permettra d'accéder à votre tableau de bord et, pour le Pass Marathon payé, de gérer la connexion WABA.
+        </p>
+        {% if user.is_authenticated %}
+          <form method="POST" action="{% url 'ocd_live:suivi' code=booking.code_reservation %}?access={{ access_token }}">
+            {% csrf_token %}
+            <input type="hidden" name="access" value="{{ access_token }}">
+            <input type="hidden" name="action" value="claim_booking">
+            <button type="submit" class="ocd-btn ocd-btn-primary">Rattacher cette réservation à mon compte</button>
+          </form>
+        {% else %}
+          <a class="ocd-btn ocd-btn-primary" href="{% url 'accounts:login' %}?next={{ request.get_full_path|urlencode }}">
+            Se connecter pour rattacher la réservation
+          </a>
+        {% endif %}
+      </div>
+    {% endif %}
 
     <!-- Bannière d'état en temps réel -->
     <div class="ocd-card" style="padding:1.75rem 2rem; margin-bottom:2rem; background:rgba(18,25,21,0.95); border:1px solid {% if booking.statut == 'validee_admin' or booking.statut == 'confirmee' %}#16A34A{% elif booking.statut == 'en_attente_validation_admin' %}#3B82F6{% elif booking.statut == 'refusee' %}#EF4444{% else %}#F59E0B{% endif %};">
@@ -53,15 +103,329 @@
           </div>
         </div>
 
-        <!-- Bouton Téléchargement Fiche PDF -->
+        <!-- Bouton Téléchargement Fiche PDF & Affiche Promo & Contact -->
         <div style="display:flex; flex-direction:column; gap:0.6rem; min-width:240px;">
-          <a href="{% url 'ocd_live:fiche_pdf' code=booking.code_reservation %}" target="_blank" class="ocd-btn ocd-btn-primary" style="padding:0.9rem 1.4rem; font-size:0.95rem; text-align:center;">
+          <a href="{% url 'ocd_live:affiche_promo' code=booking.code_reservation %}?access={{ access_token }}" class="ocd-btn" style="background:linear-gradient(135deg, #FF7A00, #E65100); color:#FFF; font-weight:900; padding:0.85rem 1.4rem; font-size:0.92rem; text-align:center; box-shadow:0 4px 15px rgba(255,122,0,0.4);">
+            🎨 Mon Affiche Promo (PNG HD)
+          </a>
+          <a href="{% url 'ocd_live:fiche_pdf' code=booking.code_reservation %}?access={{ access_token }}" target="_blank" rel="noopener" class="ocd-btn ocd-btn-primary" style="padding:0.75rem 1.4rem; font-size:0.9rem; text-align:center;">
             📄 Télécharger la Fiche PDF
           </a>
-          <a href="https://wa.me/237680625082?text=Bonjour%20OCD%20Live,%20je%20suis%20le%20dossier%20{{ booking.code_reservation }}%20({{ booking.nom_entreprise|urlencode }})" target="_blank" rel="noopener" class="ocd-btn ocd-btn-glow" style="padding:0.75rem 1.4rem; font-size:0.85rem; text-align:center;">
+          <a href="https://wa.me/237680625082?text=Bonjour%20OCD%20Live,%20je%20suis%20le%20dossier%20{{ booking.code_reservation }}%20({{ booking.nom_entreprise|urlencode }})" target="_blank" rel="noopener" class="ocd-btn ocd-btn-glow" style="padding:0.65rem 1.4rem; font-size:0.82rem; text-align:center;">
             💬 Contacter la régie WhatsApp
           </a>
         </div>
+      </div>
+    </div>
+
+    <!-- ================================================================= -->
+    <!-- SECTION 1 : VOTRE BOUTIQUE OCD LIVE & LIEN À DONNER AU PUBLIC -->
+    <!-- ================================================================= -->
+    <div class="ocd-card" style="padding:2.2rem; margin-bottom:2.5rem; background:linear-gradient(145deg, rgba(20,30,24,0.95) 0%, rgba(10,16,13,0.98) 100%); border:1px solid var(--ocd-border-glass); border-radius:22px;">
+      <div style="display:flex; align-items:center; gap:12px; margin-bottom:1.5rem; border-bottom:1px solid var(--ocd-border-subtle); padding-bottom:1rem;">
+        <span style="width:38px; height:38px; border-radius:50%; background:#10B981; color:#FFF; font-weight:900; display:flex; align-items:center; justify-content:center; font-size:1.2rem;">🛍️</span>
+        <div>
+          <h2 style="font-family:'Outfit',sans-serif; font-size:1.4rem; color:#FFF; margin:0;">Votre Boutique Dédiée sur OCD Live</h2>
+          <p style="margin:2px 0 0; color:#94A3B8; font-size:0.88rem;">
+            Le lien magique à donner à la fin de votre direct pour que les spectateurs commandent immédiatement.
+          </p>
+        </div>
+      </div>
+
+      {% if booking.is_payment_validated and booking.boutique_active %}
+      <!-- Lien public à partager -->
+      <div style="background:#080C0A; border:1px solid rgba(255,255,255,0.12); border-radius:14px; padding:1.25rem; margin-bottom:1.75rem; display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:1rem;">
+        <div>
+          <span style="font-size:0.75rem; font-weight:800; color:var(--ocd-text-amber); text-transform:uppercase; letter-spacing:0.06em; display:block; margin-bottom:4px;">
+            🔗 LIEN PUBLIC DE VOTRE BOUTIQUE LIVE
+          </span>
+          <div id="boutiqueUrlText" style="font-family:monospace; font-size:1.05rem; color:#38BDF8; font-weight:700; word-break:break-all;">
+            {{ request.scheme }}://{{ request.get_host }}{% url 'ocd_live:boutique' code=booking.code_reservation %}
+          </div>
+        </div>
+        {% else %}
+          <p style="color:#FBBF24; margin:0 0 1.5rem;">
+            Votre boutique OCD Live et votre fiche publique E-Shelle seront publiées après validation du paiement.
+          </p>
+        {% endif %}
+
+        <div style="display:flex; gap:0.75rem; align-items:center;">
+          <button onclick="copierLienDirect()" class="ocd-btn ocd-btn-primary" style="padding:0.75rem 1.25rem; font-size:0.88rem;">
+            📋 Copier le Lien
+          </button>
+          <a href="{% url 'ocd_live:boutique' code=booking.code_reservation %}" target="_blank" class="ocd-btn ocd-btn-glow" style="padding:0.75rem 1.25rem; font-size:0.88rem;">
+            👁️ Ouvrir ma Boutique →
+          </a>
+        </div>
+      </div>
+
+      <!-- GESTION DES PRODUITS DE LA BOUTIQUE DU LIVE -->
+      <div style="margin-top:1.5rem;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
+          <h3 style="font-family:'Outfit',sans-serif; font-size:1.15rem; color:#FFF; margin:0;">
+            Articles &amp; Services de votre vitrine ({{ produits.count }})
+          </h3>
+          <button onclick="document.getElementById('addProductForm').style.display = document.getElementById('addProductForm').style.display === 'none' ? 'block' : 'none';" class="ocd-btn ocd-btn-glow" style="padding:0.5rem 1rem; font-size:0.82rem;">
+            + Ajouter un Produit / Service
+          </button>
+        </div>
+
+        <!-- Formulaire d'ajout rapide d'un article -->
+        <div id="addProductForm" style="display:none; background:rgba(0,0,0,0.5); border:1px dashed rgba(255,122,0,0.4); border-radius:14px; padding:1.5rem; margin-bottom:1.5rem;">
+          <h4 style="color:#FFF; font-size:1rem; margin:0 0 1rem; font-family:'Outfit';">Ajouter un produit ou service à votre boutique live :</h4>
+          <form method="POST" action="{% url 'ocd_live:suivi' code=booking.code_reservation %}" enctype="multipart/form-data">
+            {% csrf_token %}
+            <input type="hidden" name="access" value="{{ access_token }}">
+            <input type="hidden" name="action" value="add_product">
+            <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(220px, 1fr)); gap:1rem; margin-bottom:1rem;">
+              <div>
+                <label style="display:block; font-size:0.82rem; font-weight:700; color:#CBD5E1; margin-bottom:0.35rem;">Nom de l'article *</label>
+                <input type="text" name="nom" required placeholder="Ex : Kit Énergie Solaire 3kVA" style="width:100%; padding:0.7rem; border-radius:8px; background:#0B100D; border:1px solid rgba(255,255,255,0.15); color:#FFF; font-size:0.9rem;">
+              </div>
+              <div>
+                <label style="display:block; font-size:0.82rem; font-weight:700; color:#CBD5E1; margin-bottom:0.35rem;">Prix officiel (XAF) *</label>
+                <input type="text" name="prix_xaf" required placeholder="Ex : 350000" style="width:100%; padding:0.7rem; border-radius:8px; background:#0B100D; border:1px solid rgba(255,255,255,0.15); color:#FFF; font-size:0.9rem;">
+              </div>
+              <div>
+                <label style="display:block; font-size:0.82rem; font-weight:700; color:#CBD5E1; margin-bottom:0.35rem;">Prix Promo Live (optionnel)</label>
+                <input type="text" name="prix_promo_xaf" placeholder="Ex : 295000" style="width:100%; padding:0.7rem; border-radius:8px; background:#0B100D; border:1px solid rgba(255,255,255,0.15); color:#FFF; font-size:0.9rem;">
+              </div>
+              <div>
+                <label style="display:block; font-size:0.82rem; font-weight:700; color:#CBD5E1; margin-bottom:0.35rem;">Photo du produit (optionnel)</label>
+                <input type="file" name="image" accept="image/*" style="width:100%; padding:0.55rem; border-radius:8px; background:#0B100D; border:1px solid rgba(255,255,255,0.15); color:#FFF; font-size:0.82rem;">
+              </div>
+            </div>
+            <div style="margin-bottom:1rem;">
+              <label style="display:block; font-size:0.82rem; font-weight:700; color:#CBD5E1; margin-bottom:0.35rem;">Description courte</label>
+              <input type="text" name="description" placeholder="Ex : Onduleur hybride + 2 panneaux solaires monocristallins, garantie 2 ans." style="width:100%; padding:0.7rem; border-radius:8px; background:#0B100D; border:1px solid rgba(255,255,255,0.15); color:#FFF; font-size:0.9rem;">
+            </div>
+            <button type="submit" class="ocd-btn ocd-btn-primary" style="padding:0.75rem 1.5rem; font-size:0.9rem;">
+              ✓ Enregistrer ce produit dans ma boutique
+            </button>
+          </form>
+        </div>
+
+        <!-- Grille des produits enregistrés -->
+        <div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(260px, 1fr)); gap:1rem;">
+          {% for prod in produits %}
+            <div style="background:#080C0A; border:1px solid rgba(255,255,255,0.1); border-radius:12px; padding:1rem; display:flex; flex-direction:column; justify-content:space-between;">
+              <div>
+                <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:8px;">
+                  <strong style="color:#FFF; font-size:0.95rem;">{{ prod.nom }}</strong>
+                  <form method="POST" action="{% url 'ocd_live:suivi' code=booking.code_reservation %}" onsubmit="return confirm('Supprimer ce produit de la boutique ?');">
+                    {% csrf_token %}
+                    <input type="hidden" name="access" value="{{ access_token }}">
+                    <input type="hidden" name="action" value="delete_product">
+                    <input type="hidden" name="product_id" value="{{ prod.id }}">
+                    <button type="submit" style="background:transparent; border:none; color:#EF4444; cursor:pointer; font-size:0.8rem;" title="Supprimer">✕</button>
+                  </form>
+                </div>
+                <div style="font-size:0.82rem; color:#CBD5E1; margin:4px 0 8px;">
+                  {{ prod.description|default:"Présenté lors du direct" }}
+                </div>
+                <div style="font-family:'Outfit'; font-size:1.15rem; font-weight:800; color:#10B981;">
+                  {{ prod.prix_formate }}
+                </div>
+              </div>
+            </div>
+          {% empty %}
+            <div style="grid-column:1/-1; padding:1.5rem; background:rgba(0,0,0,0.3); border-radius:10px; color:#94A3B8; text-align:center; font-size:0.9rem;">
+              Vos produits initiaux ont été configurés d'après votre formulaire. Cliquez sur <strong>+ Ajouter un Produit</strong> pour personnaliser avec photos et prix précis.
+            </div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+
+    <!-- ================================================================= -->
+    <!-- SECTION 1.5 : KIT PROMO RÉSEAUX SOCIAUX & VENTE FLASH LIVE -->
+    <!-- ================================================================= -->
+    <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(320px, 1fr)); gap:2rem; margin-bottom:2.5rem;">
+      
+      <!-- CARTE KIT AFFICHE PROMO -->
+      <div class="ocd-card" style="padding:2rem; background:linear-gradient(145deg, rgba(30,22,14,0.95) 0%, rgba(15,10,8,0.98) 100%); border:1px solid rgba(230,81,0,0.35); border-radius:22px; display:flex; flex-direction:column; justify-content:space-between;">
+        <div>
+          <div style="display:flex; align-items:center; gap:10px; margin-bottom:1rem;">
+            <span style="width:36px; height:36px; border-radius:50%; background:#E65100; color:#FFF; font-weight:900; display:flex; align-items:center; justify-content:center; font-size:1.1rem;">🎨</span>
+            <div>
+              <span style="font-size:0.75rem; color:#FF7A00; font-weight:800; text-transform:uppercase; letter-spacing:0.04em;">Visibilité &amp; Réseaux Sociaux</span>
+              <h3 style="font-family:'Outfit',sans-serif; font-size:1.25rem; color:#FFF; margin:0;">Votre Affiche Promo Officielle</h3>
+            </div>
+          </div>
+
+          <p style="font-size:0.88rem; color:#CBD5E1; line-height:1.5; margin:0 0 1.25rem;">
+            Générez et téléchargez votre flyer promotionnel en <strong>Haute Définition</strong> aux formats <strong>Story WhatsApp (9:16)</strong> et <strong>Carré Facebook / Instagram (1:1)</strong> avec QR Code intégré vers votre boutique.
+          </p>
+
+          <div style="background:rgba(0,0,0,0.35); border:1px solid rgba(255,255,255,0.08); border-radius:12px; padding:1rem; margin-bottom:1.25rem; font-size:0.82rem; color:#CBD5E1;">
+            ✓ Titre de votre direct inclus<br>
+            ✓ Nom et secteur de votre entreprise<br>
+            ✓ Date, heure et QR code scannable<br>
+            ✓ Téléchargement immédiat sans graphiste
+          </div>
+        </div>
+
+        <a href="{% url 'ocd_live:affiche_promo' code=booking.code_reservation %}?access={{ access_token }}" class="ocd-btn ocd-btn-primary" style="width:100%; padding:0.85rem; font-size:0.92rem; font-weight:900; text-align:center;">
+          🎨 Personnaliser &amp; Télécharger mon Affiche →
+        </a>
+      </div>
+
+      <!-- CARTE CONFIGURATION VENTE FLASH & COMPTE À REBOURS -->
+      <div class="ocd-card" style="padding:2rem; background:linear-gradient(145deg, rgba(28,18,18,0.95) 0%, rgba(15,10,10,0.98) 100%); border:1px solid rgba(239,68,68,0.35); border-radius:22px; display:flex; flex-direction:column; justify-content:space-between;">
+        <div>
+          <div style="display:flex; align-items:center; gap:10px; margin-bottom:1rem;">
+            <span style="width:36px; height:36px; border-radius:50%; background:#EF4444; color:#FFF; font-weight:900; display:flex; align-items:center; justify-content:center; font-size:1.1rem;">🔥</span>
+            <div>
+              <span style="font-size:0.75rem; color:#FCA5A5; font-weight:800; text-transform:uppercase; letter-spacing:0.04em;">Conversion Direct Antenne</span>
+              <h3 style="font-family:'Outfit',sans-serif; font-size:1.25rem; color:#FFF; margin:0;">Vente Flash &amp; Compte à Rebours</h3>
+            </div>
+          </div>
+
+          <p style="font-size:0.88rem; color:#CBD5E1; line-height:1.5; margin:0 0 1.25rem;">
+            Activez un prix d'urgence et un compte à rebours sur votre boutique live pour stimuler les décisions d'achat immédiates.
+          </p>
+
+          <form method="POST" action="{% url 'ocd_live:suivi' code=booking.code_reservation %}">
+            {% csrf_token %}
+            <input type="hidden" name="access" value="{{ access_token }}">
+            <input type="hidden" name="action" value="update_flash">
+
+            <div style="background:rgba(0,0,0,0.4); border:1px solid rgba(255,255,255,0.08); border-radius:12px; padding:1rem; margin-bottom:1.25rem;">
+              <div style="display:flex; align-items:center; gap:10px; margin-bottom:0.75rem;">
+                <input type="checkbox" id="checkFlash" name="offre_flash_active" value="1" {% if booking.offre_flash_active %}checked{% endif %} style="width:18px; height:18px; accent-color:#EF4444; cursor:pointer;">
+                <label for="checkFlash" style="font-size:0.88rem; font-weight:800; color:#FFF; cursor:pointer;">
+                  Activer la Vente Flash sur ma Boutique
+                </label>
+              </div>
+
+              <div style="margin-bottom:0.75rem;">
+                <label style="display:block; font-size:0.75rem; color:#94A3B8; margin-bottom:4px; font-weight:700;">Titre de l'Offre Flash :</label>
+                <input type="text" name="offre_flash_titre" value="{{ booking.offre_flash_titre }}" class="ocd-input" style="width:100%; padding:0.5rem 0.75rem; font-size:0.85rem;" placeholder="Ex: Vente Flash Spéciale Direct Live">
+              </div>
+
+              <div>
+                <label style="display:block; font-size:0.75rem; color:#94A3B8; margin-bottom:4px; font-weight:700;">Pourcentage de réduction par défaut (%) :</label>
+                <div style="display:flex; align-items:center; gap:8px;">
+                  <input type="number" min="1" max="90" name="offre_flash_reduction_pct" value="{{ booking.offre_flash_reduction_pct }}" class="ocd-input" style="width:100px; padding:0.5rem 0.75rem; font-size:0.85rem; font-weight:800; color:#EF4444;">
+                  <span style="font-size:0.85rem; color:#CBD5E1;">% de réduction automatique</span>
+                </div>
+              </div>
+            </div>
+
+            <button type="submit" class="ocd-btn ocd-btn-glow" style="width:100%; padding:0.75rem; font-size:0.88rem; font-weight:800;">
+              💾 Enregistrer les Réglages Flash
+            </button>
+          </form>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ================================================================= -->
+    <!-- SECTION 2 : ÉCOSYSTÈME E-SHELLE.COM & MODULES CONNECTÉS -->
+    <!-- ================================================================= -->
+    <div class="ocd-card" style="padding:2.2rem; margin-bottom:2.5rem; background:linear-gradient(145deg, rgba(24,20,32,0.95) 0%, rgba(13,10,20,0.98) 100%); border:1px solid rgba(139,92,246,0.3); border-radius:22px;">
+      <div style="display:flex; align-items:center; gap:12px; margin-bottom:1.5rem; border-bottom:1px solid rgba(255,255,255,0.08); padding-bottom:1rem;">
+        <span style="width:38px; height:38px; border-radius:50%; background:#8B5CF6; color:#FFF; font-weight:900; display:flex; align-items:center; justify-content:center; font-size:1.2rem;">⚡</span>
+        <div>
+          <h2 style="font-family:'Outfit',sans-serif; font-size:1.4rem; color:#FFF; margin:0;">Votre visibilité et vos outils E-Shelle</h2>
+          <p style="margin:2px 0 0; color:#C4B5FD; font-size:0.88rem;">
+            La fiche E-Shelle est publique selon la durée de votre formule. L'indexation et le classement par Google ou les assistants IA ne peuvent pas être garantis.
+          </p>
+        </div>
+      </div>
+
+      <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(280px, 1fr)); gap:1.25rem;">
+
+        {% if ecosystem.business_public_url %}
+          <div style="background:#0D1017; border:1px solid rgba(16,185,129,0.25); border-radius:16px; padding:1.5rem;">
+            <h3 style="font-family:'Outfit'; font-size:1.15rem; color:#FFF; margin:0 0 0.5rem;">Fiche publique E-Shelle</h3>
+            <p style="font-size:0.85rem; color:#94A3B8; line-height:1.5;">Partagez aussi votre fiche E-Shelle avec vos clients.</p>
+            <a href="{{ ecosystem.business_public_url }}" target="_blank" rel="noopener" class="ocd-btn ocd-btn-glow">Ouvrir ma fiche publique →</a>
+            {% if ecosystem.business_dashboard_url %}
+              <a href="{{ ecosystem.business_dashboard_url }}" class="ocd-btn ocd-btn-primary" style="margin-top:0.5rem;">Ouvrir mon tableau de bord</a>
+            {% endif %}
+          </div>
+        {% endif %}
+
+        <!-- MODULE WABA CONNECT -->
+        <div style="background:#0D1017; border:1px solid rgba(56,189,248,0.25); border-radius:16px; padding:1.5rem; display:flex; flex-direction:column; justify-content:space-between;">
+          <div>
+            <div style="display:inline-flex; align-items:center; gap:6px; background:rgba(37,211,102,0.15); color:#4ADE80; font-size:0.75rem; font-weight:800; padding:2px 8px; border-radius:99px; margin-bottom:0.75rem;">
+              WHATSAPP CLOUD API
+            </div>
+            <h3 style="font-family:'Outfit'; font-size:1.15rem; color:#FFF; margin:0 0 0.5rem;">Connecter votre WABA</h3>
+            <p style="font-size:0.85rem; color:#94A3B8; line-height:1.5; margin:0 0 1.25rem;">
+              Reliez votre compte WhatsApp Business officiel pour traiter les échanges avec vos prospects. L'activation dépend de l'éligibilité du numéro et du compte ainsi que des validations requises.
+            </p>
+          </div>
+          {% if ecosystem.waba_connect_url %}
+            <a href="{{ ecosystem.waba_connect_url }}" target="_blank" class="ocd-btn" style="background:#25D366; color:#FFF; padding:0.75rem 1rem; font-size:0.85rem; font-weight:800; text-align:center;">
+              🔗 Connecter mon WABA →
+            </a>
+          {% elif ecosystem.is_marathon_vip %}
+            <span style="color:#94A3B8; font-size:0.8rem; text-align:center;">Connectez-vous au compte propriétaire de la fiche pour poursuivre l'activation.</span>
+          {% else %}
+            <span style="color:#94A3B8; font-size:0.8rem; text-align:center;">WABA réservé au Pass Marathon 5h payé et validé.</span>
+          {% endif %}
+        </div>
+
+        <!-- MODULE INBOX CENTRALISÉE -->
+        <div style="background:#0D1017; border:1px solid rgba(139,92,246,0.25); border-radius:16px; padding:1.5rem; display:flex; flex-direction:column; justify-content:space-between;">
+          <div>
+            <div style="display:inline-flex; align-items:center; gap:6px; background:rgba(139,92,246,0.15); color:#C4B5FD; font-size:0.75rem; font-weight:800; padding:2px 8px; border-radius:99px; margin-bottom:0.75rem;">
+              MESSAGES CLIENTS
+            </div>
+            <h3 style="font-family:'Outfit'; font-size:1.15rem; color:#FFF; margin:0 0 0.5rem;">Inbox WhatsApp Live</h3>
+            <p style="font-size:0.85rem; color:#94A3B8; line-height:1.5; margin:0 0 1.25rem;">
+              Répondez à toutes les questions posées par les spectateurs de votre direct depuis l'inbox unifiée E-Shelle.
+            </p>
+          </div>
+          {% if ecosystem.waba_inbox_url %}
+            <a href="{{ ecosystem.waba_inbox_url }}" target="_blank" class="ocd-btn ocd-btn-glow" style="padding:0.75rem 1rem; font-size:0.85rem; font-weight:800; text-align:center;">
+              📥 Ouvrir la Boîte de Réception →
+            </a>
+          {% else %}
+            <span style="color:#94A3B8; font-size:0.8rem; text-align:center;">Disponible dès validation régie</span>
+          {% endif %}
+        </div>
+
+        <!-- MODULE CAMPAGNES & RELANCES -->
+        <div style="background:#0D1017; border:1px solid rgba(245,158,11,0.25); border-radius:16px; padding:1.5rem; display:flex; flex-direction:column; justify-content:space-between;">
+          <div>
+            <div style="display:inline-flex; align-items:center; gap:6px; background:rgba(245,158,11,0.15); color:#FBBF24; font-size:0.75rem; font-weight:800; padding:2px 8px; border-radius:99px; margin-bottom:0.75rem;">
+              RELANCE PROSPECTS
+            </div>
+            <h3 style="font-family:'Outfit'; font-size:1.15rem; color:#FFF; margin:0 0 0.5rem;">Campagnes de Relance</h3>
+            <p style="font-size:0.85rem; color:#94A3B8; line-height:1.5; margin:0 0 1.25rem;">
+              Envoyez des messages de suivi et des offres exclusives à tous les acheteurs qui ont cliqué sur vos produits de live.
+            </p>
+          </div>
+          {% if ecosystem.waba_campaigns_url %}
+            <a href="{{ ecosystem.waba_campaigns_url }}" target="_blank" class="ocd-btn" style="background:#F59E0B; color:#000; padding:0.75rem 1rem; font-size:0.85rem; font-weight:900; text-align:center;">
+              🚀 Gérer mes Campagnes →
+            </a>
+          {% else %}
+            <span style="color:#94A3B8; font-size:0.8rem; text-align:center;">Disponible après le direct</span>
+          {% endif %}
+        </div>
+
+        <!-- MODULE ADGEN PUBS IA -->
+        <div style="background:#0D1017; border:1px solid rgba(230,81,0,0.25); border-radius:16px; padding:1.5rem; display:flex; flex-direction:column; justify-content:space-between;">
+          <div>
+            <div style="display:inline-flex; align-items:center; gap:6px; background:rgba(230,81,0,0.15); color:#FF7A00; font-size:0.75rem; font-weight:800; padding:2px 8px; border-radius:99px; margin-bottom:0.75rem;">
+              STUDIO IA PUBLICITAIRE
+            </div>
+            <h3 style="font-family:'Outfit'; font-size:1.15rem; color:#FFF; margin:0 0 0.5rem;">Affiches Publicitaires AdGen</h3>
+            <p style="font-size:0.85rem; color:#94A3B8; line-height:1.5; margin:0 0 1.25rem;">
+              Générez automatiquement avec l'Intelligence Artificielle des affiches et bannières promotionnelles pour annoncer votre direct.
+            </p>
+          </div>
+          <a href="/pub/" target="_blank" class="ocd-btn ocd-btn-primary" style="padding:0.75rem 1rem; font-size:0.85rem; font-weight:800; text-align:center;">
+            🎨 Créer mes Visuels IA →
+          </a>
+        </div>
+
       </div>
     </div>
 
@@ -78,6 +442,7 @@
 
         <form method="POST" action="{% url 'ocd_live:suivi' code=booking.code_reservation %}" enctype="multipart/form-data">
           {% csrf_token %}
+          <input type="hidden" name="access" value="{{ access_token }}">
           <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(240px, 1fr)); gap:1rem; margin-bottom:1.25rem;">
             <div>
               <label style="display:block; font-size:0.85rem; font-weight:700; color:#CBD5E1; margin-bottom:0.35rem;">Mode de paiement utilisé</label>
@@ -177,5 +542,19 @@
 
   </div>
 </section>
-{% endblock %}
 
+<!-- Script de copie du lien direct -->
+<script>
+function copierLienDirect() {
+  const urlEl = document.getElementById('boutiqueUrlText');
+  const url = urlEl ? urlEl.innerText.trim() : window.location.origin + "{% url 'ocd_live:boutique' code=booking.code_reservation %}";
+  if (navigator.clipboard) {
+    navigator.clipboard.writeText(url).then(() => {
+      alert("✓ Lien de votre Boutique copié ! Vous pouvez le coller dans vos groupes WhatsApp ou à la fin de votre live.");
+    });
+  } else {
+    alert("Lien de votre boutique : " + url);
+  }
+}
+</script>
+{% endblock %}

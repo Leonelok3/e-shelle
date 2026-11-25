@@ -243,33 +243,45 @@
 
         <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(220px, 1fr)); gap:1.25rem;">
           {% for pkg in packages %}
-            <div class="ocd-pkg-card {% if pkg.est_recommande %}recommended{% endif %}" 
+            <div class="ocd-pkg-card {% if pkg.est_recommande %}recommended{% endif %} {% if pkg.duree_minutes >= 300 %}marathon-vip{% endif %}" 
                  data-pkg-id="{{ pkg.id }}" 
                  data-pkg-name="{{ pkg.nom }}" 
                  data-pkg-duration="{{ pkg.duree_display }}"
                  data-pkg-price="{{ pkg.prix_xaf|floatformat:0 }}"
-                 style="position:relative; background:rgba(10,14,12,0.95); border:2px solid {% if pkg.est_recommande %}#FF7A00{% else %}rgba(255,255,255,0.12){% endif %}; border-radius:16px; padding:1.5rem; cursor:pointer; transition:var(--ocd-transition); display:flex; flex-direction:column; justify-content:space-between;">
+                 style="position:relative; background:{% if pkg.duree_minutes >= 300 %}linear-gradient(160deg, rgba(35,26,10,0.95) 0%, rgba(15,12,22,0.98) 100%){% else %}rgba(10,14,12,0.95){% endif %}; border:2px solid {% if pkg.duree_minutes >= 300 %}#F59E0B{% elif pkg.est_recommande %}#FF7A00{% else %}rgba(255,255,255,0.12){% endif %}; {% if pkg.duree_minutes >= 300 %}box-shadow:0 0 28px rgba(245,158,11,0.3);{% endif %} border-radius:16px; padding:1.5rem; cursor:pointer; transition:var(--ocd-transition); display:flex; flex-direction:column; justify-content:space-between;">
               
-              {% if pkg.est_recommande %}
+              {% if pkg.duree_minutes >= 300 %}
+                <div style="position:absolute; top:-12px; left:50%; transform:translateX(-50%); background:linear-gradient(90deg,#F59E0B,#D97706); color:#000; padding:3px 14px; border-radius:99px; font-size:0.72rem; font-weight:900; letter-spacing:0.06em; text-transform:uppercase; box-shadow:0 2px 12px rgba(245,158,11,0.6); white-space:nowrap;">
+                  👑 PACK ROYAL &bull; MAX RENTABILITÉ
+                </div>
+              {% elif pkg.est_recommande %}
                 <div style="position:absolute; top:-12px; left:50%; transform:translateX(-50%); background:linear-gradient(90deg,#FF7A00,#E65100); color:#FFF; padding:3px 12px; border-radius:99px; font-size:0.72rem; font-weight:800; letter-spacing:0.06em; text-transform:uppercase; box-shadow:0 2px 10px rgba(255,122,0,0.5);">
                   ★ Recommandé
                 </div>
               {% endif %}
 
               <div>
-                <h3 style="font-family:'Outfit',sans-serif; font-size:1.2rem; color:#FFF; margin:0 0 0.5rem;">{{ pkg.nom }}</h3>
+                <h3 style="font-family:'Outfit',sans-serif; font-size:1.2rem; color:{% if pkg.duree_minutes >= 300 %}#FDE68A{% else %}#FFF{% endif %}; margin:0 0 0.5rem;">
+                  {% if pkg.duree_minutes >= 300 %}👑 {% endif %}{{ pkg.nom }}
+                </h3>
                 <div style="display:inline-flex; align-items:center; gap:6px; background:rgba(255,255,255,0.06); padding:4px 10px; border-radius:6px; font-size:0.82rem; color:#CBD5E1; font-weight:700; margin-bottom:1rem;">
                   ⏱️ Durée : {{ pkg.duree_display }}
                 </div>
-                <div style="font-family:'Outfit',sans-serif; font-size:1.75rem; font-weight:900; color:#FF7A00; margin-bottom:1rem;">
+                <div style="font-family:'Outfit',sans-serif; font-size:1.75rem; font-weight:900; color:{% if pkg.duree_minutes >= 300 %}#F59E0B{% else %}#FF7A00{% endif %}; margin-bottom:1rem;">
                   {{ pkg.prix_xaf|floatformat:0 }} <span style="font-size:0.85rem; color:#94A3B8; font-weight:600;">XAF</span>
                 </div>
                 <p style="font-size:0.85rem; color:#CBD5E1; line-height:1.5; margin:0 0 1.25rem;">
                   {{ pkg.description }}
                 </p>
+
+                {% if pkg.duree_minutes >= 300 %}
+                  <div style="background:rgba(245,158,11,0.12); border:1px solid rgba(245,158,11,0.3); border-radius:8px; padding:0.6rem 0.8rem; font-size:0.75rem; color:#FDE68A; line-height:1.4; margin-bottom:1rem;">
+                    ✓ Boutique Live Offerte &bull; WABA &amp; Inbox WhatsApp &bull; Campagnes de Relance &bull; Affiches AdGen IA
+                  </div>
+                {% endif %}
               </div>
 
-              <div class="pkg-select-btn" style="width:100%; padding:0.65rem 1rem; border-radius:8px; text-align:center; font-weight:800; font-size:0.85rem; background:rgba(255,255,255,0.08); color:#FFF; border:1px solid rgba(255,255,255,0.15); transition:var(--ocd-transition);">
+              <div class="pkg-select-btn" style="width:100%; padding:0.65rem 1rem; border-radius:8px; text-align:center; font-weight:800; font-size:0.85rem; background:{% if pkg.duree_minutes >= 300 %}#F59E0B; color:#000; font-weight:900;{% else %}rgba(255,255,255,0.08); color:#FFF; border:1px solid rgba(255,255,255,0.15);{% endif %} transition:var(--ocd-transition);">
                 Sélectionner cette formule
               </div>
             </div>

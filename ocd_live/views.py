@@ -1,20 +1,25 @@
 import re
+import hmac
+import urllib.parse
 from datetime import datetime, date, time, timedelta
-from decimal import Decimal
+from decimal import Decimal, InvalidOperation
 from django.contrib import messages
 from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib.auth.decorators import login_required
+from django.core.exceptions import ValidationError
 from django.core.paginator import Paginator
 from django.db import transaction
 from django.db.models import Q, Sum, Count
-from django.http import HttpResponse, JsonResponse
+from django.http import HttpResponse, HttpResponseForbidden, HttpResponseNotFound, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
+from django.urls import reverse
 from django.utils import timezone
 
 from .models import (
     Booking,
     LiveBooking,
     LivePackage,
+    LiveProduct,
     LiveSession,
     LiveSlot,
     OCDPackage,
@@ -23,6 +28,11 @@ from .models import (
     Slot,
 )
 from .services.booking_service import create_booking_for_session, create_booking_for_slot, confirm_booking_payment
+from .services.ecosystem_service import (
+    confirm_live_booking_payment,
+    ensure_business_profile_for_live,
+    get_live_vendor_ecosystem_links,
+)
 from .services.payment_bridge import initiate_booking_payment
 from .services.pdf_service import generate_live_booking_pdf
 
@@ -47,6 +57,19 @@ def _clean_cameroon_phone(phone: str) -> tuple[str, bool]:
     return raw, False
 
 
+def _has_booking_management_access(request, booking):
+    access_token = request.GET.get("access") or request.POST.get("access", "")
+    is_owner = request.user.is_authenticated and booking.user_id == request.user.pk
+    return bool(
+        is_owner
+        or request.user.is_staff
+        or (
+            access_token
+            and hmac.compare_digest(access_token, str(booking.management_token))
+        )
+    )
+
+
 def index(request):
     """Vitrine principale OCD LIVE : Réservez votre passage en direct pour présenter vos produits et services devant l'audience E-Shelle."""
     now = timezone.now()
@@ -68,6 +91,14 @@ def index(request):
     packages = OCDPackage.objects.filter(is_active=True).order_by("order", "price_xaf")
     categories = OpportunityCategory.objects.all()
 
+    # Vitrines boutiques officielles des vendeurs en direct
+    featured_boutiques = (
+        LiveBooking.objects.filter(boutique_active=True)
+        .select_related("package")
+        .prefetch_related("produits_catalogue")
+        .order_by("-est_marathon_vip", "-payment_validated_at")[:6]
+    )
+
     return render(
         request,
         "ocd_live/index.html",
@@ -78,6 +109,7 @@ def index(request):
             "live_packages": live_packages,
             "packages": packages,
             "categories": categories,
+            "featured_boutiques": featured_boutiques,
         },
     )
 
@@ -137,6 +169,14 @@ def live_list(request):
     active_lives = LiveSession.objects.filter(is_live_now=True)
     upcoming_lives = LiveSession.objects.filter(is_live_now=False, is_completed=False, scheduled_at__gte=now)
     past_replays = LiveSession.objects.filter(is_completed=True).order_by("-scheduled_at")[:6]
+    
+    # Vitrines boutiques officielles des vendeurs en direct
+    featured_boutiques = (
+        LiveBooking.objects.filter(boutique_active=True)
+        .select_related("package")
+        .prefetch_related("produits_catalogue")
+        .order_by("-est_marathon_vip", "-payment_validated_at")[:6]
+    )
 
     return render(
         request,
@@ -145,6 +185,7 @@ def live_list(request):
             "active_lives": active_lives,
             "upcoming_lives": upcoming_lives,
             "past_replays": past_replays,
+            "featured_boutiques": featured_boutiques,
         },
     )
 
@@ -244,7 +285,30 @@ def dashboard(request):
     """Espace Membre OCD LIVE : mes billets, mes créneaux et mes replays."""
     bookings = Booking.objects.filter(user=request.user).select_related("session", "package", "slot")
     confirmed_bookings = bookings.filter(status=Booking.Status.CONFIRMED)
-    my_live_bookings = LiveBooking.objects.filter(email=request.user.email).select_related("package", "slot").order_by("-date_creation")
+    
+    # Réservations live rattachées soit par compte soit par email
+    q_filter = Q(user=request.user)
+    if request.user.email:
+        q_filter |= Q(email__iexact=request.user.email)
+        
+    my_live_bookings = (
+        LiveBooking.objects.filter(q_filter)
+        .select_related("package", "slot", "business_profile")
+        .prefetch_related("produits_catalogue")
+        .order_by("-date_creation")
+    )
+    
+    # Enrichir chaque réservation validée avec ses liens écosystème
+    live_bookings_with_perks = []
+    for lb in my_live_bookings:
+        links = {}
+        if lb.statut == LiveBooking.Statut.VALIDEE_ADMIN:
+            from ocd_live.services.ecosystem_service import get_live_vendor_ecosystem_links
+            links = get_live_vendor_ecosystem_links(lb)
+        live_bookings_with_perks.append({
+            "booking": lb,
+            "links": links,
+        })
     
     return render(
         request,
@@ -253,6 +317,7 @@ def dashboard(request):
             "bookings": bookings,
             "confirmed_bookings": confirmed_bookings,
             "my_live_bookings": my_live_bookings,
+            "live_bookings_with_perks": live_bookings_with_perks,
         },
     )
 
@@ -378,6 +443,7 @@ def live_reservation(request):
                         statut_initial = LiveBooking.Statut.EN_ATTENTE_VALIDATION
 
                     booking = LiveBooking.objects.create(
+                        user=request.user if request.user.is_authenticated else None,
                         nom_complet=form_data["nom_complet"],
                         telephone_whatsapp=form_data["telephone_whatsapp"],
                         email=form_data["email"],
@@ -400,11 +466,28 @@ def live_reservation(request):
                         statut=statut_initial,
                     )
 
+                    # Initialisation automatique de la Boutique OCD Live et des premiers articles
+                    raw_prods = [p.strip("-•* \t") for p in form_data["produits_services"].splitlines() if p.strip()]
+                    if not raw_prods and "," in form_data["produits_services"]:
+                        raw_prods = [p.strip() for p in form_data["produits_services"].split(",") if p.strip()]
+                    if not raw_prods:
+                        raw_prods = [form_data["titre_du_live"]]
+                    for idx, p_name in enumerate(raw_prods[:8]):
+                        LiveProduct.objects.create(
+                            booking=booking,
+                            nom=p_name[:190],
+                            description=f"Présenté lors du direct OCD Live : {booking.titre_du_live}",
+                            prix_xaf=package.prix_xaf,
+                            ordre=idx,
+                            est_disponible=True,
+                        )
+
                     messages.success(
                         request,
                         f"🎉 Votre réservation de passage en direct a été enregistrée avec succès ! Code : {booking.code_reservation}",
                     )
-                    return redirect("ocd_live:suivi", code=booking.code_reservation)
+                    suivi_url = reverse("ocd_live:suivi", kwargs={"code": booking.code_reservation})
+                    return redirect(f"{suivi_url}?access={booking.management_token}")
 
             except ValueError:
                 pass
@@ -431,15 +514,102 @@ def live_suivi(request, code):
     """
     Page de suivi public de la réservation OCD Live :
     Affiche le statut en temps réel, le récapitulatif, la preuve de paiement,
-    et le bouton pour télécharger la fiche PDF officielle.
+    le gestionnaire de produits pour la Boutique du Live,
+    et la passerelle vers les services E-Shelle (WABA, Inbox, Campagnes, AdGen).
     """
     clean_code = code.strip().upper()
     booking = get_object_or_404(
-        LiveBooking.objects.select_related("package", "slot"),
+        LiveBooking.objects.select_related("package", "slot", "business_profile"),
         code_reservation=clean_code,
     )
 
+    if not _has_booking_management_access(request, booking):
+        return HttpResponseForbidden("Lien de gestion invalide ou expiré.")
+    access_token = request.GET.get("access") or request.POST.get("access", "")
+
+    ecosystem_links = get_live_vendor_ecosystem_links(booking)
+
+    produits = booking.produits_catalogue.all()
+
     if request.method == "POST":
+        action = request.POST.get("action", "").strip()
+
+        if action == "claim_booking":
+            if not request.user.is_authenticated:
+                login_url = reverse("accounts:login")
+                next_url = f"{request.path}?access={booking.management_token}"
+                return redirect(f"{login_url}?next={urllib.parse.quote(next_url)}")
+            if booking.user_id and booking.user_id != request.user.pk:
+                return HttpResponseForbidden("Cette réservation est déjà rattachée à un autre compte.")
+            if not booking.user_id:
+                booking.user = request.user
+                booking.save(update_fields=["user", "date_mise_a_jour"])
+            if booking.is_payment_validated:
+                ensure_business_profile_for_live(booking)
+            messages.success(request, "Votre réservation est maintenant rattachée à votre compte E-Shelle.")
+            return redirect(f"{request.path}?access={booking.management_token}")
+
+        # 1. Ajout d'un produit dans la boutique
+        if action == "add_product":
+            nom = request.POST.get("nom", "").strip()
+            prix = request.POST.get("prix_xaf", "").strip()
+            desc = request.POST.get("description", "").strip()
+            prix_promo = request.POST.get("prix_promo_xaf", "").strip()
+            image_file = request.FILES.get("image")
+
+            if nom and prix:
+                try:
+                    p_val = Decimal(prix.replace(" ", "").replace(",", "."))
+                    promo_val = (
+                        Decimal(prix_promo.replace(" ", "").replace(",", "."))
+                        if prix_promo
+                        else None
+                    )
+                    if p_val <= 0 or (promo_val is not None and promo_val <= 0):
+                        raise InvalidOperation
+                except InvalidOperation:
+                    messages.error(request, "Saisissez un prix valide supérieur à zéro.")
+                    return redirect(f"{request.path}?access={booking.management_token}")
+
+                LiveProduct.objects.create(
+                    booking=booking,
+                    nom=nom,
+                    prix_xaf=p_val,
+                    prix_promo_xaf=promo_val,
+                    description=desc,
+                    image=image_file,
+                    est_disponible=True,
+                )
+                if booking.is_payment_validated:
+                    ensure_business_profile_for_live(booking)
+                messages.success(request, f"✓ Produit '{nom}' ajouté avec succès à votre Boutique Live !")
+            return redirect(f"{request.path}?access={booking.management_token}")
+
+        # 2. Suppression d'un produit
+        elif action == "delete_product":
+            prod_id = request.POST.get("product_id")
+            if prod_id:
+                booking.produits_catalogue.filter(pk=prod_id).delete()
+                messages.info(request, "Produit retiré de votre Boutique Live.")
+            return redirect(f"{request.path}?access={booking.management_token}")
+
+        # 3. Mise à jour de l'Offre Flash Live
+        elif action == "update_flash":
+            active = request.POST.get("offre_flash_active") == "1"
+            titre = request.POST.get("offre_flash_titre", "").strip() or "Vente Flash Spéciale Direct Live"
+            pct = request.POST.get("offre_flash_reduction_pct", "15").strip()
+            try:
+                pct_val = max(1, min(90, int(pct)))
+            except ValueError:
+                pct_val = 15
+            booking.offre_flash_active = active
+            booking.offre_flash_titre = titre
+            booking.offre_flash_reduction_pct = pct_val
+            booking.save(update_fields=["offre_flash_active", "offre_flash_titre", "offre_flash_reduction_pct", "date_mise_a_jour"])
+            messages.success(request, "✓ Vos paramètres de Vente Flash et compte à rebours ont été mis à jour !")
+            return redirect(f"{request.path}?access={booking.management_token}")
+
+        # 3. Justificatif de paiement
         reference_paiement = request.POST.get("reference_paiement", "").strip()
         mode_paiement = request.POST.get("mode_paiement", "").strip()
         preuve_file = request.FILES.get("preuve_paiement")
@@ -463,14 +633,83 @@ def live_suivi(request, code):
                 request,
                 "✓ Vos informations de paiement ont été transmises. Notre régie vérifie votre dossier sous 24h.",
             )
-            return redirect("ocd_live:suivi", code=booking.code_reservation)
+            return redirect(f"{request.path}?access={booking.management_token}")
 
-    return render(
+    response = render(
         request,
         "ocd_live/suivi.html",
         {
             "booking": booking,
             "modes_paiement": LiveBooking.ModePaiement.choices,
+            "ecosystem": ecosystem_links,
+            "produits": produits,
+            "access_token": booking.management_token,
+        },
+    )
+    response["Referrer-Policy"] = "same-origin"
+    return response
+
+
+def live_boutique(request, code):
+    """
+    Vitrine / Boutique officielle OCD LIVE du présentateur.
+    Accessible publiquement par tous les spectateurs du direct :
+    - Présentation de la marque et badges officiels (Marathon 5H VIP ou Standard)
+    - Catalogue complet des produits & services avec photos et prix en XAF
+    - Bouton WhatsApp direct 'Commander en 1 clic' sur chaque produit
+    - Contact WhatsApp direct avec le vendeur
+    - Boutons de partage pour relayer la boutique sur les réseaux
+    """
+    clean_code = code.strip().upper()
+    booking = get_object_or_404(
+        LiveBooking.objects.select_related("package", "slot", "business_profile"),
+        code_reservation=clean_code,
+    )
+    if not booking.is_payment_validated or not booking.boutique_active:
+        return HttpResponseNotFound("Cette boutique n'est pas encore publiée.")
+
+    # Incrémentation du compteur de vues
+    LiveBooking.objects.filter(pk=booking.pk).update(vue_boutique_count=booking.vue_boutique_count + 1)
+    booking.refresh_from_db(fields=["vue_boutique_count"])
+
+    produits = booking.produits_catalogue.filter(est_disponible=True)
+
+    # Fallback si aucun produit précis n'a encore été téléversé
+    default_products = []
+    if not produits.exists():
+        raw_items = [p.strip("-•* \t") for p in booking.produits_services.splitlines() if p.strip()]
+        if not raw_items and "," in booking.produits_services:
+            raw_items = [p.strip() for p in booking.produits_services.split(",") if p.strip()]
+        if not raw_items:
+            raw_items = [booking.titre_du_live]
+        clean_p = re.sub(r"[^\d]", "", booking.telephone_whatsapp or "237680625082")
+        for name in raw_items:
+            order_msg = f"Bonjour {booking.nom_entreprise}, j'ai suivi votre passage sur OCD LIVE et je souhaite commander : {name} ({booking.prix_formate})."
+            default_products.append({
+                "nom": name,
+                "prix_formate": booking.prix_formate,
+                "description": booking.description_activite,
+                "whatsapp_link": f"https://wa.me/{clean_p}?text={urllib.parse.quote(order_msg)}",
+            })
+
+    clean_phone = re.sub(r"[^\d]", "", booking.telephone_whatsapp or "237680625082")
+    direct_msg = f"Bonjour {booking.nom_entreprise}, j'ai suivi votre passage sur OCD LIVE ({booking.code_reservation}) et je souhaite entrer en contact direct avec vous."
+    whatsapp_direct_url = f"https://wa.me/{clean_phone}?text={urllib.parse.quote(direct_msg)}"
+
+    full_url = request.build_absolute_uri()
+    share_msg = f"🛍️ Découvrez la boutique officielle de {booking.nom_entreprise} sur OCD LIVE : {full_url}"
+    whatsapp_share_url = f"https://api.whatsapp.com/send?text={urllib.parse.quote(share_msg)}"
+
+    return render(
+        request,
+        "ocd_live/boutique_live.html",
+        {
+            "booking": booking,
+            "produits": produits,
+            "default_products": default_products,
+            "whatsapp_direct_url": whatsapp_direct_url,
+            "whatsapp_share_url": whatsapp_share_url,
+            "full_url": full_url,
         },
     )
 
@@ -482,9 +721,12 @@ def live_fiche_pdf(request, code):
         LiveBooking.objects.select_related("package", "slot"),
         code_reservation=clean_code,
     )
+    if not _has_booking_management_access(request, booking):
+        return HttpResponseForbidden("Lien de gestion invalide ou expiré.")
     pdf_bytes = generate_live_booking_pdf(booking)
     response = HttpResponse(pdf_bytes, content_type="application/pdf")
     response["Content-Disposition"] = f'inline; filename="Fiche_Reservation_OCD_Live_{booking.code_reservation}.pdf"'
+    response["Referrer-Policy"] = "same-origin"
     return response
 
 
@@ -586,17 +828,18 @@ def live_admin_action(request, booking_id):
 
     if message_admin:
         booking.message_admin = message_admin
+        booking.save(update_fields=["message_admin", "date_mise_a_jour"])
 
     if action == "valider":
-        booking.statut = LiveBooking.Statut.VALIDEE_ADMIN
-        if booking.slot:
-            booking.slot.est_disponible = False
-            booking.slot.save(update_fields=["est_disponible"])
-        booking.save()
-        messages.success(
-            request,
-            f"✓ Réservation {booking.code_reservation} validée avec succès ! Le créneau a été verrouillé.",
-        )
+        try:
+            confirm_live_booking_payment(booking.pk)
+        except ValidationError as exc:
+            messages.error(request, " ".join(exc.messages))
+        else:
+            messages.success(
+                request,
+                f"✓ Réservation {booking.code_reservation} validée et avantages activés.",
+            )
     elif action == "refuser":
         booking.statut = LiveBooking.Statut.REFUSEE
         if booking.slot:
@@ -666,3 +909,80 @@ def live_available_slots_api(request):
     return JsonResponse({"date": date_str, "slots": data})
 
 
+# ============================================================================
+# GÉNÉRATEUR D'AFFICHE PROMO RÉSEAUX SOCIAUX (STORY WHATSAPP & POST CARRÉ)
+# ============================================================================
+
+def generate_qr_code_base64(data: str) -> str:
+    """Génère un QR code sous forme de data URI PNG base64."""
+    try:
+        import qrcode
+        import io
+        import base64
+        qr = qrcode.QRCode(
+            version=1,
+            error_correction=qrcode.constants.ERROR_CORRECT_M,
+            box_size=8,
+            border=2,
+        )
+        qr.add_data(data)
+        qr.make(fit=True)
+        img = qr.make_image(fill_color="#000000", back_color="#FFFFFF")
+        buffer = io.BytesIO()
+        img.save(buffer, format="PNG")
+        b64_str = base64.b64encode(buffer.getvalue()).decode()
+        return f"data:image/png;base64,{b64_str}"
+    except Exception:
+        return ""
+
+
+def live_affiche_promo(request, code):
+    """
+    Page interactive de génération d'affiche promotionnelle réseaux sociaux :
+    - Format Story / Statut WhatsApp (9:16)
+    - Format Carré Facebook / Instagram (1:1)
+    - Export HD Canvas en PNG
+    - Bouton de partage direct WhatsApp & texte d'annonce prêt à copier
+    """
+    clean_code = code.strip().upper()
+    booking = get_object_or_404(
+        LiveBooking.objects.select_related("package", "slot", "business_profile").prefetch_related("produits_catalogue"),
+        code_reservation=clean_code,
+    )
+
+    if not _has_booking_management_access(request, booking):
+        return HttpResponseForbidden("Lien de gestion invalide ou expiré.")
+
+    access_token = request.GET.get("access") or booking.management_token
+    boutique_full_url = request.build_absolute_uri(reverse("ocd_live:boutique", kwargs={"code": booking.code_reservation}))
+    qr_code_data_uri = generate_qr_code_base64(boutique_full_url)
+    produits = booking.produits_catalogue.all()[:4]
+
+    nom_boite = booking.nom_entreprise or booking.nom_complet
+    date_str = booking.date_choisie.strftime("%d/%m/%Y")
+    heure_str = booking.heure_choisie.strftime("%H:%M") if booking.heure_choisie else "20:00"
+
+    share_text = (
+        f"🎙️ *Ne manquez pas mon passage en direct sur OCD Live !*\n\n"
+        f"Retrouvez *{nom_boite}* en direct le *{date_str} à {heure_str}* (Heure de Douala/Paris).\n"
+        f"Thème : *« {booking.titre_du_live} »*\n\n"
+        f"🔥 *Offre Flash Spéciale Direct* : Bénéficiez de réductions exclusives sur nos produits pendant la diffusion !\n\n"
+        f"🛍️ *Découvrez notre boutique officielle dès maintenant :*\n"
+        f"{boutique_full_url}\n\n"
+        f"À très vite en direct sur E-Shelle !"
+    )
+    whatsapp_share_url = f"https://wa.me/?text={urllib.parse.quote(share_text)}"
+
+    return render(
+        request,
+        "ocd_live/affiche_promo.html",
+        {
+            "booking": booking,
+            "access_token": access_token,
+            "boutique_full_url": boutique_full_url,
+            "qr_code_data_uri": qr_code_data_uri,
+            "produits": produits,
+            "share_text": share_text,
+            "whatsapp_share_url": whatsapp_share_url,
+        },
+    )

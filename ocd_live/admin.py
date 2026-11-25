@@ -1,10 +1,13 @@
 from django.contrib import admin
+from django.contrib import messages
+from django.core.exceptions import ValidationError
 from django.urls import reverse
 from django.utils.html import format_html
 from .models import (
     Booking,
     LiveBooking,
     LivePackage,
+    LiveProduct,
     LiveSession,
     LiveSlot,
     OCDPackage,
@@ -12,6 +15,7 @@ from .models import (
     OpportunityCategory,
     Slot,
 )
+from .services.ecosystem_service import confirm_live_booking_payment
 
 
 @admin.register(OpportunityCategory)
@@ -155,21 +159,29 @@ class LiveSlotAdmin(admin.ModelAdmin):
         queryset.update(est_disponible=True, est_bloque_admin=False)
 
 
+class LiveProductInline(admin.TabularInline):
+    model = LiveProduct
+    extra = 1
+    fields = ("nom", "prix_xaf", "prix_promo_xaf", "image", "est_disponible", "est_en_vedette", "ordre")
+
+
 @admin.register(LiveBooking)
 class LiveBookingAdmin(admin.ModelAdmin):
     list_display = (
         "code_reservation",
         "nom_entreprise",
         "nom_complet",
+        "vip_marathon_badge",
         "date_choisie",
         "heure_choisie",
         "package_col",
         "prix_total_col",
         "statut_badge",
+        "boutique_admin_link",
         "preuve_col",
         "date_creation",
     )
-    list_filter = ("statut", "mode_paiement", "secteur_activite", "date_choisie", "package")
+    list_filter = ("statut", "est_marathon_vip", "mode_paiement", "secteur_activite", "date_choisie", "package")
     search_fields = (
         "code_reservation",
         "nom_complet",
@@ -179,14 +191,30 @@ class LiveBookingAdmin(admin.ModelAdmin):
         "titre_du_live",
         "reference_paiement",
     )
-    readonly_fields = ("code_reservation", "date_creation", "date_mise_a_jour", "preuve_preview", "pdf_link")
+    readonly_fields = (
+        "code_reservation",
+        "date_creation",
+        "date_mise_a_jour",
+        "payment_validated_at",
+        "preuve_preview",
+        "pdf_link",
+        "boutique_admin_link",
+    )
     actions = ["valider_demandes", "refuser_demandes", "marquer_terminees"]
+    inlines = [LiveProductInline]
 
     fieldsets = (
         (
             "Identifiant & Statut",
             {
-                "fields": ("code_reservation", "statut", "pdf_link", "message_admin"),
+                "fields": (
+                    "code_reservation",
+                    "statut",
+                    "est_marathon_vip",
+                    "pdf_link",
+                    "boutique_admin_link",
+                    "message_admin",
+                ),
             },
         ),
         (
@@ -201,6 +229,12 @@ class LiveBookingAdmin(admin.ModelAdmin):
                     "lien_site_ou_page",
                     "lien_whatsapp",
                 ),
+            },
+        ),
+        (
+            "Écosystème E-Shelle & WABA",
+            {
+                "fields": ("user", "business_profile", "boutique_active", "vue_boutique_count"),
             },
         ),
         (
@@ -224,7 +258,7 @@ class LiveBookingAdmin(admin.ModelAdmin):
         (
             "Traçabilité",
             {
-                "fields": ("date_creation", "date_mise_a_jour"),
+                "fields": ("date_creation", "date_mise_a_jour", "payment_validated_at"),
             },
         ),
     )
@@ -268,6 +302,21 @@ class LiveBookingAdmin(admin.ModelAdmin):
         return "Aucun fichier téléversé."
     preuve_preview.short_description = "Aperçu de la preuve"
 
+    def vip_marathon_badge(self, obj):
+        if obj.is_marathon_vip:
+            return format_html('<span style="background:linear-gradient(135deg,#D97706,#B45309);color:#FFF;padding:3px 8px;border-radius:4px;font-weight:900;font-size:0.72rem;letter-spacing:0.04em">👑 MARATHON 5H</span>')
+        return format_html('<span style="color:#94A3B8;font-size:0.75rem">Standard</span>')
+    vip_marathon_badge.short_description = "Formule VIP"
+
+    def boutique_admin_link(self, obj):
+        url = reverse("ocd_live:boutique", kwargs={"code": obj.code_reservation})
+        return format_html(
+            '<a href="{}" target="_blank" style="background:#0F172A;color:#38BDF8;padding:4px 8px;border-radius:4px;text-decoration:none;font-weight:700;font-size:0.75rem;border:1px solid #0284C7">🛍️ Boutique ({})</a>',
+            url,
+            obj.vue_boutique_count,
+        )
+    boutique_admin_link.short_description = "Boutique Live"
+
     def pdf_link(self, obj):
         url = reverse("ocd_live:fiche_pdf", kwargs={"code": obj.code_reservation})
         return format_html('<a href="{}" target="_blank" class="button" style="background:#16A34A;color:#FFF;padding:6px 12px;border-radius:4px;text-decoration:none;font-weight:700">📄 Télécharger Fiche PDF</a>', url)
@@ -276,14 +325,18 @@ class LiveBookingAdmin(admin.ModelAdmin):
     @admin.action(description="✓ Valider les réservations sélectionnées (verrouille le créneau)")
     def valider_demandes(self, request, queryset):
         count = 0
+        erreurs = []
         for b in queryset:
-            b.statut = LiveBooking.Statut.VALIDEE_ADMIN
-            if b.slot:
-                b.slot.est_disponible = False
-                b.slot.save(update_fields=["est_disponible"])
-            b.save()
-            count += 1
-        self.message_user(request, f"{count} réservation(s) validée(s) avec succès.")
+            try:
+                confirm_live_booking_payment(b.pk)
+            except ValidationError as exc:
+                erreurs.append(f"{b.code_reservation} : {exc}")
+            else:
+                count += 1
+        if count:
+            self.message_user(request, f"{count} réservation(s) validée(s) et avantages activés.")
+        if erreurs:
+            self.message_user(request, " | ".join(erreurs), level=messages.WARNING)
 
     @admin.action(description="✗ Refuser les réservations sélectionnées (libère le créneau)")
     def refuser_demandes(self, request, queryset):
@@ -302,3 +355,17 @@ class LiveBookingAdmin(admin.ModelAdmin):
         queryset.update(statut=LiveBooking.Statut.TERMINEE)
 
 
+@admin.register(LiveProduct)
+class LiveProductAdmin(admin.ModelAdmin):
+    list_display = ("nom", "booking", "prix_formate_col", "prix_promo_col", "est_disponible", "est_en_vedette", "ordre")
+    list_filter = ("est_disponible", "est_en_vedette")
+    search_fields = ("nom", "description", "booking__nom_entreprise", "booking__code_reservation")
+    list_editable = ("est_disponible", "est_en_vedette", "ordre")
+
+    def prix_formate_col(self, obj):
+        return obj.prix_formate
+    prix_formate_col.short_description = "Prix (XAF)"
+
+    def prix_promo_col(self, obj):
+        return obj.prix_promo_formate or "—"
+    prix_promo_col.short_description = "Prix Promo"

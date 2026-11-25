@@ -34,38 +34,86 @@
         </a>
       </div>
 
-      {% if my_live_bookings %}
+      {% if live_bookings_with_perks %}
         <div class="ocd-grid-3">
-          {% for lb in my_live_bookings %}
-            <div class="ocd-card" style="border:1px solid {% if lb.statut == 'validee_admin' %}rgba(16,185,129,0.5){% elif lb.statut == 'en_attente_validation_admin' %}rgba(59,130,246,0.5){% elif lb.statut == 'refusee' %}rgba(239,68,68,0.5){% else %}rgba(245,158,11,0.5){% endif %};">
-              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.75rem;">
-                <span style="font-family:monospace; font-size:0.85rem; font-weight:800; color:#FBBF24;">{{ lb.code_reservation }}</span>
-                <span style="display:inline-block; padding:2px 8px; border-radius:99px; font-size:0.72rem; font-weight:800; color:#FFF; background:{{ lb.statut_badge_color }};">
-                  {{ lb.get_statut_display }}
-                </span>
-              </div>
+          {% for item in live_bookings_with_perks %}
+            {% with lb=item.booking links=item.links %}
+              <div class="ocd-card" style="border:1px solid {% if lb.statut == 'validee_admin' %}rgba(16,185,129,0.5){% elif lb.statut == 'en_attente_validation_admin' %}rgba(59,130,246,0.5){% elif lb.statut == 'refusee' %}rgba(239,68,68,0.5){% else %}rgba(245,158,11,0.5){% endif %}; {% if lb.est_marathon_vip %}background:linear-gradient(165deg, rgba(30,22,10,0.95) 0%, rgba(12,18,15,0.95) 100%); box-shadow:0 0 25px rgba(245,158,11,0.25);{% endif %}">
+                
+                {% if lb.est_marathon_vip %}
+                  <div style="background:linear-gradient(90deg,#F59E0B,#D97706); color:#000; font-size:0.7rem; font-weight:900; padding:2px 10px; border-radius:99px; letter-spacing:0.06em; text-transform:uppercase; margin-bottom:0.75rem; width:fit-content;">
+                    👑 FORMULE VIP MARATHON 5H
+                  </div>
+                {% endif %}
 
-              <h3 style="font-family:'Outfit'; font-size:1.15rem; color:#FFF; margin-bottom:0.4rem;">
-                {{ lb.titre_du_live|truncatechars:45 }}
-              </h3>
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.75rem;">
+                  <span style="font-family:monospace; font-size:0.85rem; font-weight:800; color:#FBBF24;">{{ lb.code_reservation }}</span>
+                  <span style="display:inline-block; padding:2px 8px; border-radius:99px; font-size:0.72rem; font-weight:800; color:#FFF; background:{{ lb.statut_badge_color }};">
+                    {{ lb.get_statut_display }}
+                  </span>
+                </div>
 
-              <div style="font-size:0.82rem; color:#CBD5E1; margin-bottom:0.4rem;">
-                <strong>Entreprise :</strong> {{ lb.nom_entreprise }} &bull; {{ lb.secteur_activite }}
-              </div>
+                <h3 style="font-family:'Outfit'; font-size:1.15rem; color:#FFF; margin-bottom:0.4rem;">
+                  {{ lb.titre_du_live|truncatechars:45 }}
+                </h3>
 
-              <div style="font-size:0.82rem; color:#FF7A00; font-weight:700; margin-bottom:1.25rem;">
-                📅 {{ lb.date_choisie|date:"d/m/Y" }} à {{ lb.heure_choisie|date:"H:i" }} ({{ lb.duree_minutes }} min)
-              </div>
+                <div style="font-size:0.82rem; color:#CBD5E1; margin-bottom:0.4rem;">
+                  <strong>Entreprise :</strong> {{ lb.nom_entreprise }} &bull; {{ lb.secteur_activite }}
+                </div>
 
-              <div style="margin-top:auto; display:flex; gap:0.5rem;">
-                <a href="{% url 'ocd_live:suivi' code=lb.code_reservation %}" class="ocd-btn ocd-btn-glow" style="flex-grow:1; padding:0.5rem; font-size:0.82rem; text-align:center;">
-                  Suivi Dossier
-                </a>
-                <a href="{% url 'ocd_live:fiche_pdf' code=lb.code_reservation %}" target="_blank" class="ocd-btn ocd-btn-primary" style="padding:0.5rem 0.75rem; font-size:0.82rem;">
-                  📄 PDF
-                </a>
+                <div style="font-size:0.82rem; color:#FF7A00; font-weight:700; margin-bottom:0.85rem;">
+                  📅 {{ lb.date_choisie|date:"d/m/Y" }} à {{ lb.heure_choisie|date:"H:i" }} ({{ lb.duree_minutes }} min)
+                </div>
+
+                {% if lb.boutique_active %}
+                  <div style="background:rgba(16,185,129,0.12); border:1px solid rgba(16,185,129,0.3); border-radius:10px; padding:0.65rem; margin-bottom:1rem;">
+                    <div style="display:flex; justify-content:space-between; align-items:center;">
+                      <span style="font-size:0.75rem; color:#4ADE80; font-weight:800;">✓ Vitrine Live Publiée</span>
+                      <a href="{% url 'ocd_live:boutique' code=lb.code_reservation %}" target="_blank" style="font-size:0.75rem; color:#FFF; text-decoration:underline;">
+                        Ouvrir ↗
+                      </a>
+                    </div>
+                  </div>
+                {% endif %}
+
+                {% if lb.est_marathon_vip and lb.statut == 'validee_admin' %}
+                  <div style="background:rgba(245,158,11,0.12); border:1px solid rgba(245,158,11,0.3); border-radius:10px; padding:0.75rem; margin-bottom:1rem; font-size:0.78rem;">
+                    <div style="font-weight:800; color:#FDE68A; margin-bottom:0.4rem;">🚀 Vos Modules E-Shelle Activés :</div>
+                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px;">
+                      {% if links.waba_connect %}
+                        <a href="{{ links.waba_connect }}" class="ocd-btn" style="padding:4px 8px; font-size:0.72rem; text-align:center; background:#10B981; color:#000; font-weight:800;">💬 WABA</a>
+                      {% endif %}
+                      {% if links.inbox %}
+                        <a href="{{ links.inbox }}" class="ocd-btn" style="padding:4px 8px; font-size:0.72rem; text-align:center; background:rgba(255,255,255,0.1); color:#FFF;">📥 Inbox CRM</a>
+                      {% endif %}
+                      {% if links.campaigns %}
+                        <a href="{{ links.campaigns }}" class="ocd-btn" style="padding:4px 8px; font-size:0.72rem; text-align:center; background:rgba(255,255,255,0.1); color:#FFF;">📢 Campagnes</a>
+                      {% endif %}
+                      {% if links.adgen %}
+                        <a href="{{ links.adgen }}" class="ocd-btn" style="padding:4px 8px; font-size:0.72rem; text-align:center; background:rgba(255,255,255,0.1); color:#FFF;">🎨 AdGen IA</a>
+                      {% endif %}
+                    </div>
+                  </div>
+                {% endif %}
+
+                <div style="margin-top:auto; display:flex; gap:0.5rem; flex-wrap:wrap;">
+                  <a href="{% url 'ocd_live:suivi' code=lb.code_reservation %}" class="ocd-btn ocd-btn-glow" style="flex:1; padding:0.5rem; font-size:0.82rem; text-align:center;">
+                    Suivi Dossier
+                  </a>
+                  <a href="{% url 'ocd_live:affiche_promo' code=lb.code_reservation %}" class="ocd-btn" style="background:#FF7A00; color:#FFF; font-weight:800; padding:0.5rem 0.75rem; font-size:0.82rem;">
+                    🎨 Affiche
+                  </a>
+                  <a href="{% url 'ocd_live:fiche_pdf' code=lb.code_reservation %}" target="_blank" class="ocd-btn ocd-btn-primary" style="padding:0.5rem 0.75rem; font-size:0.82rem;">
+                    📄 PDF
+                  </a>
+                  {% if lb.boutique_active %}
+                    <a href="{% url 'ocd_live:boutique' code=lb.code_reservation %}" target="_blank" class="ocd-btn" style="background:#10B981; color:#000; font-weight:800; padding:0.5rem 0.75rem; font-size:0.82rem;">
+                      🛍️ Boutique
+                    </a>
+                  {% endif %}
+                </div>
               </div>
-            </div>
+            {% endwith %}
           {% endfor %}
         </div>
       {% else %}

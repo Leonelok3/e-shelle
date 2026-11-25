@@ -47,7 +47,7 @@ class Command(BaseCommand):
                 "slug": "pass-marathon",
                 "duree_minutes": 300,
                 "prix_xaf": Decimal("50000.00"),
-                "description": "Événement complet (5h), plusieurs produits/services présentés, invités et prise de commandes continue.",
+                "description": "👑 FORMULE ROYALE & ULTRA-RENTABLE (5H NON-STOP). 5h d'antenne continue pour exploser vos ventes, boutique en ligne OCD Live dédiée offerte avec lien direct partageable aux spectateurs, badge Vendeur Marathon Certifié, intégration WABA & Inbox WhatsApp offerts, campagnes de relance prospects incluses et pack visuels AdGen IA.",
                 "est_recommande": False,
                 "actif": True,
                 "ordre": 4,

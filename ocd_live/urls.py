@@ -10,7 +10,10 @@ urlpatterns = [
     # Système officiel de Réservation Live Pitch & Vente
     path("reserver/", views.live_reservation, name="reservation"),
     path("suivi/<str:code>/", views.live_suivi, name="suivi"),
+    path("boutique/<str:code>/", views.live_boutique, name="boutique"),
+    path("b/<str:code>/", views.live_boutique, name="boutique_short"),
     path("fiche/<str:code>/pdf/", views.live_fiche_pdf, name="fiche_pdf"),
+    path("affiche/<str:code>/", views.live_affiche_promo, name="affiche_promo"),
     path("admin/", views.live_admin_dashboard, name="admin_dashboard"),
     path("admin/action/<int:booking_id>/", views.live_admin_action, name="admin_action"),
     path("api/slots/", views.live_available_slots_api, name="available_slots_api"),

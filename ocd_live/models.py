@@ -518,6 +518,75 @@ class LiveBooking(models.Model):
         verbose_name="Capture preuve de paiement",
     )
 
+    # Utilisateur et Intégration Écosystème E-Shelle (WABA, Boutique, Business)
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="ocd_live_bookings",
+        verbose_name="Compte utilisateur",
+    )
+    business_profile = models.ForeignKey(
+        "business.BusinessProfile",
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="ocd_live_bookings",
+        verbose_name="Profil Entreprise E-Shelle lié",
+    )
+    management_token = models.UUIDField(
+        default=uuid.uuid4,
+        unique=True,
+        editable=False,
+        verbose_name="Jeton privé de gestion",
+    )
+    payment_validated_at = models.DateTimeField(
+        null=True,
+        blank=True,
+        verbose_name="Date de validation du paiement",
+    )
+    est_marathon_vip = models.BooleanField(
+        default=False,
+        verbose_name="Statut Marathon VIP (5H)",
+    )
+    waba_connecte = models.BooleanField(
+        default=False,
+        verbose_name="WABA Connecté",
+    )
+    boutique_active = models.BooleanField(
+        default=False,
+        verbose_name="Boutique Live Publique Active",
+    )
+    vue_boutique_count = models.PositiveIntegerField(
+        default=0,
+        verbose_name="Nombre de visites de la boutique",
+    )
+
+    # Vente Flash Live & Compte à Rebours
+    offre_flash_active = models.BooleanField(
+        default=True,
+        verbose_name="Vente Flash Live Active",
+        help_text="Active le prix promo direct antenne et le compte à rebours d'urgence sur la boutique.",
+    )
+    offre_flash_titre = models.CharField(
+        max_length=200,
+        blank=True,
+        default="Vente Flash Spéciale Direct Live",
+        verbose_name="Titre de l'Offre Flash",
+    )
+    offre_flash_reduction_pct = models.PositiveIntegerField(
+        default=15,
+        verbose_name="Réduction Flash (%)",
+        help_text="Pourcentage de réduction appliqué par défaut aux produits sans promo spécifique.",
+    )
+    offre_flash_fin = models.DateTimeField(
+        null=True,
+        blank=True,
+        verbose_name="Fin de l'Offre Flash",
+        help_text="Si non renseigné, l'offre expire 24h après la fin du live.",
+    )
+
     # Gestion administrateur
     statut = models.CharField(
         max_length=40,
@@ -537,6 +606,10 @@ class LiveBooking(models.Model):
     def __str__(self):
         return f"{self.code_reservation} — {self.nom_entreprise or self.nom_complet} ({self.get_statut_display()})"
 
+    @property
+    def is_payment_validated(self):
+        return self.payment_validated_at is not None
+
     def save(self, *args, **kwargs):
         # 1. Génération du code de réservation unique OCD-YYYY-XXXXX
         if not self.code_reservation:
@@ -553,6 +626,8 @@ class LiveBooking(models.Model):
             if not self.prix_total or self.prix_total == 0:
                 self.prix_total = self.package.prix_xaf
             self.duree_minutes = self.package.duree_minutes
+            if self.package.duree_minutes >= 300 or "marathon" in self.package.nom.lower():
+                self.est_marathon_vip = True
 
         # 3. Règle métier critique : après envoi preuve / référence, statut -> en_attente_validation_admin
         if self.statut == self.Statut.EN_ATTENTE_PAIEMENT and (self.preuve_paiement or self.reference_paiement):
@@ -607,5 +682,157 @@ class LiveBooking(models.Model):
             self.Statut.TERMINEE: "#8B5CF6",
         }
         return colors.get(self.statut, "#94A3B8")
+
+    @property
+    def is_marathon_vip(self):
+        """Détermine si la réservation bénéficie des privilèges exclusifs Marathon 5H."""
+        if self.est_marathon_vip:
+            return True
+        if self.package and (self.package.duree_minutes >= 300 or "marathon" in self.package.nom.lower()):
+            return True
+        return False
+
+    @property
+    def boutique_url(self):
+        """URL publique absolue de la vitrine / boutique de live."""
+        return reverse("ocd_live:boutique", kwargs={"code": self.code_reservation})
+
+    @property
+    def whatsapp_direct_link(self):
+        """Lien de contact WhatsApp direct avec l'intervenant pour les acheteurs."""
+        digits = "".join(filter(str.isdigit, str(self.whatsapp or "")))
+        if not digits:
+            return ""
+        if digits.startswith("237"):
+            num = digits
+        elif len(digits) == 9:
+            num = f"237{digits}"
+        else:
+            num = digits
+        from urllib.parse import quote
+        nom_txt = self.nom_complet or "l'équipe"
+        msg = quote(f"Bonjour {nom_txt}, j'ai suivi votre passage sur OCD Live ({self.titre_du_live}) et je souhaite commander vos produits.")
+        return f"https://wa.me/{num}?text={msg}"
+
+    @property
+    def date_fin_flash(self):
+        """Date et heure d'expiration de l'Offre Flash (fin de session + 24h par défaut)."""
+        if self.offre_flash_fin:
+            return self.offre_flash_fin
+        from datetime import datetime, time
+        h = self.heure_choisie or time(18, 0)
+        dt = datetime.combine(self.date_choisie, h)
+        dt += timedelta(minutes=self.duree_minutes or 60, hours=24)
+        if timezone.is_naive(dt):
+            return timezone.make_aware(dt, timezone.get_current_timezone())
+        return dt
+
+    @property
+    def is_flash_active(self):
+        """Vérifie si la vente flash est active et non expirée."""
+        if not self.offre_flash_active:
+            return False
+        return timezone.now() < self.date_fin_flash
+
+    @property
+    def flash_secondes_restantes(self):
+        """Nombre de secondes restantes avant expiration pour le compte à rebours JS."""
+        if not self.is_flash_active:
+            return 0
+        diff = (self.date_fin_flash - timezone.now()).total_seconds()
+        return max(0, int(diff))
+
+
+# ============================================================================
+# PRODUITS & SERVICES DE LA BOUTIQUE OCD LIVE (VITRINE DE VENTE D'ANTENNE)
+# ============================================================================
+
+class LiveProduct(models.Model):
+    booking = models.ForeignKey(
+        LiveBooking,
+        on_delete=models.CASCADE,
+        related_name="produits_catalogue",
+        verbose_name="Réservation Live OCD",
+    )
+    nom = models.CharField(max_length=200, verbose_name="Nom du produit ou service")
+    description = models.TextField(blank=True, verbose_name="Description détaillée")
+    prix_xaf = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="Prix (XAF)")
+    prix_promo_xaf = models.DecimalField(
+        max_digits=10, decimal_places=2, null=True, blank=True, verbose_name="Prix Promo / Offre Spéciale Live (XAF)"
+    )
+    image = models.ImageField(
+        upload_to="ocd_live/products/%Y/%m/", null=True, blank=True, verbose_name="Photo du produit"
+    )
+    lien_commande_whatsapp = models.CharField(
+        max_length=255, blank=True, verbose_name="Lien direct commande WhatsApp"
+    )
+    est_disponible = models.BooleanField(default=True, verbose_name="En stock / Disponible")
+    est_en_vedette = models.BooleanField(default=False, verbose_name="Mis en avant pendant le Live")
+    ordre = models.PositiveIntegerField(default=0, verbose_name="Ordre d'affichage")
+    date_creation = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = "Produit / Service de Live"
+        verbose_name_plural = "Produits & Services de Live"
+        ordering = ["ordre", "nom"]
+
+    def __str__(self):
+        return f"{self.nom} — {int(self.prix_xaf):,} XAF".replace(",", " ")
+
+    @property
+    def prix_formate(self):
+        return f"{int(self.prix_xaf):,} XAF".replace(",", " ")
+
+    @property
+    def prix_promo_formate(self):
+        if self.prix_promo_xaf:
+            return f"{int(self.prix_promo_xaf):,} XAF".replace(",", " ")
+        return ""
+
+    @property
+    def prix_effectif(self):
+        """Prix effectif calculé selon la vente flash active ou le prix promo explicite."""
+        if self.booking.is_flash_active:
+            if self.prix_promo_xaf and self.prix_promo_xaf < self.prix_xaf:
+                return self.prix_promo_xaf
+            pct = self.booking.offre_flash_reduction_pct or 15
+            calc = self.prix_xaf * Decimal(100 - pct) / Decimal(100)
+            return (calc // 100) * 100
+        if self.prix_promo_xaf:
+            return self.prix_promo_xaf
+        return self.prix_xaf
+
+    @property
+    def prix_effectif_formate(self):
+        return f"{int(self.prix_effectif):,} XAF".replace(",", " ")
+
+    @property
+    def a_reduction_active(self):
+        """Indique si une réduction est actuellement effective (flash ou promo)."""
+        return self.prix_effectif < self.prix_xaf
+
+    @property
+    def reduction_pct_calculee(self):
+        """Pourcentage effectif de réduction."""
+        if not self.a_reduction_active or not self.prix_xaf:
+            return 0
+        diff = (self.prix_xaf - self.prix_effectif) / self.prix_xaf * 100
+        return int(round(diff))
+
+    def get_whatsapp_order_link(self):
+        if self.lien_commande_whatsapp:
+            return self.lien_commande_whatsapp
+        phone = self.booking.telephone_whatsapp or "+237680625082"
+        clean_phone = "".join(c for c in phone if c.isdigit())
+        if self.a_reduction_active:
+            msg = (
+                f"Bonjour {self.booking.nom_entreprise}, j'ai suivi votre direct sur OCD LIVE "
+                f"et je profite de l'Offre Flash Live sur : {self.nom} "
+                f"au prix promo de {self.prix_effectif_formate} (au lieu de {self.prix_formate}) !"
+            )
+        else:
+            msg = f"Bonjour {self.booking.nom_entreprise}, j'ai suivi votre direct sur OCD LIVE et je souhaite commander : {self.nom} ({self.prix_formate})."
+        import urllib.parse
+        return f"https://wa.me/{clean_phone}?text={urllib.parse.quote(msg)}"
 
 

@@ -1,0 +1,470 @@
+{% extends "ocd_live/base_ocd.html" %}
+{% load static %}
+
+{% block title %}Mon Affiche Promotionnelle Live : {{ booking.nom_entreprise }} — OCD Live{% endblock %}
+
+{% block meta_description %}Générez votre affiche officielle de passage en direct sur OCD Live. Téléchargez votre flyer en HD pour statut WhatsApp et publication Facebook.{% endblock %}
+
+{% block content %}
+<section class="ocd-section" style="padding-top:2.5rem; padding-bottom:5rem;">
+  <div style="max-width:1200px; margin:0 auto; padding:0 1rem;">
+
+    <!-- EN-TÊTE DE LA PAGE -->
+    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:1.5rem; margin-bottom:2.5rem; padding-bottom:1.5rem; border-bottom:1px solid var(--ocd-border-glass);">
+      <div>
+        <div style="display:flex; align-items:center; gap:8px; margin-bottom:6px;">
+          <a href="{% url 'ocd_live:suivi' code=booking.code_reservation %}?access={{ access_token }}" style="color:#94A3B8; text-decoration:none; font-size:0.85rem; font-weight:700;">
+            ← Retour au suivi {{ booking.code_reservation }}
+          </a>
+          <span style="color:#64748B;">&bull;</span>
+          <span style="color:#10B981; font-weight:800; font-size:0.82rem; text-transform:uppercase;">Kit Visibilité Réseaux Sociaux</span>
+        </div>
+        <h1 style="font-family:'Outfit',sans-serif; font-size:clamp(1.8rem, 3.5vw, 2.4rem); color:#FFF; margin:0; line-height:1.2;">
+          🎨 Votre Affiche Officielle de Passage en Direct
+        </h1>
+        <p style="margin:6px 0 0; color:#CBD5E1; font-size:0.95rem;">
+          Préparez votre audience ! Téléchargez votre visuel en haute résolution pour votre <strong>Statut WhatsApp</strong> et vos posts <strong>Facebook / Instagram</strong>.
+        </p>
+      </div>
+
+      <div style="display:flex; gap:0.75rem; flex-wrap:wrap;">
+        <button id="btnDownload" class="ocd-btn ocd-btn-primary" style="padding:0.75rem 1.4rem; font-size:0.92rem; font-weight:900;">
+          📥 Télécharger l'Affiche (PNG HD)
+        </button>
+        <a href="{{ whatsapp_share_url }}" target="_blank" rel="noopener" class="ocd-btn" style="background:#25D366; color:#FFF; padding:0.75rem 1.4rem; font-size:0.92rem; font-weight:900; box-shadow:0 4px 15px rgba(37,211,102,0.4);">
+          📲 Partager sur WhatsApp
+        </a>
+      </div>
+    </div>
+
+    <!-- SÉLECTEUR DE FORMATS -->
+    <div style="display:flex; gap:1rem; margin-bottom:2rem; flex-wrap:wrap;">
+      <button class="ocd-btn format-btn active" data-format="story" style="background:rgba(230,81,0,0.2); border:2px solid #E65100; color:#FFF; padding:0.65rem 1.4rem; font-weight:800; font-size:0.9rem;">
+        📱 Format Story / Statut WhatsApp (9:16)
+      </button>
+      <button class="ocd-btn format-btn" data-format="square" style="background:rgba(255,255,255,0.06); border:2px solid rgba(255,255,255,0.15); color:#CBD5E1; padding:0.65rem 1.4rem; font-weight:800; font-size:0.9rem;">
+        🟦 Format Carré Facebook / Instagram (1:1)
+      </button>
+    </div>
+
+    <div style="display:grid; grid-template-columns:1fr 380px; gap:2.5rem; align-items:start;">
+
+      <!-- ZONE DE PRÉVISUALISATION CANVAS -->
+      <div class="ocd-card" style="padding:2rem; background:rgba(10,15,12,0.95); border:1px solid var(--ocd-border-glass); border-radius:24px; text-align:center; overflow:hidden;">
+        <div style="display:inline-block; max-width:100%; box-shadow:0 25px 60px rgba(0,0,0,0.8), 0 0 40px rgba(230,81,0,0.25); border-radius:16px; overflow:hidden; border:2px solid rgba(255,255,255,0.15); background:#000;">
+          <canvas id="posterCanvas" style="max-width:100%; height:auto; display:block; margin:0 auto;"></canvas>
+        </div>
+        <div style="margin-top:1rem; font-size:0.8rem; color:#94A3B8;">
+          💡 Astuce : Le visuel est généré en résolution native Ultra-HD (1080px de large) prêt à l'emploi.
+        </div>
+      </div>
+
+      <!-- COLONNE LATÉRALE : TEXTE PRÊT À PUBLIER & INFOS -->
+      <div style="display:flex; flex-direction:column; gap:1.5rem;">
+        
+        <!-- CARTE D'ACTION RAPIDE -->
+        <div class="ocd-card" style="padding:1.5rem; background:linear-gradient(145deg, rgba(20,30,24,0.95) 0%, rgba(12,18,14,0.98) 100%); border:1px solid var(--ocd-border-glass); border-radius:18px;">
+          <h3 style="font-family:'Outfit',sans-serif; font-size:1.15rem; color:#FFF; margin:0 0 0.75rem;">
+            📋 Texte d'Annonce pour votre Statut
+          </h3>
+          <p style="font-size:0.85rem; color:#CBD5E1; line-height:1.5; margin:0 0 1rem;">
+            Copiez ce texte préparé et collez-le directement avec votre affiche sur WhatsApp ou Facebook.
+          </p>
+
+          <textarea id="shareTextarea" readonly rows="8" style="width:100%; background:#050806; border:1px solid rgba(255,255,255,0.15); border-radius:10px; padding:0.85rem; color:#FFF; font-size:0.82rem; line-height:1.5; font-family:sans-serif; resize:none; margin-bottom:1rem;">{{ share_text }}</textarea>
+
+          <button id="btnCopyText" onclick="copierTexteAnnonce()" class="ocd-btn ocd-btn-glow" style="width:100%; padding:0.75rem; font-size:0.88rem; font-weight:800;">
+            📋 Copier le Texte dans le Presse-Papier
+          </button>
+        </div>
+
+        <!-- CARTE DÉTAILS DU LIVE -->
+        <div class="ocd-card" style="padding:1.5rem; background:rgba(18,25,21,0.92); border:1px solid var(--ocd-border-glass); border-radius:18px;">
+          <h4 style="font-family:'Outfit',sans-serif; font-size:1rem; color:#FBBF24; margin:0 0 0.75rem; text-transform:uppercase; letter-spacing:0.04em;">
+            📌 Récapitulatif Direct
+          </h4>
+          <div style="font-size:0.85rem; color:#CBD5E1; line-height:1.6; display:flex; flex-direction:column; gap:6px;">
+            <div><strong>Entreprise :</strong> {{ booking.nom_entreprise }}</div>
+            <div><strong>Intervenant :</strong> {{ booking.nom_complet }}</div>
+            <div><strong>Date :</strong> {{ booking.date_choisie|date:"l d F Y" }}</div>
+            <div><strong>Heure :</strong> {{ booking.heure_choisie|date:"H:i" }} ({{ booking.duree_minutes }} min)</div>
+            <div><strong>Offre Flash :</strong> -{{ booking.offre_flash_reduction_pct }}% pendant le live</div>
+            <div><strong>Lien Boutique :</strong> <span style="color:#38BDF8; word-break:break-all;">{{ boutique_full_url }}</span></div>
+          </div>
+        </div>
+
+        <!-- QR CODE PRÉVISUALISATION -->
+        {% if qr_code_data_uri %}
+          <div class="ocd-card" style="padding:1.5rem; background:rgba(18,25,21,0.92); border:1px solid var(--ocd-border-glass); border-radius:18px; text-align:center;">
+            <div style="font-size:0.82rem; font-weight:800; color:#10B981; margin-bottom:8px; text-transform:uppercase;">
+              QR Code Boutique Directe
+            </div>
+            <img src="{{ qr_code_data_uri }}" alt="QR Code Boutique" style="width:140px; height:140px; border-radius:8px; border:2px solid #FFF; margin:0 auto 8px; display:block;">
+            <div style="font-size:0.75rem; color:#94A3B8;">
+              Scannable par les spectateurs pour commander immédiatement sur leur mobile.
+            </div>
+          </div>
+        {% endif %}
+
+      </div>
+
+    </div>
+
+  </div>
+</section>
+
+<!-- DONNÉES INVISIBLES POUR LE MOTEUR CANVAS -->
+<div style="display:none;">
+  <span id="dataBrand">{{ booking.nom_entreprise|default:booking.nom_complet }}</span>
+  <span id="dataSpeaker">{{ booking.nom_complet }}</span>
+  <span id="dataSector">{{ booking.secteur_activite|default:"Commerce & Vente" }}</span>
+  <span id="dataTitle">{{ booking.titre_du_live }}</span>
+  <span id="dataDate">{{ booking.date_choisie|date:"d F Y"|upper }}</span>
+  <span id="dataTime">{{ booking.heure_choisie|date:"H:i" }}</span>
+  <span id="dataDuration">{{ booking.duree_minutes }} MIN</span>
+  <span id="dataFlashDiscount">-{{ booking.offre_flash_reduction_pct }}%</span>
+  <span id="dataPhone">{{ booking.telephone_whatsapp }}</span>
+  <span id="dataIsMarathon">{% if booking.is_marathon_vip %}1{% else %}0{% endif %}</span>
+  <img id="dataQrImg" src="{{ qr_code_data_uri }}" alt="QR">
+</div>
+
+<script>
+  // =========================================================================
+  // MOTEUR DE GÉNÉRATION D'AFFICHE HD HTML5 CANVAS
+  // =========================================================================
+  let currentFormat = "story"; // "story" (1080x1920) ou "square" (1080x1080)
+  const canvas = document.getElementById("posterCanvas");
+  const ctx = canvas.getContext("2d");
+
+  const brand = document.getElementById("dataBrand").textContent;
+  const speaker = document.getElementById("dataSpeaker").textContent;
+  const sector = document.getElementById("dataSector").textContent;
+  const liveTitle = document.getElementById("dataTitle").textContent;
+  const liveDate = document.getElementById("dataDate").textContent;
+  const liveTime = document.getElementById("dataTime").textContent;
+  const duration = document.getElementById("dataDuration").textContent;
+  const flashDiscount = document.getElementById("dataFlashDiscount").textContent;
+  const phone = document.getElementById("dataPhone").textContent;
+  const isMarathon = document.getElementById("dataIsMarathon").textContent === "1";
+  const qrImg = document.getElementById("dataQrImg");
+
+  function drawPoster() {
+    if (currentFormat === "story") {
+      canvas.width = 1080;
+      canvas.height = 1920;
+      drawStoryFormat();
+    } else {
+      canvas.width = 1080;
+      canvas.height = 1080;
+      drawSquareFormat();
+    }
+  }
+
+  function drawStoryFormat() {
+    const W = 1080;
+    const H = 1920;
+
+    // 1. Fond Dark Studio Dégradé
+    const bgGrad = ctx.createLinearGradient(0, 0, W, H);
+    bgGrad.addColorStop(0, "#080E0B");
+    bgGrad.addColorStop(0.4, "#0D1712");
+    bgGrad.addColorStop(0.8, "#141D17");
+    bgGrad.addColorStop(1, "#070B09");
+    ctx.fillStyle = bgGrad;
+    ctx.fillRect(0, 0, W, H);
+
+    // 2. Halos Lumineux (Vert & Orange)
+    const haloTop = ctx.createRadialGradient(W / 2, 100, 10, W / 2, 100, 500);
+    haloTop.addColorStop(0, "rgba(230, 81, 0, 0.35)");
+    haloTop.addColorStop(1, "transparent");
+    ctx.fillStyle = haloTop;
+    ctx.fillRect(0, 0, W, 700);
+
+    const haloBottom = ctx.createRadialGradient(W / 2, H - 200, 20, W / 2, H - 200, 600);
+    haloBottom.addColorStop(0, "rgba(16, 185, 129, 0.22)");
+    haloBottom.addColorStop(1, "transparent");
+    ctx.fillStyle = haloBottom;
+    ctx.fillRect(0, H - 800, W, 800);
+
+    // Cadre doré subtil
+    ctx.strokeStyle = "rgba(255, 255, 255, 0.12)";
+    ctx.lineWidth = 4;
+    ctx.strokeRect(40, 40, W - 80, H - 80);
+
+    // 3. Header OCD Live
+    ctx.fillStyle = "#FF7A00";
+    ctx.font = "900 48px sans-serif";
+    ctx.textAlign = "center";
+    ctx.fillText("OCD LIVE  •  E-SHELLE.COM", W / 2, 130);
+
+    // Pastille DIRECT
+    ctx.fillStyle = "#EF4444";
+    ctx.beginPath();
+    ctx.arc(W / 2 - 130, 195, 10, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.fillStyle = "#FFFFFF";
+    ctx.font = "800 28px sans-serif";
+    ctx.fillText("SESSION EN DIRECT ANTENNE", W / 2 + 15, 204);
+
+    // Badge VIP Marathon si applicable
+    if (isMarathon) {
+      ctx.fillStyle = "#F59E0B";
+      ctx.font = "900 26px sans-serif";
+      ctx.fillText("👑 PASS MARATHON VIP (5 HEURES CONTINUES)", W / 2, 260);
+    }
+
+    // 4. Bloc Date & Heure
+    const dateY = isMarathon ? 310 : 270;
+    ctx.fillStyle = "rgba(0, 0, 0, 0.6)";
+    ctx.strokeStyle = "#F59E0B";
+    ctx.lineWidth = 3;
+    roundRect(ctx, 100, dateY, W - 200, 110, 20, true, true);
+
+    ctx.fillStyle = "#FBBF24";
+    ctx.font = "900 40px sans-serif";
+    ctx.fillText("📅 " + liveDate + " À " + liveTime, W / 2, dateY + 52);
+
+    ctx.fillStyle = "#CBD5E1";
+    ctx.font = "700 24px sans-serif";
+    ctx.fillText("HEURE DE DOUALA / PARIS  •  DURÉE : " + duration, W / 2, dateY + 92);
+
+    // 5. Nom de l'Entreprise (très gros et visible)
+    ctx.fillStyle = "#FFFFFF";
+    ctx.font = "900 74px sans-serif";
+    wrapText(ctx, brand.toUpperCase(), W / 2, dateY + 230, W - 160, 84);
+
+    // Secteur d'activité
+    ctx.fillStyle = "#10B981";
+    ctx.font = "800 32px sans-serif";
+    ctx.fillText("SECTEUR : " + sector.toUpperCase(), W / 2, dateY + 360);
+
+    // 6. Titre du Live
+    ctx.fillStyle = "#FED7AA";
+    ctx.font = "700 40px sans-serif";
+    wrapText(ctx, "« " + liveTitle + " »", W / 2, dateY + 440, W - 180, 52);
+
+    // 7. Présentateur
+    ctx.fillStyle = "#94A3B8";
+    ctx.font = "700 30px sans-serif";
+    ctx.fillText("🎙️ Présenté par : " + speaker, W / 2, dateY + 620);
+
+    // 8. Bandeau OFFRE FLASH
+    const flashY = dateY + 690;
+    ctx.fillStyle = "rgba(239, 68, 68, 0.25)";
+    ctx.strokeStyle = "#EF4444";
+    ctx.lineWidth = 3;
+    roundRect(ctx, 90, flashY, W - 180, 120, 22, true, true);
+
+    ctx.fillStyle = "#FFFFFF";
+    ctx.font = "900 36px sans-serif";
+    ctx.fillText("🔥 VENTE FLASH SPÉCIALE DIRECT : " + flashDiscount, W / 2, flashY + 50);
+
+    ctx.fillStyle = "#FECACA";
+    ctx.font = "700 24px sans-serif";
+    ctx.fillText("Commandez vos produits en direct au tarif promotionnel exclusif", W / 2, flashY + 92);
+
+    // 9. Zone QR Code & Commande
+    const qrY = flashY + 160;
+    if (qrImg.complete && qrImg.naturalWidth > 0) {
+      ctx.drawImage(qrImg, W / 2 - 130, qrY, 260, 260);
+    } else {
+      ctx.fillStyle = "#FFFFFF";
+      ctx.fillRect(W / 2 - 130, qrY, 260, 260);
+    }
+
+    ctx.fillStyle = "#FDE68A";
+    ctx.font = "800 28px sans-serif";
+    ctx.fillText("📲 Scannez pour ouvrir la Boutique Live", W / 2, qrY + 305);
+
+    // 10. WhatsApp Contact & Footer
+    ctx.fillStyle = "#25D366";
+    ctx.font = "900 34px sans-serif";
+    ctx.fillText("💬 WhatsApp Commandes : " + phone, W / 2, qrY + 355);
+
+    ctx.fillStyle = "#64748B";
+    ctx.font = "700 22px sans-serif";
+    ctx.fillText("DIFFUSION OFFICIELLE E-SHELLE  •  TOUS DROITS RÉSERVÉS", W / 2, H - 70);
+  }
+
+  function drawSquareFormat() {
+    const W = 1080;
+    const H = 1080;
+
+    // Fond Dégradé
+    const bgGrad = ctx.createLinearGradient(0, 0, W, H);
+    bgGrad.addColorStop(0, "#080E0B");
+    bgGrad.addColorStop(0.5, "#0F1A14");
+    bgGrad.addColorStop(1, "#070B09");
+    ctx.fillStyle = bgGrad;
+    ctx.fillRect(0, 0, W, H);
+
+    // Halo
+    const halo = ctx.createRadialGradient(W / 2, 80, 10, W / 2, 80, 400);
+    halo.addColorStop(0, "rgba(230, 81, 0, 0.4)");
+    halo.addColorStop(1, "transparent");
+    ctx.fillStyle = halo;
+    ctx.fillRect(0, 0, W, 450);
+
+    // Cadre
+    ctx.strokeStyle = "rgba(255, 255, 255, 0.12)";
+    ctx.lineWidth = 4;
+    ctx.strokeRect(30, 30, W - 60, H - 60);
+
+    // Header
+    ctx.fillStyle = "#FF7A00";
+    ctx.font = "900 36px sans-serif";
+    ctx.textAlign = "center";
+    ctx.fillText("OCD LIVE  •  E-SHELLE.COM", W / 2, 80);
+
+    ctx.fillStyle = "#EF4444";
+    ctx.font = "800 22px sans-serif";
+    ctx.fillText("🔴 EN DIRECT ANTENNE", W / 2, 115);
+
+    // Date & Heure
+    ctx.fillStyle = "rgba(0, 0, 0, 0.5)";
+    ctx.strokeStyle = "#F59E0B";
+    ctx.lineWidth = 2;
+    roundRect(ctx, 120, 140, W - 240, 68, 14, true, true);
+
+    ctx.fillStyle = "#FBBF24";
+    ctx.font = "900 28px sans-serif";
+    ctx.fillText("📅 " + liveDate + " À " + liveTime + " (" + duration + ")", W / 2, 184);
+
+    // Marque
+    ctx.fillStyle = "#FFFFFF";
+    ctx.font = "900 52px sans-serif";
+    wrapText(ctx, brand.toUpperCase(), W / 2, 260, W - 140, 60);
+
+    // Titre
+    ctx.fillStyle = "#FED7AA";
+    ctx.font = "700 28px sans-serif";
+    wrapText(ctx, "« " + liveTitle + " »", W / 2, 350, W - 160, 38);
+
+    // Speaker & Secteur
+    ctx.fillStyle = "#10B981";
+    ctx.font = "800 24px sans-serif";
+    ctx.fillText("🎙️ " + speaker + "  •  " + sector, W / 2, 450);
+
+    // Flash
+    ctx.fillStyle = "rgba(239, 68, 68, 0.25)";
+    ctx.strokeStyle = "#EF4444";
+    ctx.lineWidth = 2;
+    roundRect(ctx, 100, 485, W - 200, 75, 14, true, true);
+
+    ctx.fillStyle = "#FFFFFF";
+    ctx.font = "900 26px sans-serif";
+    ctx.fillText("🔥 VENTE FLASH SPÉCIALE DIRECT : " + flashDiscount, W / 2, 524);
+
+    ctx.fillStyle = "#FECACA";
+    ctx.font = "700 18px sans-serif";
+    ctx.fillText("Tarifs réduits pendant la session en direct", W / 2, 548);
+
+    // QR Code
+    const qrY = 590;
+    if (qrImg.complete && qrImg.naturalWidth > 0) {
+      ctx.drawImage(qrImg, W / 2 - 90, qrY, 180, 180);
+    } else {
+      ctx.fillStyle = "#FFF";
+      ctx.fillRect(W / 2 - 90, qrY, 180, 180);
+    }
+
+    ctx.fillStyle = "#FDE68A";
+    ctx.font = "800 22px sans-serif";
+    ctx.fillText("📲 Scannez pour commander en direct", W / 2, qrY + 220);
+
+    ctx.fillStyle = "#25D366";
+    ctx.font = "900 26px sans-serif";
+    ctx.fillText("💬 WhatsApp : " + phone, W / 2, qrY + 260);
+
+    ctx.fillStyle = "#64748B";
+    ctx.font = "700 16px sans-serif";
+    ctx.fillText("DIFFUSION OFFICIELLE SUR E-SHELLE.COM", W / 2, H - 50);
+  }
+
+  // Helpers Canvas
+  function roundRect(ctx, x, y, width, height, radius, fill, stroke) {
+    ctx.beginPath();
+    ctx.moveTo(x + radius, y);
+    ctx.lineTo(x + width - radius, y);
+    ctx.quadraticCurveTo(x + width, y, x + width, y + radius);
+    ctx.lineTo(x + width, y + height - radius);
+    ctx.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);
+    ctx.lineTo(x + radius, y + height);
+    ctx.quadraticCurveTo(x, y + height, x, y + height - radius);
+    ctx.lineTo(x, y + radius);
+    ctx.quadraticCurveTo(x, y, x + radius, y);
+    ctx.closePath();
+    if (fill) ctx.fill();
+    if (stroke) ctx.stroke();
+  }
+
+  function wrapText(ctx, text, x, y, maxWidth, lineHeight) {
+    const words = text.split(" ");
+    let line = "";
+    let curY = y;
+    for (let n = 0; n < words.length; n++) {
+      const testLine = line + words[n] + " ";
+      const metrics = ctx.measureText(testLine);
+      if (metrics.width > maxWidth && n > 0) {
+        ctx.fillText(line.trim(), x, curY);
+        line = words[n] + " ";
+        curY += lineHeight;
+      } else {
+        line = testLine;
+      }
+    }
+    ctx.fillText(line.trim(), x, curY);
+  }
+
+  // Écouteurs de changement de format
+  document.querySelectorAll(".format-btn").forEach((btn) => {
+    btn.addEventListener("click", function () {
+      document.querySelectorAll(".format-btn").forEach((b) => {
+        b.classList.remove("active");
+        b.style.background = "rgba(255,255,255,0.06)";
+        b.style.borderColor = "rgba(255,255,255,0.15)";
+        b.style.color = "#CBD5E1";
+      });
+      this.classList.add("active");
+      this.style.background = "rgba(230,81,0,0.2)";
+      this.style.borderColor = "#E65100";
+      this.style.color = "#FFF";
+      currentFormat = this.getAttribute("data-format");
+      drawPoster();
+    });
+  });
+
+  // Téléchargement PNG
+  document.getElementById("btnDownload").addEventListener("click", function () {
+    const link = document.createElement("a");
+    link.download = `Affiche_OCD_Live_${brand.replace(/[^a-zA-Z0-9]/g, "_")}_${currentFormat}.png`;
+    link.href = canvas.toDataURL("image/png");
+    link.click();
+  });
+
+  // Copie texte annonce
+  function copierTexteAnnonce() {
+    const ta = document.getElementById("shareTextarea");
+    ta.select();
+    navigator.clipboard.writeText(ta.value).then(() => {
+      const btn = document.getElementById("btnCopyText");
+      btn.textContent = "✓ Texte Copié dans le Presse-Papier !";
+      btn.style.background = "#10B981";
+      btn.style.color = "#000";
+      setTimeout(() => {
+        btn.textContent = "📋 Copier le Texte dans le Presse-Papier";
+        btn.style.background = "";
+        btn.style.color = "";
+      }, 3000);
+    });
+  }
+
+  // Initialisation au chargement de l'image QR
+  if (qrImg.complete) {
+    drawPoster();
+  } else {
+    qrImg.onload = drawPoster;
+  }
+</script>
+{% endblock %}
