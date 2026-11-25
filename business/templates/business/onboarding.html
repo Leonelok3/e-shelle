@@ -3,35 +3,56 @@
 {% block title %}{% if LANGUAGE_CODE == 'en' %}Create my business profile - E-Shelle{% else %}Créer ma fiche business - E-Shelle{% endif %}{% endblock %}
 
 {% block content %}
-<section class="section" style="padding-top:7rem;background:linear-gradient(180deg,#071321 0%,#0a1628 100%)">
-  <div class="container">
-    <div style="max-width:780px;margin:0 auto">
-      <div style="text-align:center;margin-bottom:1.5rem">
-        <span class="section-label" style="display:inline-flex">{% if LANGUAGE_CODE == 'en' %}Business profile{% else %}Fiche prestataire{% endif %}</span>
-        <h1 class="section-title" style="color:#fff;margin-top:.8rem">{% if LANGUAGE_CODE == 'en' %}What business would you like to list?{% else %}Quel business voulez-vous inscrire ?{% endif %}</h1>
-        <p class="section-subtitle" style="color:rgba(255,255,255,.62)">
-          {% if LANGUAGE_CODE == 'en' %}Create your profile so customers can find you through AI search and contact you on WhatsApp.{% else %}Créez votre fiche. Un client pourra vous trouver dans le chat IA et vous contacter sur WhatsApp.{% endif %}
-        </p>
+<section class="onboarding-page" aria-labelledby="onboarding-page-title">
+  <div class="onboarding-wrap">
+    <header class="onboarding-intro">
+      <span class="onboarding-kicker">{% if LANGUAGE_CODE == 'en' %}YOUR E-SHELLE PROFILE{% else %}TA FICHE E-SHELLE{% endif %}</span>
+      <h1 id="onboarding-page-title">{% if LANGUAGE_CODE == 'en' %}Present your menus, products and services{% else %}Présente tes menus, produits et services{% endif %}</h1>
+      <p>{% if LANGUAGE_CODE == 'en' %}Create a profile for your restaurant, shop or service. Customers can view what you offer and contact you directly.{% else %}Crée une fiche pour ton restaurant, ta boutique ou ton activité. Les clients verront ce que tu proposes et pourront te contacter directement.{% endif %}</p>
+      <div class="onboarding-points">
+        <span><b aria-hidden="true">✓</b> {% if LANGUAGE_CODE == 'en' %}Your activity and location{% else %}Ton activité et ta ville{% endif %}</span>
+        <span><b aria-hidden="true">✓</b> {% if LANGUAGE_CODE == 'en' %}Your contact details{% else %}Tes coordonnées{% endif %}</span>
+        <span><b aria-hidden="true">✓</b> {% if LANGUAGE_CODE == 'en' %}Direct customer contact{% else %}Un contact direct avec tes clients{% endif %}</span>
+      </div>
+    </header>
+
+    <form class="onboarding-form" method="post" enctype="multipart/form-data">
+      {% csrf_token %}
+      <input type="hidden" name="plan" value="{{ plan.code|default:'free' }}">
+
+      <div class="onboarding-form-heading">
+        <div>
+          <span class="onboarding-step">{% if LANGUAGE_CODE == 'en' %}BUSINESS DETAILS{% else %}INFORMATIONS DU BUSINESS{% endif %}</span>
+          <h2>{% if LANGUAGE_CODE == 'en' %}Tell us about your activity{% else %}Parle-nous de ton activité{% endif %}</h2>
+        </div>
+        <p>{% if LANGUAGE_CODE == 'en' %}Fields marked * are required{% else %}Les champs marqués * sont obligatoires{% endif %}</p>
       </div>
 
-      <form method="post" enctype="multipart/form-data" style="background:rgba(255,255,255,.045);border:1px solid rgba(255,255,255,.1);border-radius:18px;padding:1.25rem">
-        {% csrf_token %}
-        <input type="hidden" name="plan" value="{{ plan.code|default:'free' }}">
-
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem">
-          <label class="biz-field">{% if LANGUAGE_CODE == 'en' %}Business name *{% else %}Nom du business *{% endif %}
-            <input name="name" required placeholder="Ex: Gaz Rapide Bonamoussadi">
-            <label for="business-name-en">Business name (English)</label>
-            <input id="business-name-en" name="name_en" placeholder="Optional English version">
-          </label>
-          <label class="biz-field">{% if LANGUAGE_CODE == 'en' %}Business category{% else %}Type de service{% endif %}
-            <select name="module">
-              {% for value,label in modules %}
-              <option value="{{ value }}">{{ label }}</option>
-              {% endfor %}
+      <section class="onboarding-section" aria-labelledby="onboarding-activity">
+        <h3 id="onboarding-activity">{% if LANGUAGE_CODE == 'en' %}Your activity{% else %}Ton activité{% endif %}</h3>
+        <div class="onboarding-grid">
+          <div class="onboarding-field">
+            <label for="business-name">{% if LANGUAGE_CODE == 'en' %}Business name *{% else %}Nom du business *{% endif %}</label>
+            <input id="business-name" name="name" required autocomplete="organization" placeholder="{% if LANGUAGE_CODE == 'en' %}Example: Bonamoussadi Kitchen{% else %}Ex. : Restaurant Le Bon Goût{% endif %}">
+          </div>
+          <div class="onboarding-field">
+            <label for="business-module">{% if LANGUAGE_CODE == 'en' %}Activity type{% else %}Type d’activité{% endif %}</label>
+            <select id="business-module" name="module">
+              {% for value,label in modules %}<option value="{{ value }}">{{ label }}</option>{% endfor %}
             </select>
-          </label>
-          <label class="biz-field">{% if LANGUAGE_CODE == 'en' %}Country *{% else %}Pays *{% endif %}
+          </div>
+          <div class="onboarding-field">
+            <label for="business-name-en">{% if LANGUAGE_CODE == 'en' %}Business name in English (optional){% else %}Nom en anglais (facultatif){% endif %}</label>
+            <input id="business-name-en" name="name_en" placeholder="{% if LANGUAGE_CODE == 'en' %}Optional English name{% else %}Si tu utilises aussi un nom anglais{% endif %}">
+          </div>
+        </div>
+      </section>
+
+      <section class="onboarding-section" aria-labelledby="onboarding-location">
+        <h3 id="onboarding-location">{% if LANGUAGE_CODE == 'en' %}Where can customers find you?{% else %}Où se trouve ton activité ?{% endif %}</h3>
+        <div class="onboarding-grid">
+          <div class="onboarding-field">
+            <label for="country-select">{% if LANGUAGE_CODE == 'en' %}Country *{% else %}Pays *{% endif %}</label>
             <select name="country" id="country-select" onchange="updateCities()">
               <option value="Cameroun" selected>{% if LANGUAGE_CODE == 'en' %}Cameroon{% else %}Cameroun{% endif %}</option>
               <option value="Côte d'Ivoire">Côte d'Ivoire</option>
@@ -46,77 +67,125 @@
               <option value="Guinée">Guinée</option>
               <option value="Tchad">Tchad</option>
               <option value="Niger">Niger</option>
-              <option value="Autre">{% if LANGUAGE_CODE == 'en' %}Other country{% else %}Autre Pays{% endif %}</option>
+              <option value="Autre">{% if LANGUAGE_CODE == 'en' %}Other country{% else %}Autre pays{% endif %}</option>
             </select>
-          </label>
-          <label class="biz-field">{% if LANGUAGE_CODE == 'en' %}City *{% else %}Ville *{% endif %}
-            <select name="city" id="city-select" onchange="checkCustomCity()">
-              <!-- Options dynamiques en JS -->
-            </select>
-            <input type="text" id="custom-city-input" name="city_custom" placeholder="Saisir la ville..." style="display:none; margin-top: 0.5rem;">
-          </label>
-          <label class="biz-field">{% if LANGUAGE_CODE == 'en' %}District / neighbourhood{% else %}Quartier{% endif %}
-            <input name="district" placeholder="Ex: Bonamoussadi, Cocody, Médina...">
-          </label>
-          <label class="biz-field">{% if LANGUAGE_CODE == 'en' %}Voice language{% else %}Langue des messages vocaux{% endif %}
-            <select name="language">
+          </div>
+          <div class="onboarding-field">
+            <label for="city-select">{% if LANGUAGE_CODE == 'en' %}City *{% else %}Ville *{% endif %}</label>
+            <select name="city" id="city-select" onchange="checkCustomCity()"></select>
+            <input type="text" id="custom-city-input" name="city_custom" placeholder="{% if LANGUAGE_CODE == 'en' %}Enter your city{% else %}Saisis le nom de ta ville{% endif %}" hidden>
+          </div>
+          <div class="onboarding-field">
+            <label for="business-district">{% if LANGUAGE_CODE == 'en' %}Neighbourhood (optional){% else %}Quartier (facultatif){% endif %}</label>
+            <input id="business-district" name="district" autocomplete="address-level3" placeholder="Ex. : Bonamoussadi, Cocody, Médina">
+          </div>
+          <div class="onboarding-field">
+            <label for="business-language">{% if LANGUAGE_CODE == 'en' %}Voice message language{% else %}Langue des messages vocaux{% endif %}</label>
+            <select id="business-language" name="language">
               {% for value,label in languages %}<option value="{{ value }}" {% if value == 'fr' %}selected{% endif %}>{{ label }}</option>{% endfor %}
             </select>
-          </label>
-          <label class="biz-field">{% if LANGUAGE_CODE == 'en' %}Phone *{% else %}Téléphone *{% endif %}
-            <input name="phone" id="phone-input" required placeholder="+237 6XX XXX XXX">
-          </label>
-          <label class="biz-field">WhatsApp
-            <input name="whatsapp" id="whatsapp-input" placeholder="+237 6XX XXX XXX">
-          </label>
+          </div>
         </div>
+      </section>
 
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-top:1rem">
-          <label class="biz-field">{% if LANGUAGE_CODE == 'en' %}Headline{% else %}Phrase d'accroche{% endif %}
-            <input name="promo_headline" placeholder="Ex: Fast Food chaud livre a Makepe">
-            <label for="promo-headline-en">Promotion headline (English)</label>
-            <input id="promo-headline-en" name="promo_headline_en" placeholder="Optional English version">
-          </label>
-          <label class="biz-field">{% if LANGUAGE_CODE == 'en' %}Offer or speciality{% else %}Offre ou specialite{% endif %}
-            <input name="promo_offer" placeholder="Ex: Livraison Makepe, Logpom, Bonamoussadi">
-            <label for="promo-offer-en">Promotion text (English)</label>
-            <input id="promo-offer-en" name="promo_offer_en" placeholder="Optional English version">
-          </label>
+      <section class="onboarding-section" aria-labelledby="onboarding-contact">
+        <h3 id="onboarding-contact">{% if LANGUAGE_CODE == 'en' %}How can customers contact you?{% else %}Comment tes clients peuvent-ils te joindre ?{% endif %}</h3>
+        <div class="onboarding-grid">
+          <div class="onboarding-field">
+            <label for="phone-input">{% if LANGUAGE_CODE == 'en' %}Phone number *{% else %}Téléphone *{% endif %}</label>
+            <input name="phone" id="phone-input" required autocomplete="tel" inputmode="tel" placeholder="+237 6XX XXX XXX">
+          </div>
+          <div class="onboarding-field">
+            <label for="whatsapp-input">WhatsApp <span>{% if LANGUAGE_CODE == 'en' %}(optional){% else %}(facultatif){% endif %}</span></label>
+            <input name="whatsapp" id="whatsapp-input" autocomplete="tel" inputmode="tel" placeholder="+237 6XX XXX XXX">
+          </div>
         </div>
+        <p class="onboarding-hint">{% if LANGUAGE_CODE == 'en' %}Customers contact you directly. You agree with them on payment and delivery.{% else %}Le client te contacte directement. Vous vous arrangez ensemble pour le paiement et la livraison.{% endif %}</p>
+      </section>
 
-        <label class="biz-field" style="margin-top:1rem">{% if LANGUAGE_CODE == 'en' %}Short description{% else %}Description courte{% endif %}
-          <textarea name="description" rows="3" placeholder="Décrivez vos produits, services, horaires ou zone de livraison."></textarea>
-          <label for="business-description-en">Business description (English)</label>
-          <textarea id="business-description-en" name="description_en" rows="3" placeholder="Optional English version of your business description."></textarea>
-        </label>
-
-        <label class="biz-field" style="margin-top:1rem">{% if LANGUAGE_CODE == 'en' %}Business logo (optional){% else %}Logo du business (optionnel){% endif %}
-          <input type="file" name="logo" accept="image/png,image/jpeg,image/jpg">
-        </label>
-
-        <div class="biz-helper">
-          {% if LANGUAGE_CODE == 'en' %}<strong>Tip for a strong profile:</strong> add your opening hours, service areas, specialities, indicative prices, delivery fees and a clear call to action.{% else %}<strong>Conseil pour une fiche qui vend:</strong> ajoutez les horaires, quartiers servis, specialites, prix indicatif, frais de livraison et le meilleur appel a l'action.{% endif %}
+      <section class="onboarding-section" aria-labelledby="onboarding-offer">
+        <h3 id="onboarding-offer">{% if LANGUAGE_CODE == 'en' %}What do you offer?{% else %}Que proposes-tu ?{% endif %}</h3>
+        <div class="onboarding-grid">
+          <div class="onboarding-field">
+            <label for="promo-headline">{% if LANGUAGE_CODE == 'en' %}Short headline{% else %}Phrase d’accroche{% endif %}</label>
+            <input id="promo-headline" name="promo_headline" placeholder="{% if LANGUAGE_CODE == 'en' %}Example: Fresh meals delivered in Makepe{% else %}Ex. : Des plats maison livrés à Makepe{% endif %}">
+          </div>
+          <div class="onboarding-field">
+            <label for="promo-offer">{% if LANGUAGE_CODE == 'en' %}Specialities or service area{% else %}Spécialités ou zone desservie{% endif %}</label>
+            <input id="promo-offer" name="promo_offer" placeholder="{% if LANGUAGE_CODE == 'en' %}Example: Bonamoussadi, Logpom, Makepe{% else %}Ex. : Bonamoussadi, Logpom, Makepe{% endif %}">
+          </div>
+          <div class="onboarding-field">
+            <label for="promo-headline-en">{% if LANGUAGE_CODE == 'en' %}Headline in English (optional){% else %}Phrase d’accroche en anglais (facultatif){% endif %}</label>
+            <input id="promo-headline-en" name="promo_headline_en" placeholder="{% if LANGUAGE_CODE == 'en' %}Optional English version{% else %}Si tu communiques aussi en anglais{% endif %}">
+          </div>
+          <div class="onboarding-field">
+            <label for="promo-offer-en">{% if LANGUAGE_CODE == 'en' %}Offer in English (optional){% else %}Offre en anglais (facultatif){% endif %}</label>
+            <input id="promo-offer-en" name="promo_offer_en" placeholder="{% if LANGUAGE_CODE == 'en' %}Optional English version{% else %}Version anglaise facultative{% endif %}">
+          </div>
+          <div class="onboarding-field onboarding-field-wide">
+            <label for="business-description">{% if LANGUAGE_CODE == 'en' %}Short description{% else %}Description courte{% endif %}</label>
+            <textarea id="business-description" name="description" rows="3" placeholder="{% if LANGUAGE_CODE == 'en' %}Describe your menu, products, services, opening hours or delivery area.{% else %}Décris tes menus, produits, services, horaires ou ta zone de livraison.{% endif %}"></textarea>
+          </div>
+          <div class="onboarding-field onboarding-field-wide">
+            <label for="business-description-en">{% if LANGUAGE_CODE == 'en' %}Description in English (optional){% else %}Description en anglais (facultatif){% endif %}</label>
+            <textarea id="business-description-en" name="description_en" rows="3" placeholder="{% if LANGUAGE_CODE == 'en' %}Optional English version of your description.{% else %}Version anglaise facultative de ta description.{% endif %}"></textarea>
+          </div>
+          <div class="onboarding-field onboarding-field-wide">
+            <label for="business-logo">{% if LANGUAGE_CODE == 'en' %}Logo or business photo (optional){% else %}Logo ou photo de ton activité (facultatif){% endif %}</label>
+            <input id="business-logo" type="file" name="logo" accept="image/png,image/jpeg,image/jpg">
+            <small>{% if LANGUAGE_CODE == 'en' %}A clear image helps customers recognise your business.{% else %}Choisis une image claire pour aider tes clients à reconnaître ton activité.{% endif %}</small>
+          </div>
         </div>
+      </section>
 
-        {% if plan %}
-        <div style="margin:1rem 0;padding:1rem;border-radius:14px;background:rgba(34,197,94,.08);border:1px solid rgba(34,197,94,.18);color:rgba(255,255,255,.76)">
-          {% if LANGUAGE_CODE == 'en' %}Selected plan: <strong style="color:#fff">{{ plan.display_name }}</strong> — {{ plan.monthly_price_xaf }} XAF / {{ plan.duration_days }} days.{% else %}Plan choisi: <strong style="color:#fff">{{ plan.name }}</strong> — {{ plan.monthly_price_xaf }} FCFA / {{ plan.duration_days }} jours.{% endif %}
-        </div>
-        {% endif %}
+      <aside class="onboarding-tip">
+        <strong>{% if LANGUAGE_CODE == 'en' %}A helpful tip{% else %}Petit conseil{% endif %}</strong>
+        <p>{% if LANGUAGE_CODE == 'en' %}Add accurate opening hours, prices and service areas. You can agree on payment and delivery directly with each customer.{% else %}Indique des horaires, des prix et une zone desservie à jour. Pour chaque client, vous convenez directement du paiement et de la livraison.{% endif %}</p>
+      </aside>
 
-          <button class="btn btn-primary btn-lg" style="width:100%;justify-content:center">{% if LANGUAGE_CODE == 'en' %}Create my business profile{% else %}Créer ma fiche{% endif %}</button>
-      </form>
-    </div>
+      {% if plan %}
+      <div class="onboarding-plan">
+        {% if LANGUAGE_CODE == 'en' %}Selected plan: <strong>{{ plan.display_name }}</strong> — {{ plan.monthly_price_xaf }} XAF / {{ plan.duration_days }} days.{% else %}Formule choisie : <strong>{{ plan.name }}</strong> — {{ plan.monthly_price_xaf }} FCFA / {{ plan.duration_days }} jours.{% endif %}
+      </div>
+      {% endif %}
+
+      <button class="onboarding-submit" type="submit">{% if LANGUAGE_CODE == 'en' %}Create my profile{% else %}Créer ma fiche{% endif %}<span aria-hidden="true">→</span></button>
+      <p class="onboarding-after">{% if LANGUAGE_CODE == 'en' %}You can complete your profile after this step.{% else %}Tu pourras compléter ta fiche après cette étape.{% endif %}</p>
+    </form>
   </div>
 </section>
 
 <style>
-.biz-field { display:flex;flex-direction:column;gap:.45rem;color:rgba(255,255,255,.74);font-size:.86rem;font-weight:700; }
-.biz-field input,.biz-field select,.biz-field textarea { width:100%;background:#101c33;border:1px solid rgba(255,255,255,.12);border-radius:12px;color:#fff;padding:.85rem;outline:none; }
-.biz-field input:focus,.biz-field select:focus,.biz-field textarea:focus { border-color:#22c55e;box-shadow:0 0 0 3px rgba(34,197,94,.14); }
-.biz-helper{margin-top:1rem;padding:.9rem;border:1px solid rgba(250,204,21,.18);background:rgba(250,204,21,.07);border-radius:14px;color:rgba(255,255,255,.72);line-height:1.55}
-.biz-helper strong{color:#facc15}
-@media(max-width:700px){ form div[style*="grid-template-columns"]{grid-template-columns:1fr!important;} }
+.onboarding-page{--ob-green:#0e7a4f;--ob-orange:#ff8c00;min-height:calc(100vh - 76px);padding:clamp(2.5rem,6vw,5.5rem) 1rem 4rem;background:radial-gradient(ellipse at 50% 0%,rgba(14,122,79,.18),transparent 42%),#08111f;color:#f5f7f5}
+.onboarding-wrap{width:min(920px,100%);margin:0 auto}
+.onboarding-intro{text-align:center;max-width:740px;margin:0 auto 2rem}
+.onboarding-kicker,.onboarding-step{display:inline-flex;align-items:center;color:#6be39b;font-size:.74rem;font-weight:800;letter-spacing:.12em;text-transform:uppercase}
+.onboarding-kicker{padding:.48rem .8rem;border:1px solid rgba(107,227,155,.25);border-radius:999px;background:rgba(14,122,79,.12)}
+.onboarding-intro h1{margin:.9rem 0 .7rem;color:#fff;font-size:clamp(2rem,4.5vw,3.25rem);line-height:1.08;letter-spacing:-.04em}
+.onboarding-intro>p{max-width:650px;margin:0 auto;color:#bdc9d5;font-size:1.02rem;line-height:1.7}
+.onboarding-points{display:flex;justify-content:center;flex-wrap:wrap;gap:.65rem 1.2rem;margin-top:1.25rem;color:#d5e0e8;font-size:.85rem}
+.onboarding-points span{display:inline-flex;align-items:center;gap:.4rem}.onboarding-points b{color:#6be39b}
+.onboarding-form{padding:clamp(1.1rem,3vw,2rem);border:1px solid rgba(255,255,255,.12);border-radius:22px;background:linear-gradient(145deg,rgba(20,34,51,.98),rgba(12,24,39,.98));box-shadow:0 24px 70px rgba(0,0,0,.25)}
+.onboarding-form-heading{display:flex;justify-content:space-between;align-items:end;gap:1rem;padding-bottom:1.2rem;border-bottom:1px solid rgba(255,255,255,.1)}
+.onboarding-form-heading h2{margin:.35rem 0 0;color:#fff;font-size:1.35rem}.onboarding-form-heading>p{margin:0;color:#9eacbb;font-size:.78rem}
+.onboarding-section{padding:1.45rem 0;border-bottom:1px solid rgba(255,255,255,.09)}
+.onboarding-section h3{margin:0 0 1rem;color:#f7faf8;font-size:1rem}
+.onboarding-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:1rem}
+.onboarding-field{display:flex;min-width:0;flex-direction:column;gap:.42rem;color:#dce5ec;font-size:.84rem;font-weight:700}
+.onboarding-field label{line-height:1.4}.onboarding-field label span{color:#9eacbb;font-weight:500}
+.onboarding-field input,.onboarding-field select,.onboarding-field textarea{box-sizing:border-box;width:100%;min-height:46px;border:1px solid #334155;border-radius:11px;background:#0b1728;color:#f8fafc;padding:.72rem .82rem;font:inherit;font-size:.9rem;outline:none}
+.onboarding-field input::placeholder,.onboarding-field textarea::placeholder{color:#8090a3;opacity:1}
+.onboarding-field input:focus,.onboarding-field select:focus,.onboarding-field textarea:focus{border-color:#39b878;box-shadow:0 0 0 3px rgba(57,184,120,.16)}
+.onboarding-field input[type=file]{padding:.55rem}.onboarding-field input[type=file]::file-selector-button{margin-right:.7rem;padding:.45rem .65rem;border:0;border-radius:7px;background:#203349;color:#fff}
+.onboarding-field textarea{min-height:94px;resize:vertical}.onboarding-field small{color:#9eacbb;font-size:.76rem;font-weight:400;line-height:1.5}
+.onboarding-field-wide{grid-column:1/-1}
+.onboarding-hint{margin:.9rem 0 0;color:#b6c4d0;font-size:.84rem;line-height:1.55}
+.onboarding-tip{margin:1.25rem 0;padding:1rem 1.1rem;border:1px solid rgba(255,140,0,.25);border-radius:13px;background:rgba(255,140,0,.07)}
+.onboarding-tip strong{color:#ffbd69;font-size:.87rem}.onboarding-tip p{margin:.35rem 0 0;color:#d1d9e0;font-size:.84rem;line-height:1.6}
+.onboarding-plan{margin:1rem 0;padding:.9rem 1rem;border:1px solid rgba(107,227,155,.24);border-radius:12px;background:rgba(14,122,79,.12);color:#dce9e1;font-size:.9rem}.onboarding-plan strong{color:#fff}
+.onboarding-submit{display:flex;justify-content:center;align-items:center;gap:.6rem;width:100%;min-height:52px;margin-top:1.2rem;border:0;border-radius:12px;background:linear-gradient(100deg,#0e7a4f,#15935e);color:#fff;font:inherit;font-weight:800;cursor:pointer;transition:filter .2s,transform .2s}
+.onboarding-submit:hover{filter:brightness(1.1);transform:translateY(-1px)}.onboarding-after{margin:.75rem 0 0;text-align:center;color:#9eacbb;font-size:.78rem}
+@media(max-width:640px){.onboarding-page{padding:2rem .85rem 3rem}.onboarding-points{align-items:flex-start;flex-direction:column;width:max-content;max-width:100%;margin:1.1rem auto 0}.onboarding-form-heading{align-items:flex-start;flex-direction:column}.onboarding-grid{grid-template-columns:1fr}.onboarding-field-wide{grid-column:auto}}
 </style>
 
 <script>
@@ -137,19 +206,9 @@ const countryCities = {
 };
 
 const countryDials = {
-  "Cameroun": "+237",
-  "Côte d'Ivoire": "+225",
-  "Sénégal": "+221",
-  "Gabon": "+241",
-  "Congo (Brazzaville)": "+242",
-  "Congo (RDC)": "+243",
-  "Bénin": "+229",
-  "Togo": "+228",
-  "Burkina Faso": "+226",
-  "Mali": "+223",
-  "Guinée": "+224",
-  "Tchad": "+235",
-  "Niger": "+227"
+  "Cameroun": "+237", "Côte d'Ivoire": "+225", "Sénégal": "+221", "Gabon": "+241",
+  "Congo (Brazzaville)": "+242", "Congo (RDC)": "+243", "Bénin": "+229", "Togo": "+228",
+  "Burkina Faso": "+226", "Mali": "+223", "Guinée": "+224", "Tchad": "+235", "Niger": "+227"
 };
 
 function updateCities() {
@@ -158,68 +217,41 @@ function updateCities() {
   const customCityInput = document.getElementById("custom-city-input");
   const phoneInput = document.getElementById("phone-input");
   const whatsappInput = document.getElementById("whatsapp-input");
-  
+  if (!countrySelect || !citySelect || !customCityInput || !phoneInput || !whatsappInput) return;
+
   const selectedCountry = countrySelect.value;
-  
-  // Format dial codes
-  if (countryDials[selectedCountry]) {
-    const dial = countryDials[selectedCountry];
-    phoneInput.placeholder = dial + " XXX XXX XXX";
-    whatsappInput.placeholder = dial + " XXX XXX XXX";
-  } else {
-    phoneInput.placeholder = "+XXX XXX XXX";
-    whatsappInput.placeholder = "+XXX XXX XXX";
+  const dial = countryDials[selectedCountry] || "+XXX";
+  phoneInput.placeholder = dial + " XXX XXX XXX";
+  whatsappInput.placeholder = dial + " XXX XXX XXX";
+  citySelect.replaceChildren();
+
+  if (selectedCountry === "Autre" || !countryCities[selectedCountry]) {
+    customCityInput.hidden = false;
+    customCityInput.required = true;
+    citySelect.hidden = true;
+    citySelect.add(new Option("Saisie manuelle", "Autre"));
+    return;
   }
 
-  // Clear choices
-  citySelect.innerHTML = "";
-  
-  if (selectedCountry === "Autre" || !countryCities[selectedCountry]) {
-    customCityInput.style.display = "block";
-    customCityInput.required = true;
-    citySelect.style.display = "none";
-    
-    const opt = document.createElement("option");
-    opt.value = "Autre";
-    opt.text = "Saisie manuelle";
-    citySelect.appendChild(opt);
-  } else {
-    customCityInput.style.display = "none";
-    customCityInput.required = false;
-    customCityInput.value = "";
-    citySelect.style.display = "block";
-    
-    countryCities[selectedCountry].forEach(city => {
-      const opt = document.createElement("option");
-      opt.value = city;
-      opt.text = city;
-      citySelect.appendChild(opt);
-    });
-    
-    const optOther = document.createElement("option");
-    optOther.value = "Autre";
-    optOther.text = "Autre (Saisir...)";
-    citySelect.appendChild(optOther);
-  }
+  customCityInput.hidden = true;
+  customCityInput.required = false;
+  customCityInput.value = "";
+  citySelect.hidden = false;
+  countryCities[selectedCountry].forEach(city => citySelect.add(new Option(city, city)));
+  citySelect.add(new Option("Autre (saisir...)", "Autre"));
 }
 
 function checkCustomCity() {
   const citySelect = document.getElementById("city-select");
   const customCityInput = document.getElementById("custom-city-input");
-  
-  if (citySelect.value === "Autre") {
-    customCityInput.style.display = "block";
-    customCityInput.required = true;
-    customCityInput.focus();
-  } else {
-    customCityInput.style.display = "none";
-    customCityInput.required = false;
-    customCityInput.value = "";
-  }
+  if (!citySelect || !customCityInput) return;
+  const showCustomCity = citySelect.value === "Autre";
+  customCityInput.hidden = !showCustomCity;
+  customCityInput.required = showCustomCity;
+  if (showCustomCity) customCityInput.focus();
+  else customCityInput.value = "";
 }
 
-document.addEventListener("DOMContentLoaded", () => {
-  updateCities();
-});
+document.addEventListener("DOMContentLoaded", updateCities);
 </script>
 {% endblock %}
