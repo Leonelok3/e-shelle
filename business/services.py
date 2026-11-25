@@ -909,10 +909,15 @@ def verified_provider_whatsapp_payment(business):
                 methode="campay",
                 metadata__campay__provider_status="SUCCESSFUL",
             )
-            | Q(
-                methode="manual",
-                metadata__provider_whatsapp_manual_approved_at__isnull=False,
-                metadata__provider_whatsapp_activation_code_id__isnull=False,
+            | (
+                Q(
+                    methode="manual",
+                    metadata__provider_whatsapp_manual_approved_at__isnull=False,
+                )
+                & (
+                    Q(metadata__provider_whatsapp_activation_code_id__isnull=False)
+                    | Q(metadata__provider_whatsapp_payment_request_id__isnull=False)
+                )
             )
         )
         .order_by("-created_at")

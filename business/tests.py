@@ -12,6 +12,7 @@ from .models import (
     BusinessCatalogItem,
     BusinessKeyPaymentRequest,
     BusinessProfile,
+    PaymentRequest,
     ProviderPlan,
 )
 from .services import (
@@ -337,7 +338,7 @@ class ProviderOnboardingPaymentTests(TestCase):
 
         self.assertEqual(page.status_code, 200)
         self.assertContains(page, "Contacter E-Shelle sur WhatsApp")
-        self.assertContains(page, "code à saisir")
+        self.assertContains(page, "Aucun code à saisir")
         self.assertContains(page, "Payer par MoMo / Orange Money")
 
         response = self.client.post(
@@ -349,6 +350,13 @@ class ProviderOnboardingPaymentTests(TestCase):
             },
         )
         self.assertEqual(response.status_code, 302)
+        payment_request = PaymentRequest.objects.get(
+            business=self.business,
+            plan=self.plan,
+            requested_by=self.owner,
+        )
+        self.assertEqual(payment_request.status, PaymentRequest.Status.PENDING)
+        self.assertEqual(payment_request.amount_xaf, self.plan.monthly_price_xaf)
         parsed_url = urlparse(response["Location"])
         self.assertEqual(parsed_url.netloc, "wa.me")
         self.assertEqual(parsed_url.path, "/237680625082")
@@ -356,6 +364,8 @@ class ProviderOnboardingPaymentTests(TestCase):
         self.assertIn(self.business.name, message)
         self.assertIn(self.plan.name, message)
         self.assertIn("3 000 FCFA", message)
+        self.assertIn(f"#{payment_request.pk}", message)
+        self.assertIn("sans code", message)
 
     def test_failed_provider_payment_does_not_activate_plan_or_grant_credits(self):
         from payments.models import Transaction

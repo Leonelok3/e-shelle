@@ -259,9 +259,15 @@ class BusinessLeadEventAdmin(admin.ModelAdmin):
 class PaymentRequestAdmin(admin.ModelAdmin):
     list_display = ("business", "plan", "requested_by", "method", "amount_xaf", "status", "phone", "whatsapp_contact", "created_at", "confirmed_at")
     list_filter = ("status", "method", "plan")
-    search_fields = ("business__name", "requested_by__username", "phone")
-    readonly_fields = ("created_at", "confirmed_at")
+    search_fields = ("business__name", "requested_by__username", "requested_by__email", "phone", "note")
+    readonly_fields = ("status", "created_at", "confirmed_at")
     actions = ("confirm_requests", "cancel_requests")
+
+    def get_readonly_fields(self, request, obj=None):
+        fields = list(super().get_readonly_fields(request, obj))
+        if obj is not None:
+            fields.extend(("business", "plan", "requested_by", "method", "amount_xaf"))
+        return tuple(fields)
 
     @admin.display(description="WhatsApp")
     def whatsapp_contact(self, obj):
@@ -270,20 +276,40 @@ class PaymentRequestAdmin(admin.ModelAdmin):
             return "-"
         if not number.startswith("237"):
             number = f"237{number}"
-        text = (
-            f"Bonjour, votre demande E-Shelle #{obj.pk} pour {obj.business.name} "
-            f"({obj.plan.name}, {obj.amount_xaf} FCFA) a ete recue."
-        )
+        if obj.status == PaymentRequest.Status.CONFIRMED:
+            text = (
+                f"Bonjour, votre paiement E-Shelle #{obj.pk} est confirmé. "
+                f"La formule {obj.plan.name} de {obj.business.name} est activée pour "
+                f"{obj.plan.duration_days} jours. Connectez-vous à votre compte E-Shelle "
+                "pour accéder à votre espace Business. Aucun code à saisir."
+            )
+        elif obj.status == PaymentRequest.Status.CANCELED:
+            text = f"Bonjour, la demande E-Shelle #{obj.pk} pour {obj.business.name} a été annulée. Contactez-nous si besoin."
+        else:
+            text = (
+                f"Bonjour, votre demande E-Shelle #{obj.pk} pour {obj.business.name} "
+                f"({obj.plan.name}, {obj.amount_xaf} FCFA) est enregistrée. "
+                "Après réception du paiement, nous confirmerons directement votre abonnement."
+            )
         return format_html('<a href="https://wa.me/{}?text={}" target="_blank">Contacter</a>', number, urllib.parse.quote(text))
 
-    @admin.action(description="Confirmer et activer les abonnements")
+    @admin.action(description="Confirmer le paiement vérifié et activer l'abonnement")
     def confirm_requests(self, request, queryset):
         count = 0
-        for payment_request in queryset.select_related("business", "plan", "requested_by"):
-            if payment_request.status != PaymentRequest.Status.CONFIRMED:
-                payment_request.confirm()
-                count += 1
-        self.message_user(request, f"{count} demande(s) confirmee(s).")
+        errors = 0
+        pending = queryset.filter(status=PaymentRequest.Status.PENDING).select_related(
+            "business", "plan", "requested_by"
+        )
+        for payment_request in pending:
+            try:
+                if payment_request.confirm() is not None:
+                    count += 1
+            except ValueError:
+                errors += 1
+        if errors:
+            self.message_user(request, f"{count} abonnement(s) activé(s) ; {errors} demande(s) invalide(s) ignorée(s).", level="ERROR")
+        else:
+            self.message_user(request, f"{count} demande(s) confirmée(s) et activée(s).")
 
     @admin.action(description="Annuler les demandes")
     def cancel_requests(self, request, queryset):

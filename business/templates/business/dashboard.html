@@ -115,13 +115,14 @@
 
       <aside style="background:rgba(255,255,255,.045);border:1px solid rgba(255,255,255,.1);border-radius:18px;padding:1.25rem;color:rgba(255,255,255,.74)">
         <h3 style="color:#fff;margin-bottom:.75rem">{% if LANGUAGE_CODE == 'en' %}Local payment options{% else %}Paiement adapté local{% endif %}</h3>
-        <p>{% if LANGUAGE_CODE == 'en' %}Contact E-Shelle on WhatsApp to pay (Mobile Money, cash, etc.). You will receive an activation code to enter below.{% else %}Contactez E-Shelle sur WhatsApp pour payer (Mobile Money, cash...). Vous recevrez en retour un code d'activation à entrer ci-dessous.{% endif %}</p>
+        <p>{% if LANGUAGE_CODE == 'en' %}Contact E-Shelle on WhatsApp to choose a plan and arrange payment. Once we verify payment, we activate the plan directly in your account.{% else %}Écris-nous sur WhatsApp pour choisir une formule et organiser le paiement. Après vérification, nous activons directement la formule dans ton compte.{% endif %}</p>
 
-        <form method="post" action="{% url 'business:redeem_activation_code' %}" style="margin-top:1rem;display:flex;gap:.5rem;flex-wrap:wrap">
+        <small style="display:block;margin-top:.75rem;color:rgba(255,255,255,.58)">{% if LANGUAGE_CODE == 'en' %}For legacy activation codes only. New subscriptions are activated directly after payment verification.{% else %}Réservé aux anciens codes déjà remis. Les nouveaux abonnements sont activés directement après vérification du paiement.{% endif %}</small>
+        <form method="post" action="{% url 'business:redeem_activation_code' %}" style="margin-top:.5rem;display:flex;gap:.5rem;flex-wrap:wrap">
           {% csrf_token %}
           <input type="text" name="code" placeholder="{% if LANGUAGE_CODE == 'en' %}e.g. ESH-AB12CD34{% else %}Ex: ESH-AB12CD34{% endif %}" required
                  style="flex:1;min-width:160px;background:#101c33;border:1px solid rgba(255,255,255,.16);border-radius:10px;color:#fff;padding:.65rem .85rem;text-transform:uppercase">
-          <button type="submit" class="btn btn-primary">{% if LANGUAGE_CODE == 'en' %}Activate with a code{% else %}Activer avec un code{% endif %}</button>
+          <button type="submit" class="btn btn-primary">{% if LANGUAGE_CODE == 'en' %}Use an existing activation code{% else %}Saisir un ancien code d'activation{% endif %}</button>
         </form>
 
         {% if public_url %}

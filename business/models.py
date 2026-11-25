@@ -884,7 +884,7 @@ class BusinessLeadEvent(models.Model):
 
 
 class PaymentRequest(models.Model):
-    """Demande de paiement adaptée terrain: cash, reception, Mobile Money manuel."""
+    """A payment request whose admin confirmation activates its selected plan."""
 
     class Method(models.TextChoices):
         CASH_ON_DELIVERY = "cash_on_delivery", "Paiement a la reception"
@@ -916,24 +916,63 @@ class PaymentRequest(models.Model):
     def __str__(self):
         return f"{self.business.name} - {self.plan.name} - {self.get_status_display()}"
 
+    @db_transaction.atomic
     def confirm(self):
         from .services import record_provider_plan_payment
 
-        if self.status == self.Status.CONFIRMED:
+        payment_request = type(self).objects.select_for_update().select_related(
+            "business", "plan", "requested_by"
+        ).get(pk=self.pk)
+        if payment_request.status == self.Status.CONFIRMED:
             return None
+        if payment_request.status != self.Status.PENDING:
+            raise ValueError("Cette demande est annulée et ne peut pas être activée.")
+        if payment_request.business.owner_id != payment_request.requested_by_id:
+            raise ValueError("Le compte client ne possède pas cette fiche business.")
+        if payment_request.amount_xaf <= 0:
+            raise ValueError("Le montant de la demande doit être supérieur à zéro.")
+
         tx = record_provider_plan_payment(
-            business=self.business,
-            plan=self.plan,
-            paid_by=self.requested_by,
-            amount_xaf=self.amount_xaf,
-            payment_method=self.method.upper(),
+            business=payment_request.business,
+            plan=payment_request.plan,
+            paid_by=payment_request.requested_by,
+            amount_xaf=payment_request.amount_xaf,
+            payment_method=payment_request.method.upper(),
         )
-        self.status = self.Status.CONFIRMED
-        self.confirmed_at = timezone.now()
-        self.save(update_fields=["status", "confirmed_at"])
-        if self.business.activation_status != BusinessProfile.ActivationStatus.ACTIVE:
-            self.business.activation_status = BusinessProfile.ActivationStatus.ACTIVE
-            self.business.save(update_fields=["activation_status", "updated_at"])
+        if payment_request.plan.plan_level in {
+            BusinessProfile.Plan.BUSINESS,
+            BusinessProfile.Plan.PREMIUM,
+        }:
+            from payments.models import Transaction as PaymentTransaction
+
+            approved_at = timezone.now().isoformat()
+            PaymentTransaction.objects.create(
+                utilisateur=payment_request.requested_by,
+                type_tx="abonnement",
+                methode="manual",
+                montant=payment_request.amount_xaf,
+                devise="XAF",
+                statut="succes",
+                metadata={
+                    "product_type": "provider_whatsapp_onboarding",
+                    "provider_whatsapp_business_id": payment_request.business_id,
+                    "provider_whatsapp_plan_code": payment_request.plan.code,
+                    "provider_whatsapp_plan_level": payment_request.plan.plan_level,
+                    "provider_whatsapp_duration_days": payment_request.plan.duration_days,
+                    "provider_whatsapp_boost_days": payment_request.plan.included_boost_days,
+                    "provider_whatsapp_ai_credits": payment_request.plan.included_ai_credits,
+                    "provider_whatsapp_amount_xaf": payment_request.amount_xaf,
+                    "provider_whatsapp_payment_request_id": payment_request.pk,
+                    "provider_whatsapp_manual_approved_at": approved_at,
+                    "provider_whatsapp_activated_at": approved_at,
+                },
+            )
+
+        payment_request.status = self.Status.CONFIRMED
+        payment_request.confirmed_at = timezone.now()
+        payment_request.save(update_fields=["status", "confirmed_at"])
+        self.status = payment_request.status
+        self.confirmed_at = payment_request.confirmed_at
         return tx
 
 

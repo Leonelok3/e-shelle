@@ -22,7 +22,7 @@ from billing.affiliates import (
     get_affiliate_by_code,
     get_or_create_affiliate_profile,
 )
-from core.whatsapp import payment_request_url
+from core.whatsapp import payment_request_url, whatsapp_url as build_whatsapp_url
 
 from .models import (
     AppCommission,
@@ -2397,7 +2397,7 @@ def onboarding(request):
 
 @login_required
 def special_offer(request):
-    """Collect a verified Mobile Money payment for a provider subscription."""
+    """Start online checkout or create a manual WhatsApp payment request."""
     from payments.models import Transaction
     from .services import verified_provider_whatsapp_payment
     from whatsapp_commerce.entitlements import whatsapp_entitlements
@@ -2412,8 +2412,9 @@ def special_offer(request):
         pk=business_id,
         owner=request.user,
     )
+    requested_plan = request.GET.get("plan") or request.POST.get("plan", "")
     paid = verified_provider_whatsapp_payment(business)
-    if paid:
+    if paid and not requested_plan:
         can_connect = whatsapp_entitlements(business)["can_connect"]
         messages.success(
             request,
@@ -2421,7 +2422,7 @@ def special_offer(request):
                 "Paiement confirmé : votre abonnement est actif. "
                 "La connexion WABA est disponible à partir de Croissance — Business."
                 if not can_connect
-                else "Paiement confirmé par CamPay. La connexion WhatsApp officielle est débloquée."
+                else "Paiement confirmé. La connexion WhatsApp officielle peut être configurée sous réserve d’éligibilité et des validations Meta."
             ),
         )
         if can_connect:
@@ -2446,6 +2447,29 @@ def special_offer(request):
         )
         if request.POST.get("payment_method") == "whatsapp":
             amount = f"{selected_plan.monthly_price_xaf:,}".replace(",", " ")
+            with db_transaction.atomic():
+                BusinessProfile.objects.select_for_update().get(
+                    pk=business.pk,
+                    owner=request.user,
+                )
+                payment_request = PaymentRequest.objects.filter(
+                    business=business,
+                    plan=selected_plan,
+                    requested_by=request.user,
+                    method=PaymentRequest.Method.MOMO_MANUAL,
+                    status=PaymentRequest.Status.PENDING,
+                    amount_xaf=selected_plan.monthly_price_xaf,
+                ).order_by("-created_at").first()
+                if not payment_request:
+                    payment_request = PaymentRequest.objects.create(
+                        business=business,
+                        plan=selected_plan,
+                        requested_by=request.user,
+                        method=PaymentRequest.Method.MOMO_MANUAL,
+                        amount_xaf=selected_plan.monthly_price_xaf,
+                        phone=business.whatsapp or business.phone,
+                        note="Demande Mobile Money depuis WhatsApp ; confirmer le paiement avant activation.",
+                    )
             offer_url = request.build_absolute_uri(
                 f"{reverse('provider_special_offer')}?"
                 + urllib.parse.urlencode(
@@ -2454,24 +2478,22 @@ def special_offer(request):
             )
             if request.LANGUAGE_CODE == "en":
                 whatsapp_message = (
-                    f"Hello E-Shelle, I would like to pay manually and activate the "
-                    f"{selected_plan.display_name} plan ({amount} XAF) for "
-                    f"{business.name}. Please confirm the Mobile Money payment details "
-                    f"and send me an activation code after payment. Offer: {offer_url}"
+                    f"Hello E-Shelle, my manual payment request is #{payment_request.pk}. "
+                    f"Business: {business.name}. Plan: {selected_plan.display_name} "
+                    f"({amount} XAF for {selected_plan.duration_days} days). "
+                    f"Please send me the Mobile Money details. After verifying my payment, "
+                    f"activate the plan directly in my account; no code is needed. Offer: {offer_url}"
                 )
             else:
                 whatsapp_message = (
-                    f"Bonjour E-Shelle, je souhaite payer manuellement et activer le "
-                    f"plan {selected_plan.display_name} ({amount} FCFA) pour "
-                    f"{business.name}. Merci de me confirmer les modalités Mobile "
-                    f"Money et de m'envoyer un code d'activation après paiement. "
+                    f"Bonjour E-Shelle, ma demande de paiement manuel est la #{payment_request.pk}. "
+                    f"Fiche : {business.name}. Formule : {selected_plan.display_name} "
+                    f"({amount} FCFA pour {selected_plan.duration_days} jours). "
+                    f"Merci de m'envoyer les modalités Mobile Money. Après vérification "
+                    f"du paiement, activez directement la formule dans mon compte, sans code. "
                     f"Offre : {offer_url}"
                 )
-            whatsapp_url = (
-                "https://wa.me/237680625082?"
-                + urllib.parse.urlencode({"text": whatsapp_message})
-            )
-            return redirect(whatsapp_url)
+            return redirect(build_whatsapp_url(whatsapp_message))
 
         from payments.views import _start_campay_checkout
 
@@ -2518,8 +2540,7 @@ def special_offer(request):
             fallback_url=fallback_url,
         )
 
-    requested_plan = request.GET.get("plan", "")
-    selected_plan = plans.filter(code=requested_plan).first() or plans.first()
+    selected_plan = plans.filter(code=request.GET.get("plan", "")).first() or plans.first()
     return render(
         request,
         "business/special_offer.html",
@@ -3064,15 +3085,25 @@ def payment_request(request, business_id):
             phone=phone,
             note=note,
         )
-        business.activation_status = BusinessProfile.ActivationStatus.PENDING
-        business.save(update_fields=["activation_status", "updated_at"])
-        whatsapp_url = payment_request_url(
-            service=f"Business activation - {business.display_name} ({plan.display_name})" if request.LANGUAGE_CODE == "en" else f"Activation Business - {business.display_name} ({plan.display_name})",
-            amount=f"{plan.monthly_price_xaf} XAF" if request.LANGUAGE_CODE == "en" else f"{plan.monthly_price_xaf} FCFA",
-            user=request.user,
-            details=(f"Request #{payment.pk} | {note or 'Business activation'}" if request.LANGUAGE_CODE == "en" else f"Demande #{payment.pk} | {note or 'Activation business'}"),
+        if request.LANGUAGE_CODE == "en":
+            whatsapp_message = (
+                f"Hello E-Shelle, my payment request is #{payment.pk} for "
+                f"{business.display_name}: {plan.display_name}, {plan.monthly_price_xaf} XAF "
+                f"for {plan.duration_days} days. Please confirm the Mobile Money details. "
+                "After verifying payment, activate my plan directly in my account; no code is needed."
+            )
+        else:
+            whatsapp_message = (
+                f"Bonjour E-Shelle, ma demande de paiement est la #{payment.pk} pour "
+                f"{business.display_name} : {plan.display_name}, {plan.monthly_price_xaf} FCFA "
+                f"pour {plan.duration_days} jours. Merci de confirmer les modalit\u00e9s Mobile Money. "
+                "Apr\u00e8s v\u00e9rification du paiement, activez directement ma formule dans mon compte, sans code."
+            )
+        whatsapp_url = build_whatsapp_url(whatsapp_message)
+        messages.info(
+            request,
+            "Votre demande est enregistrée. Après vérification du paiement, votre formule sera activée directement, sans code.",
         )
-        messages.info(request, "Contact E-Shelle on WhatsApp to confirm your request and receive access after approval." if request.LANGUAGE_CODE == "en" else "Contactez E-Shelle sur WhatsApp pour confirmer votre demande et recevoir votre accès après validation.")
         return redirect(whatsapp_url)
 
     return render(
@@ -3081,7 +3112,19 @@ def payment_request(request, business_id):
         {
             "business": business,
             "plan": plan,
-            "methods": ([(value, {PaymentRequest.Method.CASH_ON_DELIVERY: "Cash on delivery", PaymentRequest.Method.MOMO_MANUAL: "Manual Mobile Money", PaymentRequest.Method.ACCESS_CODE: "Access code", PaymentRequest.Method.ONLINE: "Online payment"}[value]) for value, _label in PaymentRequest.Method.choices] if request.LANGUAGE_CODE == "en" else PaymentRequest.Method.choices),
+            "methods": (
+                [
+                    (value, label)
+                    for value, label in PaymentRequest.Method.choices
+                    if value != PaymentRequest.Method.ACCESS_CODE
+                ]
+                if request.LANGUAGE_CODE != "en"
+                else [
+                    (PaymentRequest.Method.CASH_ON_DELIVERY, "Cash on delivery"),
+                    (PaymentRequest.Method.MOMO_MANUAL, "Manual Mobile Money"),
+                    (PaymentRequest.Method.ONLINE, "Online payment"),
+                ]
+            ),
         },
     )
 
