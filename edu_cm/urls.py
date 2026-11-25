@@ -953,6 +953,9 @@ urlpatterns = [
 
     # Page d'accueil
     path("", home_view, name="home"),
+    path("restaurant/", business_views.restaurant_landing, name="restaurant_landing"),
+    path("vendeur-whatsapp/", business_views.whatsapp_seller_landing, name="whatsapp_seller_landing"),
+    path("on-fait-ta-fiche/", business_views.done_for_you_landing, name="done_for_you_landing"),
     path("produits-services/", products_services_view, name="products_services"),
     path("presentation/", presentation_view, name="presentation"),
     path("immigration/", immigration_view, name="immigration"),

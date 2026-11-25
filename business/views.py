@@ -807,6 +807,18 @@ def restaurant_sales(request):
     return render(request, "business/restaurant_sales.html")
 
 
+def restaurant_landing(request):
+    return render(request, "business/restaurant_landing.html")
+
+
+def whatsapp_seller_landing(request):
+    return render(request, "business/whatsapp_seller_landing.html")
+
+
+def done_for_you_landing(request):
+    return render(request, "business/done_for_you_landing.html")
+
+
 def wholesale_sales(request):
     """Page de présentation du catalogue business pour grossistes et grandes boutiques."""
     return render(request, "business/wholesale_sales.html")
