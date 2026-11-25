@@ -896,58 +896,10 @@
       {# Liens de navigation #}
       <ul class="navbar-nav" role="list">
         <li><a href="/" class="nav-link {% block nav_home %}{% endblock %}">{% if LANGUAGE_CODE == 'en' %}Home{% else %}Accueil{% endif %}</a></li>
-        <li class="nav-dropdown">
-          <a href="{% url 'marketing' %}" class="nav-link {% block nav_marketing %}{% endblock %}">📣 Marketing ▾</a>
-          <div class="nav-dropdown__menu">
-            <a href="{% url 'whatsapp_commerce:campaigns_home' %}" class="nav-dropdown__item">
-              <span class="nav-dropdown__icon">💬</span>
-              <div>
-                <strong>{% if LANGUAGE_CODE == 'en' %}WhatsApp Campaigns{% else %}Campagnes WhatsApp{% endif %}</strong>
-                <small>{% if LANGUAGE_CODE == 'en' %}Bulk messaging via official Meta API{% else %}Envois massifs via l'API officielle Meta{% endif %}</small>
-              </div>
-            </a>
-            <a href="{% url 'services:whatsapp-business' %}" class="nav-dropdown__item">
-              <span class="nav-dropdown__icon">📲</span>
-              <div>
-                <strong>{% if LANGUAGE_CODE == 'en' %}WhatsApp Business API{% else %}WhatsApp Business API{% endif %}</strong>
-                <small>{% if LANGUAGE_CODE == 'en' %}Setup and connection{% else %}Installation et connexion{% endif %}</small>
-              </div>
-            </a>
-            {% if user.is_staff %}
-            <a href="{% url 'whatsapp_commerce:tech_provider_dashboard' %}" class="nav-dropdown__item">
-              <span class="nav-dropdown__icon">🧭</span>
-              <div>
-                <strong>{% if LANGUAGE_CODE == 'en' %}WABA clients{% else %}Clients WABA{% endif %}</strong>
-                <small>{% if LANGUAGE_CODE == 'en' %}Manage connected businesses{% else %}Gérer les entreprises connectées{% endif %}</small>
-              </div>
-            </a>
-            {% endif %}
-            <a href="{% url 'commercial_agent:prospect_list' %}" class="nav-dropdown__item">
-              <span class="nav-dropdown__icon">🎯</span>
-              <div>
-                <strong>{% if LANGUAGE_CODE == 'en' %}Sales Prospects{% else %}Prospects Commerciaux{% endif %}</strong>
-                <small>{% if LANGUAGE_CODE == 'en' %}Qualify &amp; engage on WhatsApp{% else %}Qualifier &amp; envoyer vers WhatsApp{% endif %}</small>
-              </div>
-            </a>
-            <a href="{% url 'commercial_agent:sourcing_hub' %}" class="nav-dropdown__item">
-              <span class="nav-dropdown__icon">🔍</span>
-              <div>
-                <strong>{% if LANGUAGE_CODE == 'en' %}Provider Sourcing{% else %}Sourcing Prestataires{% endif %}</strong>
-                <small>{% if LANGUAGE_CODE == 'en' %}Discover restaurants &amp; shops{% else %}Détection restaurants &amp; commerces{% endif %}</small>
-              </div>
-            </a>
-            <div class="nav-dropdown__sep"></div>
-            <a href="{% url 'marketing' %}" class="nav-dropdown__item">
-              <span class="nav-dropdown__icon">📣</span>
-              <div>
-                <strong>{% if LANGUAGE_CODE == 'en' %}Marketing Hub{% else %}Hub Marketing{% endif %}</strong>
-                <small>{% if LANGUAGE_CODE == 'en' %}Overview of tools &amp; storefronts{% else %}Présentation des outils &amp; vitrines{% endif %}</small>
-              </div>
-            </a>
-          </div>
-        </li>
-        <li><a href="{% url 'formation' %}" class="nav-link {% block nav_formation %}{% endblock %}">🎓 {% if LANGUAGE_CODE == 'en' %}Learning{% else %}Formation{% endif %}</a></li>
-        <li><a href="{% url 'boutique:index' %}" class="nav-link {% block nav_boutique %}{% endblock %}">🛍️ {% if LANGUAGE_CODE == 'en' %}Digital Store{% else %}Boutique Digital{% endif %}</a></li>
+        <li><a href="{% url 'restaurant_landing' %}" class="nav-link">🍽️ Restaurant</a></li>
+        <li><a href="{% url 'whatsapp_seller_landing' %}" class="nav-link">💬 Vendeur WhatsApp</a></li>
+        <li><a href="{% url 'done_for_you_landing' %}" class="nav-link">🛠️ On fait ta fiche</a></li>
+
         <li><a href="/presentation/" class="nav-link {% block nav_presentation %}{% endblock %}">{% if LANGUAGE_CODE == 'en' %}About{% else %}À propos{% endif %}</a></li>
         <li><a href="/services/contact/" class="nav-link {% block nav_contact %}{% endblock %}">{% if LANGUAGE_CODE == 'en' %}Contact{% else %}Contact{% endif %}</a></li>
       </ul>
@@ -992,7 +944,7 @@
         </button>
 
         {% if not user_has_business %}
-        <a href="{% url 'business:onboarding' %}" class="btn btn-accent btn-sm">{% if LANGUAGE_CODE == 'en' %}List your business{% else %}Créer ma boutique{% endif %}</a>
+        <a href="{% url 'business:onboarding' %}" class="btn btn-accent btn-sm">Créer ma fiche</a>
         {% endif %}
 
         {# Lien dashboard #}
@@ -1001,7 +953,7 @@
         </a>
 
         {% else %}
-        <a href="{% url 'business:onboarding' %}" class="btn btn-accent btn-sm">{% if LANGUAGE_CODE == 'en' %}List your business{% else %}Créer ma boutique{% endif %}</a>
+        <a href="{% url 'business:onboarding' %}" class="btn btn-accent btn-sm">Créer ma fiche</a>
         <a href="/accounts/login/" class="btn btn-outline btn-sm">{% if LANGUAGE_CODE == 'en' %}Sign in{% else %}Connexion{% endif %}</a>
         {% endif %}
 
@@ -1020,22 +972,14 @@
           <span class="language-fixed" aria-label="Langue du site : français">FR</span>
         </div>
         <a href="/" class="nav-link" role="menuitem">🏠 {% if LANGUAGE_CODE == 'en' %}Home{% else %}Accueil{% endif %}</a>
-        <a href="{% url 'marketing' %}" class="nav-link {% block nav_marketing_mobile %}{% endblock %}" role="menuitem">📣 Marketing</a>
-        <a href="{% url 'whatsapp_commerce:campaigns_home' %}" class="nav-link mobile-sub" role="menuitem" style="color: #4ade80 !important;">💬 WhatsApp</a>
-        <a href="{% url 'services:whatsapp-business' %}" class="nav-link mobile-sub" role="menuitem" style="color:#86efac !important;font-weight:800;">📲 {% if LANGUAGE_CODE == 'en' %}WhatsApp Business API setup{% else %}Installation WhatsApp Business API{% endif %}</a>
-        {% if user.is_staff %}<a href="{% url 'whatsapp_commerce:tech_provider_dashboard' %}" class="nav-link mobile-sub" role="menuitem" style="color:#fbbf24 !important;font-weight:800;">🧭 {% if LANGUAGE_CODE == 'en' %}WABA clients{% else %}Clients WABA{% endif %}</a>{% endif %}
-        <a href="{% url 'whatsapp_agent:wa_inbox' %}" class="nav-link mobile-sub" role="menuitem" style="color: #4ade80 !important;">📥 {% if LANGUAGE_CODE == 'en' %}Replies &amp; Inbox{% else %}Réponses &amp; Inbox{% endif %}</a>
-        <a href="{% url 'whatsapp_agent:wa_contacts' %}" class="nav-link mobile-sub" role="menuitem" style="color: #4ade80 !important;">👥 {% if LANGUAGE_CODE == 'en' %}WhatsApp Contacts{% else %}Contacts WhatsApp{% endif %}</a>
-        <a href="{% url 'whatsapp_agent:wa_import_contacts' %}" class="nav-link mobile-sub" role="menuitem" style="color: #4ade80 !important;">📥 {% if LANGUAGE_CODE == 'en' %}Import Contacts{% else %}Importer Numéros{% endif %}</a>
-        <a href="{% url 'commercial_agent:prospect_list' %}" class="nav-link mobile-sub" role="menuitem" style="color: #4ade80 !important;">🎯 {% if LANGUAGE_CODE == 'en' %}Sales Prospects{% else %}Prospects Commerciaux{% endif %}</a>
-        <a href="{% url 'commercial_agent:sourcing_hub' %}" class="nav-link mobile-sub" role="menuitem" style="color: #4ade80 !important;">🔍 {% if LANGUAGE_CODE == 'en' %}Provider Sourcing{% else %}Sourcing Prestataires{% endif %}</a>
-        <a href="{% url 'formation' %}" class="nav-link {% block nav_formation_mobile %}{% endblock %}" role="menuitem">🎓 {% if LANGUAGE_CODE == 'en' %}Learning{% else %}Formation{% endif %}</a>
-        <a href="{% url 'boutique:index' %}" class="nav-link {% block nav_boutique_mobile %}{% endblock %}" role="menuitem">🛍️ {% if LANGUAGE_CODE == 'en' %}Digital Store{% else %}Boutique Digital{% endif %}</a>
+        <a href="{% url 'restaurant_landing' %}" class="nav-link" role="menuitem">🍽️ Restaurant</a>
+        <a href="{% url 'whatsapp_seller_landing' %}" class="nav-link" role="menuitem">💬 Vendeur WhatsApp</a>
+        <a href="{% url 'done_for_you_landing' %}" class="nav-link" role="menuitem">🛠️ On fait ta fiche</a>
         <a href="{% if request.is_immigration97 %}{% url 'germany_opportunities:premium_pricing' %}{% else %}{% url 'tarifs' %}#merchant-plans-title{% endif %}" class="nav-link" role="menuitem">{% if LANGUAGE_CODE == 'en' %}Pricing{% else %}Tarifs{% endif %}</a>
         <a href="/presentation/" class="nav-link" role="menuitem">ℹ️ {% if LANGUAGE_CODE == 'en' %}About{% else %}À propos{% endif %}</a>
         <a href="/services/contact/" class="nav-link" role="menuitem">📩 Contact</a>
         {% if not user_has_business %}
-        <a href="{% url 'business:onboarding' %}" class="nav-link" role="menuitem" style="color:#7dec6c;font-weight:900">🚀 {% if LANGUAGE_CODE == 'en' %}List your business{% else %}Créer ma boutique{% endif %}</a>
+        <a href="{% url 'business:onboarding' %}" class="nav-link" role="menuitem" style="color:#7dec6c;font-weight:900">🚀 Créer ma fiche</a>
         {% endif %}
 
         <div style="display:flex;gap:.75rem;padding:.75rem 1rem 1rem">
