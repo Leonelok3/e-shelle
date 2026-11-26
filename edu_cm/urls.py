@@ -144,6 +144,7 @@ def formation_view(request):
 
 def home_view(request):
     ctx = {}
+    ctx["academy_formations"] = []
     try:
         from gaz.models import DepotGaz
         ctx["gaz_depots_vedette"] = DepotGaz.objects.filter(
@@ -303,6 +304,16 @@ def home_view(request):
         )
     except Exception:
         ctx["home_pilot_restaurant"] = None
+    try:
+        from formations.models import Formation
+        ctx["academy_formations"] = list(
+            Formation.objects.filter(is_published=True)
+            .select_related("categorie")
+            .order_by("-is_featured", "-created_at")[:3]
+        )
+    except Exception:
+        # L'indisponibilité du catalogue ne doit pas bloquer la page d'accueil.
+        ctx["academy_formations"] = []
     return render(request, "home.html", ctx)
 
 

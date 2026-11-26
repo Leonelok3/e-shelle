@@ -32,9 +32,12 @@ def portfolio(request):
 
 def configurateur(request):
     """Wizard interactif de configuration de projet et génération de devis."""
-    offres = OffreService.objects.filter(is_active=True).order_by("ordre")
     with translation.override(request.LANGUAGE_CODE):
-        context = {"offres": list(offres)}
+        # Le configurateur est autonome : les offres de la page Services ne sont
+        # pas utilisées dans son formulaire. Éviter une requête inutile ici
+        # permet aussi au wizard de rester accessible si le catalogue est en
+        # cours de réparation en base.
+        context = {"offres": []}
     return render(request, "services/configurateur.html", context)
 
 
