@@ -4,43 +4,117 @@
 {% block title %}Immobilier Cameroun — Appartements, Villas, Terrains | E-Shelle{% endblock %}
 {% block meta_description %}Trouvez votre bien immobilier au Cameroun : appartements meublés, villas, studios à louer ou acheter à Yaoundé, Douala et partout au Cameroun.{% endblock %}
 
+{% block immo_extra_css %}
+<style>
+  .immo-catalogue-page{padding:28px 0 56px;background:linear-gradient(180deg,#f0f6f1 0,#f8faf8 520px,#fff 100%)}
+  .immo-catalogue-page>.container{max-width:1360px}
+  .immo-catalogue-page .immo-hero-catalogue{display:grid;grid-template-columns:minmax(0,1.12fr) minmax(290px,.78fr);align-items:center;gap:clamp(24px,5vw,64px);padding:clamp(28px,5vw,58px);margin-bottom:20px;border:1px solid #1f5b3e;border-radius:28px;background:radial-gradient(circle at 90% 5%,#246746 0,transparent 32%),linear-gradient(125deg,#0b2116,#123b28 70%,#18482f);box-shadow:0 24px 55px #0922162b}
+  .immo-catalogue-page .immo-hero-catalogue__copy,.immo-catalogue-page .immo-hero-catalogue__visual{position:relative;z-index:1;min-width:0}
+  .immo-catalogue-page .immo-hero-kicker{display:inline-flex;align-items:center;gap:8px;margin-bottom:14px;color:#a8e0b9;font-size:.76rem;font-weight:900;letter-spacing:.12em;text-transform:uppercase}
+  .immo-catalogue-page .immo-hero-kicker:before{width:8px;height:8px;border-radius:50%;background:#ff9a1f;content:""}
+  .immo-catalogue-page .immo-hero-catalogue__titre{max-width:690px;margin:0 0 12px;color:#fff;font-family:inherit;font-size:clamp(2.4rem,5vw,4.4rem);font-weight:900;line-height:1.02;letter-spacing:-.055em}
+  .immo-catalogue-page .immo-hero-catalogue__sous-titre{margin:0 0 12px;color:#ffd27d;font-size:1rem;font-weight:850}
+  .immo-catalogue-page .immo-hero-copy-text{max-width:640px;margin:0 0 22px;color:#e3eee6;font-size:1.03rem;line-height:1.7}
+  .immo-catalogue-page .immo-hero-catalogue__search{display:grid;grid-template-columns:minmax(160px,1fr) minmax(140px,.62fr) auto;gap:10px;align-items:center}
+  .immo-catalogue-page .immo-hero-catalogue__input,.immo-catalogue-page .immo-hero-catalogue__select{width:100%;min-width:0;min-height:52px;padding:12px 15px;border:1px solid #d9e5dc;border-radius:12px;background:#fff;color:#14251b;font-size:.92rem;box-shadow:0 5px 16px #00000012}
+  .immo-catalogue-page .immo-hero-catalogue__input::placeholder{color:#68766d}
+  .immo-catalogue-page .immo-hero-catalogue__select option{background:#fff;color:#14251b}
+  .immo-catalogue-page .immo-hero-catalogue__search .immo-btn{min-height:52px;padding:0 18px;border-radius:12px;white-space:nowrap}
+  .immo-catalogue-page .immo-hero-actions{display:flex;align-items:center;flex-wrap:wrap;gap:12px;margin-top:18px}
+  .immo-catalogue-page .immo-hero-publish{display:inline-flex;align-items:center;gap:8px;padding:11px 15px;border:1px solid #91caa4;border-radius:12px;color:#fff;font-weight:850;text-decoration:none;transition:background .18s,transform .18s}
+  .immo-catalogue-page .immo-hero-publish:hover{transform:translateY(-2px);background:#ffffff14;color:#fff}
+  .immo-catalogue-page .immo-hero-catalogue__visual{display:flex;justify-content:center;min-height:300px}
+  .immo-catalogue-page .immo-featured-preview{position:relative;width:min(100%,390px);align-self:center;padding:11px;border:1px solid #ffffff35;border-radius:23px;background:#ffffff14;box-shadow:0 20px 48px #0003;backdrop-filter:blur(8px);transform:rotate(1.2deg)}
+  .immo-catalogue-page .immo-featured-photo{position:relative;height:215px;overflow:hidden;border-radius:16px;background:linear-gradient(140deg,#d9e9dc,#b9d3c0)}
+  .immo-catalogue-page .immo-featured-photo img{width:100%;height:100%;object-fit:cover;display:block}
+  .immo-catalogue-page .immo-featured-placeholder{display:grid;width:100%;height:100%;place-items:center;color:#0d6742;font-size:3rem}
+  .immo-catalogue-page .immo-featured-label{position:absolute;top:12px;left:12px;padding:7px 10px;border-radius:999px;background:#fff;color:#0b6743;font-size:.68rem;font-weight:900;letter-spacing:.06em;text-transform:uppercase}
+  .immo-catalogue-page .immo-featured-details{padding:13px 5px 3px;color:#fff}
+  .immo-catalogue-page .immo-featured-details small{display:block;color:#cde4d3;font-size:.72rem;font-weight:800;text-transform:uppercase;letter-spacing:.08em}
+  .immo-catalogue-page .immo-featured-details h2{margin:5px 0;color:#fff;font-size:1.13rem;font-weight:850}
+  .immo-catalogue-page .immo-featured-bottom{display:flex;align-items:center;justify-content:space-between;gap:12px}
+  .immo-catalogue-page .immo-featured-price{color:#ffd27d;font-size:1.15rem;font-weight:950}
+  .immo-catalogue-page .immo-featured-link{color:#fff;font-size:.8rem;font-weight:850;text-decoration:none}
+  .immo-catalogue-page .immo-featured-link:hover{text-decoration:underline}
+  .immo-catalogue-page .immo-transaction-links{display:flex;flex-wrap:wrap;gap:10px;margin:0 0 28px}
+  .immo-catalogue-page .immo-transaction-links a{display:inline-flex;align-items:center;gap:8px;padding:10px 15px;border:1px solid #cfe0d3;border-radius:999px;background:#fff;color:#17442c;font-size:.88rem;font-weight:850;text-decoration:none;box-shadow:0 5px 14px #10251b0a;transition:transform .18s,border-color .18s,background .18s}
+  .immo-catalogue-page .immo-transaction-links a:hover{transform:translateY(-2px);border-color:#70a982;background:#eaf5ed;color:#0b6743}
+  .immo-catalogue-page #annonces{scroll-margin-top:100px}
+  .immo-catalogue-page .immo-results-heading{display:flex;align-items:end;justify-content:space-between;gap:16px;margin:0 0 18px}
+  .immo-catalogue-page .immo-results-heading h2{margin:0;color:#10271a;font-size:clamp(1.4rem,3vw,2rem);font-weight:900;letter-spacing:-.035em}
+  .immo-catalogue-page .immo-results-heading p{margin:5px 0 0;color:#5c6b60}
+  .immo-catalogue-page .immo-grid{gap:22px}
+  .immo-catalogue-page .immo-card{border:1px solid #dce8df;border-radius:18px;box-shadow:0 9px 24px #10251b0d}
+  .immo-catalogue-page .immo-card:hover{transform:translateY(-4px);box-shadow:0 18px 38px #10251b1a}
+  @media(max-width:900px){.immo-catalogue-page .immo-hero-catalogue{grid-template-columns:1fr minmax(245px,.75fr);gap:22px;padding:30px}.immo-catalogue-page .immo-hero-catalogue__search{grid-template-columns:1fr 1fr}.immo-catalogue-page .immo-hero-catalogue__search .immo-btn{grid-column:1/-1}.immo-catalogue-page .immo-featured-photo{height:190px}}
+  @media(max-width:680px){.immo-catalogue-page{padding-top:16px}.immo-catalogue-page .immo-hero-catalogue{grid-template-columns:1fr;padding:25px 19px;border-radius:22px}.immo-catalogue-page .immo-hero-catalogue__titre{font-size:clamp(2.35rem,11vw,3.3rem)}.immo-catalogue-page .immo-hero-catalogue__search{grid-template-columns:1fr}.immo-catalogue-page .immo-hero-catalogue__search .immo-btn{grid-column:auto}.immo-catalogue-page .immo-hero-catalogue__visual{min-height:0;margin-top:4px}.immo-catalogue-page .immo-featured-preview{max-width:430px;transform:none}.immo-catalogue-page .immo-featured-photo{height:220px}.immo-catalogue-page .immo-transaction-links a{flex:1 1 calc(50% - 10px);justify-content:center}.immo-catalogue-page .immo-results-heading{align-items:start;flex-direction:column}.immo-catalogue-page .immo-grid{grid-template-columns:1fr;gap:16px}}
+</style>
+{% endblock %}
+
 {% block breadcrumb_items %}
   <li class="breadcrumb-item active">Catalogue</li>
 {% endblock %}
 
 {% block immo_content %}
-<div class="container py-4">
+<div class="immo-catalogue-page">
+<div class="container">
 
   <!-- Hero bandeau -->
   <div class="immo-hero-catalogue">
-    <h1 class="immo-hero-catalogue__titre">
-      🏠 Immobilier au Cameroun
-    </h1>
-    <p class="immo-hero-catalogue__sous-titre">
-      {{ nb_resultats }} bien{{ nb_resultats|pluralize }} disponible{{ nb_resultats|pluralize }}
-    </p>
+    <div class="immo-hero-catalogue__copy">
+      <span class="immo-hero-kicker">Location · vente · colocation</span>
+      <h1 class="immo-hero-catalogue__titre">Trouve ton prochain chez-toi au Cameroun</h1>
+      <p class="immo-hero-catalogue__sous-titre">{{ nb_resultats }} bien{{ nb_resultats|pluralize }} disponible{{ nb_resultats|pluralize }} dans le catalogue</p>
+      <p class="immo-hero-copy-text">Explore des annonces à Douala, Yaoundé et ailleurs. Compare les détails, puis contacte directement l’annonceur pour vérifier la disponibilité et organiser une visite.</p>
 
-    <!-- Barre de recherche rapide -->
-    <form method="get" action="{% url 'immobilier:liste_biens' %}" class="immo-hero-catalogue__search">
-      <input
-        type="text" name="q"
-        value="{{ request.GET.q|default:'' }}"
-        placeholder="Ville, quartier, type de bien…"
-        class="immo-hero-catalogue__input"
-      >
-      <select name="type_transaction" class="immo-hero-catalogue__select">
-        <option value="">Location & Vente</option>
-        <option value="LOCATION" {% if request.GET.type_transaction == 'LOCATION' %}selected{% endif %}>Location</option>
-        <option value="VENTE"    {% if request.GET.type_transaction == 'VENTE' %}selected{% endif %}>Vente</option>
-        <option value="COLOCATION" {% if request.GET.type_transaction == 'COLOCATION' %}selected{% endif %}>Colocation</option>
-      </select>
-      <button type="submit" class="immo-btn immo-btn--primary">
-        <i class="fa-solid fa-magnifying-glass"></i> Rechercher
-      </button>
-    </form>
+      <!-- Recherche réelle du catalogue : filtres transmis à la vue existante. -->
+      <form method="get" action="{% url 'immobilier:liste_biens' %}" class="immo-hero-catalogue__search">
+        <input type="text" name="q" value="{{ request.GET.q|default:'' }}" placeholder="Ville, quartier, type de bien…" class="immo-hero-catalogue__input" aria-label="Ville, quartier ou type de bien">
+        <select name="type_transaction" class="immo-hero-catalogue__select" aria-label="Type de transaction">
+          <option value="">Location &amp; vente</option>
+          <option value="LOCATION" {% if request.GET.type_transaction == 'LOCATION' %}selected{% endif %}>Location</option>
+          <option value="VENTE" {% if request.GET.type_transaction == 'VENTE' %}selected{% endif %}>Vente</option>
+          <option value="COLOCATION" {% if request.GET.type_transaction == 'COLOCATION' %}selected{% endif %}>Colocation</option>
+        </select>
+        <button type="submit" class="immo-btn immo-btn--primary"><i class="fa-solid fa-magnifying-glass"></i> Rechercher</button>
+      </form>
+      <div class="immo-hero-actions"><a href="#annonces" class="immo-hero-publish"><i class="fa-solid fa-arrow-down"></i> Explorer les annonces</a><a href="{% url 'immobilier:publier_bien' %}" class="immo-hero-publish"><i class="fa-solid fa-plus"></i> Publier un bien</a></div>
+    </div>
+
+    <div class="immo-hero-catalogue__visual" aria-label="Annonce immobilière mise en avant">
+      {% if coups_de_coeur %}
+        {% with preview=coups_de_coeur.0 %}
+        <article class="immo-featured-preview">
+          <a href="{{ preview.get_absolute_url }}" class="text-decoration-none">
+            <div class="immo-featured-photo">
+              {% with photo=preview.photo_principale %}{% if photo %}<img src="{{ photo.image.url }}" alt="{{ preview.titre }}" fetchpriority="high">{% else %}<div class="immo-featured-placeholder"><i class="fa-solid fa-house"></i></div>{% endif %}{% endwith %}
+              <span class="immo-featured-label">❤️ Coup de cœur</span>
+            </div>
+            <div class="immo-featured-details"><small>{{ preview.get_type_bien_display }} · {{ preview.get_type_transaction_display }}</small><h2>{{ preview.titre }}</h2><div class="immo-featured-bottom"><span class="immo-featured-price">{{ preview.prix_formate }}</span><span class="immo-featured-link">Découvrir →</span></div></div>
+          </a>
+        </article>
+        {% endwith %}
+      {% elif page_obj.object_list %}
+        {% with preview=page_obj.object_list.0 %}
+        <article class="immo-featured-preview">
+          <a href="{{ preview.get_absolute_url }}" class="text-decoration-none">
+            <div class="immo-featured-photo">
+              {% with photo=preview.photo_principale %}{% if photo %}<img src="{{ photo.image.url }}" alt="{{ preview.titre }}" fetchpriority="high">{% else %}<div class="immo-featured-placeholder"><i class="fa-solid fa-house"></i></div>{% endif %}{% endwith %}
+              <span class="immo-featured-label">À découvrir</span>
+            </div>
+            <div class="immo-featured-details"><small>{{ preview.get_type_bien_display }} · {{ preview.get_type_transaction_display }}</small><h2>{{ preview.titre }}</h2><div class="immo-featured-bottom"><span class="immo-featured-price">{{ preview.prix_formate }}</span><span class="immo-featured-link">Découvrir →</span></div></div>
+          </a>
+        </article>
+        {% endwith %}
+      {% else %}
+        <div class="immo-featured-preview"><div class="immo-featured-photo"><div class="immo-featured-placeholder"><i class="fa-solid fa-house"></i></div><span class="immo-featured-label">Catalogue E-Shelle Immo</span></div><div class="immo-featured-details"><small>Location · Vente · Colocation</small><h2>Les annonces disponibles s’afficheront ici</h2></div></div>
+      {% endif %}
+    </div>
   </div>
 
-  <div class="row g-4">
+  <nav class="immo-transaction-links" aria-label="Explorer par transaction"><a href="{% url 'immobilier:liste_biens' %}?type_transaction=LOCATION">🔑 Locations</a><a href="{% url 'immobilier:liste_biens' %}?type_transaction=VENTE">🏡 Biens à vendre</a><a href="{% url 'immobilier:liste_biens' %}?type_transaction=COLOCATION">🤝 Colocations</a><a href="{% url 'immobilier:publier_bien' %}">＋ Publier une annonce</a></nav>
+
+  <div class="row g-4" id="annonces">
 
     <!-- Sidebar filtres -->
     <div class="col-lg-3">
@@ -81,6 +155,8 @@
 
     <!-- Grille des biens -->
     <div class="col-lg-9">
+
+      <div class="immo-results-heading"><div><h2>Les biens disponibles</h2><p>{{ nb_resultats }} résultat{{ nb_resultats|pluralize }} · Consulte les détails et contacte l’annonceur.</p></div></div>
 
       {% if page_obj.object_list %}
         <div class="immo-grid">
@@ -132,5 +208,6 @@
       {% endif %}
     </div>
   </div>
+</div>
 </div>
 {% endblock %}
