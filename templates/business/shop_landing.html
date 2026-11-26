@@ -1,28 +1,68 @@
 {% extends "business/sales_landing_base.html" %}
+{% block page_class %}shop-sales-page{% endblock %}
 {% block title %}Boutique en ligne pour tes produits | E-Shelle{% endblock %}
 {% block meta_description %}Présente tes produits, leurs prix et tes photos dans un catalogue E-Shelle facile à partager. Tes clients te contactent directement sur WhatsApp.{% endblock %}
 {% block kicker %}Pour les boutiques et commerçants{% endblock %}
 {% block headline %}Ta boutique en ligne, claire et facile à partager{% endblock %}
 {% block intro %}Présente tes produits et leurs prix sur une fiche catalogue adaptée au téléphone. Partage le lien ; le client te contacte sur WhatsApp pour convenir du paiement et de la livraison.{% endblock %}
-{% block top_cta %}<div class="sales-cta-wrap"><a class="sales-cta" href="{% url 'business:onboarding' %}?plan=free">Créer ma fiche gratuite</a></div>{% endblock %}
+{% block hero_visual %}
+<div class="shop-hero-scene" aria-label="Exemple de catalogue de boutique sur téléphone">
+  <div class="shop-device">
+    <div class="shop-device-top"><span>9:41</span><span>●●● ▰</span></div>
+    <div class="shop-brand-row"><span class="shop-brand-mark">W</span><span><strong>ATELIER WAX</strong><small>Mode · Douala</small></span><span class="shop-menu-mark">⋯</span></div>
+    <div class="shop-catalog-label"><span>COLLECTION DU MOMENT</span><b>Exemple de boutique</b></div>
+    <div class="shop-hero-products">
+      <article class="shop-hero-product"><div class="shop-product-art shop-dress" aria-hidden="true"><span>👗</span><i>FAIT AU CAMEROUN</i></div><strong>Robe en wax</strong><small>Tailles disponibles</small><b>12 500 F</b></article>
+      <article class="shop-hero-product"><div class="shop-product-art shop-bag" aria-hidden="true"><span>👜</span><i>PIÈCE ARTISANALE</i></div><strong>Sac artisanal</strong><small>Plusieurs couleurs</small><b>8 000 F</b></article>
+    </div>
+    <div class="shop-device-wa"><span aria-hidden="true">◉</span> Écrire à la boutique</div>
+    <small class="shop-device-caption">Maquette · Produits et prix fictifs</small>
+  </div>
+  <span class="shop-float-tag">📱 Lisible sur téléphone</span>
+</div>
+{% endblock %}
+{% block top_cta %}<div class="sales-cta-wrap"><a class="sales-cta" href="{% url 'business:onboarding' %}?plan=free">Créer ma boutique gratuite →</a></div>{% endblock %}
 {% block sales_sections %}
 <style>
-  .shop-demo{max-width:780px;margin:2rem auto;padding:1.2rem;border:1px solid #d7e5dc;border-radius:22px;background:#f3f8f4;box-shadow:0 15px 40px #10251b12}
-  .shop-demo-head{display:flex;justify-content:space-between;align-items:center;gap:1rem;padding:.5rem .4rem 1rem;color:#123324;font-weight:900}
-  .shop-demo-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:1rem}
-  .shop-demo-item{padding:.8rem;border:1px solid #e1e9e4;border-radius:16px;background:#fff}
-  .shop-demo-art{display:grid;place-items:center;min-height:150px;border-radius:12px;background:linear-gradient(145deg,#fcebd9,#f4d5b8);font-size:3.4rem}
-  .shop-demo-item:nth-child(2) .shop-demo-art{background:linear-gradient(145deg,#e4f1e7,#c6ddce)}
-  .shop-demo-item h3{margin:.75rem 0 .25rem;font-size:1rem;color:#14271b}
-  .shop-demo-item p{margin:0;color:#0e7a4f;font-weight:850}
-  .shop-demo-wa{margin-top:1rem;padding:.8rem;border-radius:11px;background:#0e7a4f;color:#fff;text-align:center;font-weight:850}
-  .shop-demo-caption{margin:.7rem 0 0;color:#536359;text-align:center;font-size:.8rem}
-  @media(max-width:600px){.shop-demo-grid{grid-template-columns:1fr}.shop-demo-art{min-height:120px}}
+  .shop-sales-page{--sales-green:#0b7950;background:radial-gradient(ellipse at 8% 8%,#e0f1e6 0,transparent 35rem),radial-gradient(ellipse at 92% 22%,#fff0dc 0,transparent 28rem),linear-gradient(180deg,#f4f8f4,#edf4ef)}
+  .shop-sales-page .sales-wrap{width:min(1120px,100%)}
+  .shop-sales-page .sales-hero{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(340px,.9fr);grid-template-rows:auto auto 1fr;column-gap:clamp(2rem,6vw,5rem);align-items:center;max-width:none;min-height:460px;margin:0 auto 1rem;padding:clamp(1.8rem,5vw,4rem);text-align:left;border:1px solid #d6e6da;border-radius:30px;background:linear-gradient(125deg,#f4faf5 0%,#edf6ef 57%,#fff7eb 100%);box-shadow:0 24px 60px #11392114}
+  .shop-sales-page .sales-kicker{grid-column:1;grid-row:1;justify-self:start}
+  .shop-sales-page .sales-hero h1{grid-column:1;grid-row:2;max-width:650px;margin:1.1rem 0;font-size:clamp(2.7rem,5.2vw,4.7rem);line-height:.99;letter-spacing:-.06em}
+  .shop-sales-page .sales-hero>p{grid-column:1;grid-row:3;max-width:590px;margin:0;font-size:clamp(1.05rem,1.7vw,1.2rem);line-height:1.75}
+  .shop-hero-scene{position:relative;grid-column:2;grid-row:1/4;display:grid;min-width:0;min-height:365px;place-items:center;padding:1rem;border-radius:26px;background:radial-gradient(ellipse at 50% 10%,#fff 0,#e4f0e7 65%,#d6e8db 100%)}
+  .shop-device{width:min(100%,350px);padding:1rem;border:7px solid #13231a;border-radius:28px;background:#f8faf8;box-shadow:0 25px 55px #10251b30}
+  .shop-device-top{display:flex;justify-content:space-between;margin:0 .2rem .75rem;color:#526157;font-size:.68rem;font-weight:800}
+  .shop-brand-row{display:flex;align-items:center;gap:.65rem;padding:.75rem;border-radius:14px;background:#fff;box-shadow:0 4px 12px #11291a0b;color:#17271d}
+  .shop-brand-mark{display:grid;width:38px;height:38px;place-items:center;border-radius:12px;background:#0b7950;color:#fff;font-weight:950}
+  .shop-brand-row strong,.shop-brand-row small{display:block}.shop-brand-row strong{font-size:.76rem;letter-spacing:.05em}.shop-brand-row small{margin-top:.15rem;color:#68766d;font-size:.67rem}.shop-menu-mark{margin-left:auto;color:#627168;font-size:1.2rem}
+  .shop-catalog-label{display:flex;justify-content:space-between;align-items:center;gap:.5rem;margin:1rem .1rem .6rem;color:#123324}.shop-catalog-label span{font-size:.55rem;font-weight:900;letter-spacing:.08em;color:#0b7950}.shop-catalog-label b{font-size:.65rem}
+  .shop-hero-products{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.65rem}
+  .shop-hero-product{min-width:0;padding:.55rem;border:1px solid #e3eae4;border-radius:14px;background:#fff;color:#17271d}
+  .shop-product-art{position:relative;display:grid;min-height:130px;place-items:center;overflow:hidden;border-radius:10px;font-size:3.5rem}
+  .shop-dress{background:radial-gradient(circle at 75% 22%,#fff9 0 8%,transparent 9%),linear-gradient(145deg,#f5d6bf,#edb69c 48%,#d97c65)}
+  .shop-bag{background:radial-gradient(circle at 25% 22%,#fff9 0 8%,transparent 9%),linear-gradient(145deg,#e8f0d7,#b6ca9c 52%,#84976a)}
+  .shop-product-art>span{filter:drop-shadow(0 7px 9px #33251c30);transform:translateY(-3px)}
+  .shop-product-art i{position:absolute;right:.4rem;bottom:.4rem;padding:.25rem .35rem;border-radius:5px;background:#10251bd9;color:#fff;font-size:.42rem;font-style:normal;font-weight:850;letter-spacing:.04em}
+  .shop-hero-product>strong,.shop-hero-product>small,.shop-hero-product>b{display:block}.shop-hero-product>strong{margin-top:.55rem;font-size:.75rem}.shop-hero-product>small{margin-top:.18rem;color:#748077;font-size:.61rem}.shop-hero-product>b{margin-top:.45rem;color:#08784d;font-size:.78rem}
+  .shop-device-wa{margin-top:.7rem;padding:.65rem;border-radius:10px;background:#0b7950;color:#fff;text-align:center;font-size:.74rem;font-weight:900;box-shadow:0 6px 15px #0b79502b}
+  .shop-device-caption{display:block;margin-top:.55rem;color:#68766d;text-align:center;font-size:.59rem}
+  .shop-float-tag{position:absolute;right:0;top:13%;padding:.65rem .85rem;border:1px solid #d8e5db;border-radius:13px;background:#fff;color:#173324;font-size:.72rem;font-weight:850;box-shadow:0 10px 24px #10251b16}
+  .shop-sales-page .sales-cta-wrap{margin:1rem 0 2rem;text-align:center}
+  .shop-sales-page .sales-cta-wrap .sales-cta{min-height:58px;padding:1rem 1.6rem;border-radius:15px;font-size:1rem}
+  .shop-sales-page .sales-grid{gap:1.2rem;margin:2.5rem 0}
+  .shop-sales-page .sales-card{min-height:230px;padding:clamp(1.5rem,3vw,2.1rem);border:1px solid #d4e4d8;border-radius:22px;background:#f5faf6;box-shadow:0 14px 34px #0b251110}
+  .shop-sales-page .sales-card:nth-child(2){background:#e9f4eb;border-color:#c5dfcb}
+  .shop-sales-page .sales-card h2{font-size:clamp(1.35rem,2.5vw,1.8rem)}
+  .shop-sales-page .sales-card p{font-size:1rem;line-height:1.7}
+  .shop-sales-page .sales-card .sales-cta{margin-top:.8rem}
+  .shop-sales-page .sales-card ul{gap:.75rem}
+  @media(max-width:760px){.shop-sales-page .sales-hero{grid-template-columns:1fr;grid-template-rows:auto;gap:1.1rem;min-height:0;padding:1.4rem;border-radius:23px}.shop-sales-page .sales-kicker,.shop-sales-page .sales-hero h1,.shop-sales-page .sales-hero>p,.shop-hero-scene{grid-column:1;grid-row:auto}.shop-sales-page .sales-hero h1{font-size:clamp(2.55rem,11vw,3.8rem)}.shop-hero-scene{min-height:0;padding:1.2rem}.shop-device{max-width:340px}.shop-float-tag{right:.2rem;top:9%}.shop-sales-page .sales-cta-wrap{text-align:center}}
+  @media(max-width:600px){.shop-sales-page .sales-grid{grid-template-columns:1fr;gap:.9rem}.shop-sales-page .sales-card{min-height:0;padding:1.35rem}.shop-hero-products{gap:.5rem}.shop-product-art{min-height:110px}.shop-float-tag{font-size:.65rem}}
 </style>
 <div class="sales-grid">
   <section class="sales-card"><h2>Une boutique facile à parcourir</h2><p>Réunis tes produits, leurs photos, leurs prix et tes coordonnées sur une page que tu peux partager par WhatsApp, Facebook ou Instagram.</p><ul><li>Un catalogue lisible sur téléphone.</li><li>Des fiches produits avec prix et visuels.</li><li>Un bouton pour écrire directement à ton commerce.</li></ul></section>
   <section class="sales-card"><h2>Un échange direct avec tes clients</h2><p>Le client te contacte sur WhatsApp. Tu confirmes la disponibilité, puis vous convenez ensemble du paiement et du retrait ou de la livraison.</p><p class="sales-note">La fiche catalogue E-Shelle ne réalise pas automatiquement le paiement ni la livraison. Pour un site e-commerce avec panier et fonctions spécifiques, demande une étude et un devis.</p><a class="sales-cta" href="{% url 'services:configurateur' %}">Étudier un site e-commerce sur mesure</a></section>
 </div>
-<section class="shop-demo" aria-label="Démo illustrative d’un catalogue boutique"><div class="shop-demo-head"><span>La Boutique de Démo</span><span>Douala · Exemple</span></div><div class="shop-demo-grid"><article class="shop-demo-item"><div class="shop-demo-art" aria-hidden="true">👗</div><h3>Robe en wax</h3><p>12 500 F · exemple</p></article><article class="shop-demo-item"><div class="shop-demo-art" aria-hidden="true">👜</div><h3>Sac artisanal</h3><p>8 000 F · exemple</p></article></div><div class="shop-demo-wa">Écrire à la boutique sur WhatsApp</div><p class="shop-demo-caption">Maquette de démonstration : produits et prix fictifs.</p></section>
 <div class="sales-cta-wrap"><a class="sales-cta" href="{% url 'business:onboarding' %}?plan=free">Créer ma fiche gratuite →</a></div>
 {% endblock %}
