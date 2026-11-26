@@ -72,7 +72,7 @@ class Produit(models.Model):
     prix          = models.DecimalField(max_digits=10, decimal_places=2, default=0,
                                          help_text="Prix en FCFA")
     prix_barre    = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
-    is_published  = models.BooleanField(default=False)
+    is_published  = models.BooleanField(default=True)
     is_featured   = models.BooleanField(default=False)
     is_gratuit    = models.BooleanField(default=False)
     nb_ventes     = models.PositiveIntegerField(default=0)

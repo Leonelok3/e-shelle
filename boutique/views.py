@@ -3,6 +3,7 @@ boutique/views.py — Vues du module Boutique Digitale E-Shelle
 Catalogue produits, détail, panier, checkout, téléchargement.
 """
 from django.shortcuts import render, get_object_or_404, redirect
+from django.urls import reverse
 from django.contrib.auth.decorators import login_required
 from django.http import FileResponse, Http404
 from django.db.models import Q
@@ -17,53 +18,51 @@ from .models import (
 
 
 def index(request):
-    """Page d'accueil de la boutique."""
-    produits_featured = Produit.objects.filter(is_published=True, is_featured=True)[:6]
-    produits_recents  = Produit.objects.filter(is_published=True).order_by("-created_at")[:12]
-    categories        = CategorieProduit.objects.filter(active=True)
-
-    context = {
-        "produits_featured": produits_featured,
-        "produits_recents":  produits_recents,
-        "categories":        categories,
-    }
-    return render(request, "boutique/index.html", context)
-
-
-def catalogue(request):
-    """Catalogue complet avec filtres."""
-    produits   = Produit.objects.filter(is_published=True).select_related("categorie")
+    """Catalogue public unique : tous les produits publiés, avec filtres."""
+    produits = Produit.objects.filter(is_published=True).select_related("categorie")
     categories = CategorieProduit.objects.filter(active=True)
 
-    # Filtres
-    cat_slug   = request.GET.get("categorie", "")
-    type_prod  = request.GET.get("type", "")
-    recherche  = request.GET.get("q", "")
-    gratuit    = request.GET.get("gratuit", "")
-    tri        = request.GET.get("tri", "-created_at")
+    cat_slug = request.GET.get("categorie", "")
+    type_prod = request.GET.get("type", "")
+    recherche = request.GET.get("q", "").strip()
+    gratuit = request.GET.get("gratuit", "")
+    tri = request.GET.get("tri", "-created_at")
+    tris_autorises = {"-created_at", "prix", "-prix", "-nb_ventes", "-note_moyenne"}
+    if tri not in tris_autorises:
+        tri = "-created_at"
 
     if cat_slug:
         produits = produits.filter(categorie__slug=cat_slug)
-    if type_prod:
+    if type_prod in dict(Produit.TYPES):
         produits = produits.filter(type_produit=type_prod)
     if gratuit:
         produits = produits.filter(is_gratuit=True)
     if recherche:
         produits = produits.filter(
-            Q(titre__icontains=recherche) | Q(description__icontains=recherche)
-            | Q(titre_en__icontains=recherche) | Q(description_en__icontains=recherche)
+            Q(titre__icontains=recherche)
+            | Q(description__icontains=recherche)
+            | Q(titre_en__icontains=recherche)
+            | Q(description_en__icontains=recherche)
         )
 
-    produits = produits.order_by(tri)
-
     context = {
-        "produits":   produits,
+        "produits": produits.order_by(tri),
         "categories": categories,
-        "cat_slug":   cat_slug,
-        "recherche":  recherche,
-        "types":      Produit.TYPES,
+        "cat_slug": cat_slug,
+        "type_prod": type_prod,
+        "recherche": recherche,
+        "gratuit": gratuit,
+        "tri": tri,
+        "types": Produit.TYPES,
     }
-    return render(request, "boutique/catalogue.html", context)
+    return render(request, "boutique/index.html", context)
+
+
+def catalogue(request):
+    """Ancienne URL conservée et redirigée vers le catalogue unique."""
+    query = request.GET.urlencode()
+    url = reverse("boutique:index")
+    return redirect(f"{url}?{query}" if query else url)
 
 
 def detail_produit(request, slug):

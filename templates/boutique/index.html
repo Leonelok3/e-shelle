@@ -1,141 +1,97 @@
 {% extends "base.html" %}
 {% load static %}
 
-{% block title %}{% if LANGUAGE_CODE == 'en' %}Digital Store — E-Shelle{% else %}Boutique Digitale — E-Shelle{% endif %}{% endblock %}
+{% block title %}Boutique numérique — E-Shelle{% endblock %}
 {% block nav_boutique %}active{% endblock %}
 
 {% block content %}
-<div style="padding-top:5rem">
-  {# Hero boutique #}
-  <section style="background:linear-gradient(135deg,#0A0A0A,#1A0D00);padding:4rem 0;border-bottom:1px solid var(--border)">
+<main class="digital-store" style="padding-top:5rem">
+  <section class="section" style="padding-bottom:2rem;background:linear-gradient(145deg,#0a1f16,#123b29);border-bottom:1px solid var(--border)">
     <div class="container">
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:3rem;align-items:center">
-        <div>
-          <div class="section-label aos-hidden" style="display:inline-flex">🛒 Boutique</div>
-          <h1 class="hero-title aos-hidden aos-delay-1" style="font-size:clamp(2rem,4vw,3rem);margin-top:1rem">
-            Templates, Ebooks<br>& <span class="text-gradient">Outils IA</span>
-          </h1>
-          <p class="hero-subtitle aos-hidden aos-delay-2" style="font-size:1rem">Produits digitaux premium pour accélérer votre business. Téléchargement immédiat.</p>
-          <div class="input-group aos-hidden aos-delay-3" style="max-width:420px">
-            <form method="get" action="{% url 'boutique:catalogue' %}" style="display:flex;width:100%">
-              <span style="display:flex;align-items:center;padding:0 1rem;background:rgba(255,255,255,.04);color:var(--text-muted)">🔍</span>
-              <input type="search" name="q" class="form-control" placeholder="{% if LANGUAGE_CODE == 'en' %}Search{% else %}Rechercher{% endif %} un produit…" style="border:none;border-radius:0">
-              <button type="submit" class="btn btn-accent" style="border-radius:0">{% if LANGUAGE_CODE == 'en' %}Search{% else %}Chercher{% endif %}</button>
-            </form>
-          </div>
-        </div>
-        <div class="aos-hidden aos-delay-2">
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem">
-            {% for cat in categories|slice:":4" %}
-            <a href="{% url 'boutique:catalogue' %}?categorie={{ cat.slug }}" class="glass-card" style="text-align:center;padding:1.25rem;text-decoration:none">
-              <div style="font-size:2rem;margin-bottom:.5rem">{{ cat.icone }}</div>
-              <div style="font-size:.82rem;font-weight:600">{{ cat.display_name }}</div>
-            </a>
-            {% empty %}
-            <div class="glass-card" style="text-align:center"><div style="font-size:2rem">📦</div><div style="font-size:.82rem">Templates</div></div>
-            <div class="glass-card" style="text-align:center"><div style="font-size:2rem">📕</div><div style="font-size:.82rem">Ebooks</div></div>
-            <div class="glass-card" style="text-align:center"><div style="font-size:2rem">🛠️</div><div style="font-size:.82rem">Outils</div></div>
-            <div class="glass-card" style="text-align:center"><div style="font-size:2rem">🤖</div><div style="font-size:.82rem">Packs IA</div></div>
-            {% endfor %}
-          </div>
-        </div>
-      </div>
+      <span class="section-label" style="display:inline-flex">🛍️ Boutique numérique</span>
+      <h1 class="section-title" style="margin:.8rem 0;color:#fff">Produits numériques à découvrir</h1>
+      <p style="max-width:720px;color:#e3eee6;line-height:1.7">Retrouve ici les ebooks, modèles, outils et autres ressources publiés dans la boutique E-Shelle. Les nouveaux produits publiés apparaissent dans ce catalogue.</p>
+      <form method="get" action="{% url 'boutique:index' %}" style="display:flex;gap:.6rem;max-width:650px;margin-top:1.4rem">
+        <input type="search" name="q" value="{{ recherche }}" class="form-control" placeholder="Rechercher un produit numérique…" aria-label="Rechercher un produit numérique">
+        <button type="submit" class="btn btn-primary">Rechercher</button>
+      </form>
     </div>
   </section>
 
-  {# {% if LANGUAGE_CODE == 'en' %}Popular products{% else %}Produits populaires{% endif %} #}
-  {% if produits_featured %}
-  <section class="section">
+  <section class="section" style="padding-top:2rem">
     <div class="container">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:2rem">
+      <div style="display:flex;align-items:end;justify-content:space-between;gap:1rem;flex-wrap:wrap;margin-bottom:1.25rem">
         <div>
-          <div class="section-label" style="display:inline-flex">⭐ Best-sellers</div>
-          <h2 class="section-title" style="margin-top:.75rem">{% if LANGUAGE_CODE == 'en' %}Popular products{% else %}Produits populaires{% endif %}</h2>
+          <div class="section-label" style="display:inline-flex">Catalogue public</div>
+          <h2 class="section-title" style="margin:.5rem 0 0">Tous les produits publiés</h2>
         </div>
-        <a href="{% url 'boutique:catalogue' %}" class="btn btn-outline btn-sm">Voir tout →</a>
+        <p style="margin:0;color:var(--text-muted)">{{ produits.count }} produit{{ produits.count|pluralize }}</p>
       </div>
+
+      <form method="get" action="{% url 'boutique:index' %}" class="glass-card" style="display:flex;align-items:end;gap:.8rem;flex-wrap:wrap;margin-bottom:1.5rem">
+        {% if recherche %}<input type="hidden" name="q" value="{{ recherche }}">{% endif %}
+        <label style="display:grid;gap:.35rem;flex:1;min-width:150px;font-size:.8rem;color:var(--text-muted)">Catégorie
+          <select name="categorie" class="form-control">
+            <option value="">Toutes</option>
+            {% for categorie in categories %}<option value="{{ categorie.slug }}" {% if cat_slug == categorie.slug %}selected{% endif %}>{{ categorie.icone }} {{ categorie.display_name }}</option>{% endfor %}
+          </select>
+        </label>
+        <label style="display:grid;gap:.35rem;flex:1;min-width:150px;font-size:.8rem;color:var(--text-muted)">Type de produit
+          <select name="type" class="form-control">
+            <option value="">Tous les types</option>
+            {% for value, label in types %}<option value="{{ value }}" {% if type_prod == value %}selected{% endif %}>{{ label }}</option>{% endfor %}
+          </select>
+        </label>
+        <label style="display:grid;gap:.35rem;flex:1;min-width:150px;font-size:.8rem;color:var(--text-muted)">Trier par
+          <select name="tri" class="form-control">
+            <option value="-created_at" {% if tri == '-created_at' %}selected{% endif %}>Plus récents</option>
+            <option value="prix" {% if tri == 'prix' %}selected{% endif %}>Prix croissant</option>
+            <option value="-prix" {% if tri == '-prix' %}selected{% endif %}>Prix décroissant</option>
+            <option value="-nb_ventes" {% if tri == '-nb_ventes' %}selected{% endif %}>Meilleures ventes</option>
+            <option value="-note_moyenne" {% if tri == '-note_moyenne' %}selected{% endif %}>Mieux notés</option>
+          </select>
+        </label>
+        <label style="display:flex;align-items:center;gap:.5rem;min-height:42px;color:var(--text-primary)">
+          <input type="checkbox" name="gratuit" value="1" {% if gratuit %}checked{% endif %}> Gratuits
+        </label>
+        <button type="submit" class="btn btn-outline">Filtrer</button>
+      </form>
+
+      {% if produits %}
       <div class="grid-3">
-        {% for produit in produits_featured %}
-        <div class="product-card aos-hidden">
-          <div class="product-thumbnail">
-            {% if produit.thumbnail %}
-              <img src="{{ produit.thumbnail.url }}" alt="{{ produit.display_title }}" loading="lazy">
-            {% else %}
-              <div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:3rem">📦</div>
-            {% endif %}
-            <div class="product-badges">
-              {% if produit.is_featured %}<span class="badge badge-orange">⭐ Populaire</span>{% endif %}
-              {% if produit.is_gratuit %}<span class="badge badge-green">{% if LANGUAGE_CODE == 'en' %}Free{% else %}Gratuit{% endif %}</span>{% endif %}
+        {% for produit in produits %}
+        <article class="product-card">
+          <a class="product-thumbnail" href="{% url 'boutique:detail' slug=produit.slug %}" style="display:block;text-decoration:none">
+            {% if produit.thumbnail %}<img src="{{ produit.thumbnail.url }}" alt="{{ produit.display_title }}" loading="lazy">
+            {% else %}<div style="width:100%;height:100%;min-height:180px;display:grid;place-items:center;font-size:3rem;background:linear-gradient(135deg,#eaf7f0,#fff4df)">📦</div>{% endif %}
+            <span class="product-badges">
+              {% if produit.is_featured %}<span class="badge badge-orange">⭐ À découvrir</span>{% endif %}
+              {% if produit.is_gratuit %}<span class="badge badge-green">Gratuit</span>{% endif %}
               {% if produit.pourcentage_reduction %}<span class="badge badge-red">-{{ produit.pourcentage_reduction }}%</span>{% endif %}
-            </div>
-          </div>
+            </span>
+          </a>
           <div class="product-body">
             <div class="product-category">{{ produit.categorie.icone }} {{ produit.categorie.display_name }}</div>
-            <h3 class="product-title">
-              <a href="{% url 'boutique:detail' slug=produit.slug %}" style="color:inherit">{{ produit.display_title }}</a>
-            </h3>
-            {% if produit.note_moyenne > 0 %}
-            <div class="course-stars">★ {{ produit.note_moyenne|floatformat:1 }} <span>({{ produit.nb_avis }} avis)</span></div>
-            {% endif %}
+            <h3 class="product-title"><a href="{% url 'boutique:detail' slug=produit.slug %}" style="color:inherit">{{ produit.display_title }}</a></h3>
+            <p style="font-size:.85rem;color:var(--text-muted);line-height:1.55;margin:.5rem 0">{{ produit.display_short_description|truncatechars:130 }}</p>
+            {% if produit.note_moyenne > 0 %}<div class="course-stars">★ {{ produit.note_moyenne|floatformat:1 }} <span>({{ produit.nb_avis }} avis)</span></div>{% endif %}
           </div>
           <div class="product-footer">
-            <div class="product-price">
-              {% if produit.prix_barre %}<span class="product-price-original">{{ produit.prix_barre|floatformat:0 }} FCFA</span>{% endif %}
-              {% if produit.is_gratuit %}{% if LANGUAGE_CODE == 'en' %}Free{% else %}Gratuit{% endif %}{% else %}{{ produit.prix|floatformat:0 }} FCFA{% endif %}
-            </div>
-            <form method="post" action="{% url 'boutique:ajouter' produit_id=produit.pk %}" style="display:inline">
-              {% csrf_token %}
-              <button type="submit" class="add-to-cart" title="{% if LANGUAGE_CODE == 'en' %}Add to cart{% else %}Ajouter au panier{% endif %}" onclick="window.EShelle.animateAddToCart(this)">🛒</button>
-            </form>
+            <div class="product-price">{% if produit.prix_barre %}<span class="product-price-original">{{ produit.prix_barre|floatformat:0 }} FCFA</span>{% endif %}{% if produit.is_gratuit %}Gratuit{% else %}{{ produit.prix|floatformat:0 }} FCFA{% endif %}</div>
+            <form method="post" action="{% url 'boutique:ajouter' produit_id=produit.pk %}">{% csrf_token %}<button type="submit" class="add-to-cart" title="Ajouter au panier" aria-label="Ajouter {{ produit.display_title }} au panier">🛒</button></form>
           </div>
-        </div>
+        </article>
         {% endfor %}
       </div>
+      {% else %}
+      <div class="glass-card" style="padding:3rem 1.5rem;text-align:center">
+        <div style="font-size:3rem;margin-bottom:.8rem">📦</div>
+        <h3 style="margin:0 0 .6rem">Aucun produit publié dans cette sélection</h3>
+        <p style="color:var(--text-muted)">Essaie une autre recherche ou enlève certains filtres. Les produits apparaîtront ici après leur publication.</p>
+        <a href="{% url 'boutique:index' %}" class="btn btn-outline">Voir tous les produits</a>
+      </div>
+      {% endif %}
     </div>
   </section>
-  {% endif %}
-
-  {# {% if LANGUAGE_CODE == 'en' %}New arrivals{% else %}Nouveautés{% endif %} #}
-  <section class="section" style="background:var(--bg-surface)">
-    <div class="container">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:2rem">
-        <h2 class="section-title">🆕 {% if LANGUAGE_CODE == 'en' %}New arrivals{% else %}Nouveautés{% endif %}</h2>
-        <a href="{% url 'boutique:catalogue' %}?tri=-created_at" class="btn btn-outline btn-sm">Voir tout →</a>
-      </div>
-      <div class="grid-4">
-        {% for produit in produits_recents|slice:":8" %}
-        <div class="product-card aos-hidden">
-          <div class="product-thumbnail" style="aspect-ratio:4/3">
-            {% if produit.thumbnail %}
-              <img src="{{ produit.thumbnail.url }}" alt="{{ produit.display_title }}" loading="lazy">
-            {% else %}
-              <div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:2rem">📦</div>
-            {% endif %}
-          </div>
-          <div class="product-body">
-            <div class="product-category">{{ produit.categorie.display_name }}</div>
-            <h3 class="product-title" style="font-size:.88rem">
-              <a href="{% url 'boutique:detail' slug=produit.slug %}" style="color:inherit">{{ produit.display_title }}</a>
-            </h3>
-          </div>
-          <div class="product-footer">
-            <div class="product-price" style="font-size:.95rem">
-              {% if produit.is_gratuit %}{% if LANGUAGE_CODE == 'en' %}Free{% else %}Gratuit{% endif %}{% else %}{{ produit.prix|floatformat:0 }} FCFA{% endif %}
-            </div>
-            <form method="post" action="{% url 'boutique:ajouter' produit_id=produit.pk %}">
-              {% csrf_token %}
-              <button type="submit" class="add-to-cart">+</button>
-            </form>
-          </div>
-        </div>
-        {% empty %}
-        <div style="grid-column:1/-1;text-align:center;padding:3rem;color:var(--text-secondary)">
-          <div style="font-size:3rem;margin-bottom:1rem">🛍️</div>
-          <p>{% if LANGUAGE_CODE == 'en' %}Premium products are coming soon!{% else %}La boutique sera bientôt remplie de produits premium !{% endif %}</p>
-        </div>
-        {% endfor %}
-      </div>
-    </div>
-  </section>
-</div>
+</main>
 {% endblock %}
