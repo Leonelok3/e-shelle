@@ -1,35 +1,66 @@
 {% extends "business/sales_landing_base.html" %}
+{% load static %}
+{% block page_class %}restaurant-sales-page{% endblock %}
 {% block title %}Ton menu en ligne avec WhatsApp | E-Shelle{% endblock %}
 {% block meta_description %}Présente ton menu et tes prix sur une fiche E-Shelle. Tes clients te contactent directement sur WhatsApp.{% endblock %}
 {% block kicker %}Pour les restaurants{% endblock %}
 {% block headline %}Ton menu en ligne, avec un bouton WhatsApp{% endblock %}
 {% block intro %}Présente tes plats et leurs prix sur une fiche facile à partager. Le client te contacte directement sur WhatsApp pour convenir avec toi du paiement et de la livraison.{% endblock %}
+{% block hero_visual %}
+<figure class="restaurant-hero-visual">
+  <img src="{% static 'img/restaurant-demo.jpeg' %}" alt="Plat camerounais généreux présenté dans une assiette" width="360" height="480" fetchpriority="high">
+  <figcaption><span>🍽️</span><span><strong>Ton menu, toujours accessible</strong><small>Une fiche simple à partager avec tes clients</small></span></figcaption>
+</figure>
+{% endblock %}
 {% block top_cta %}
 <style>
-  .restaurant-offer{margin:1.25rem auto;padding:1.1rem 1.25rem;border:2px solid #ff8c00;border-radius:16px;background:#fff3df;color:#211600;text-align:left;font-weight:750;line-height:1.6;box-shadow:0 10px 28px #7a47001a}
-  .restaurant-offer strong{display:block;margin-bottom:.25rem;color:#9a4d00;font-size:1.08rem}
-  .restaurant-features{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:1rem;margin:2rem 0}
-  .restaurant-feature{padding:clamp(1.25rem,3vw,2rem);border:1px solid #dce8df;border-radius:18px;background:#fff;box-shadow:0 12px 32px #0b25110d}
-  .restaurant-feature h2{margin:0 0 .65rem;color:#12221a;font-size:clamp(1.2rem,3vw,1.55rem);letter-spacing:-.025em}
-  .restaurant-feature p{margin:.45rem 0;color:#34463b;line-height:1.7}
-  .restaurant-feature:nth-child(2){border-color:#b9dfc8;background:#f1faf4}
-  .restaurant-feature:nth-child(3){border-color:#cbdaf0;background:#f5f8ff}
-  .restaurant-feature:nth-child(4){border-color:#ffd7a8;background:#fff8ee}
-  .restaurant-bonus{display:inline-block;margin:.4rem 0;padding:.42rem .7rem;border-radius:999px;background:#ff8c00;color:#201300;font-size:.82rem;font-weight:900}
-  .restaurant-prices{margin:1.5rem 0;padding:1.2rem;border:1px solid #cfe2d5;border-radius:16px;background:#eff8f2}
-  .restaurant-prices h2{margin:0 0 .85rem;font-size:1.1rem;color:#0b5e3d}
-  .restaurant-price-list{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:.65rem}
-  .restaurant-price-list span{padding:.75rem .55rem;border-radius:11px;background:#fff;text-align:center;color:#173324;font-weight:800}
-  .restaurant-price-list strong{display:block;margin-top:.2rem;font-size:1.1rem}
-  .restaurant-academy{margin:2rem 0;padding:clamp(1.4rem,4vw,2.3rem);border-radius:20px;background:#0a1f16;color:#fff;box-shadow:0 14px 36px #0a1f1626}
-  .restaurant-academy h2{margin:0 0 .6rem;color:#fff;font-size:clamp(1.5rem,4vw,2rem)}
-  .restaurant-academy p{margin:0;color:#edf6f0;line-height:1.7}
-  .restaurant-bottom-ctas{display:flex;justify-content:center;flex-wrap:wrap;gap:1rem;margin:2.2rem 0 1rem}
-  .restaurant-bottom-ctas .sales-cta{min-width:min(100%,300px);padding:1rem 1.25rem}
+  .restaurant-sales-page{--sales-green:#08784d;background:radial-gradient(ellipse at 7% 12%,#dcefe3 0,transparent 34rem),radial-gradient(ellipse at 95% 20%,#fff0dc 0,transparent 26rem),linear-gradient(180deg,#f4f8f4,#eef5ef)}
+  .restaurant-sales-page .sales-wrap{width:min(1120px,100%)}
+  .restaurant-sales-page .sales-hero{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(300px,.85fr);grid-template-rows:auto auto 1fr;column-gap:clamp(2rem,6vw,5.5rem);align-items:center;max-width:none;min-height:420px;margin:0 auto 1.2rem;padding:clamp(1.6rem,5vw,4rem);text-align:left;border:1px solid #d4e4d8;border-radius:30px;background:linear-gradient(125deg,#f3faf5 0%,#edf6ef 56%,#fff6e9 100%);box-shadow:0 24px 60px #11392114}
+  .restaurant-sales-page .sales-kicker{grid-column:1;grid-row:1;justify-self:start}
+  .restaurant-sales-page .sales-hero h1{grid-column:1;grid-row:2;max-width:620px;margin:1rem 0 .85rem;font-size:clamp(2.6rem,5.3vw,4.8rem);line-height:.98;letter-spacing:-.06em}
+  .restaurant-sales-page .sales-hero>p{grid-column:1;grid-row:3;max-width:580px;margin:0;font-size:clamp(1.05rem,1.7vw,1.2rem);line-height:1.7}
+  .restaurant-hero-visual{position:relative;grid-column:2;grid-row:1/4;align-self:stretch;min-height:340px;margin:0;overflow:hidden;border-radius:23px;background:#173a28;box-shadow:0 20px 44px #122d1c35}
+  .restaurant-hero-visual:after{position:absolute;inset:35% 0 0;content:"";background:linear-gradient(180deg,transparent,#071a10c9)}
+  .restaurant-hero-visual img{display:block;width:100%;height:100%;min-height:340px;object-fit:cover;object-position:center 48%;transform:scale(1.02)}
+  .restaurant-hero-visual figcaption{position:absolute;z-index:1;right:1rem;bottom:1rem;left:1rem;display:flex;align-items:center;gap:.8rem;padding:.9rem 1rem;border:1px solid #ffffff50;border-radius:15px;background:#071a10c9;color:#fff;backdrop-filter:blur(8px)}
+  .restaurant-hero-visual figcaption>span:first-child{display:grid;width:42px;height:42px;flex:none;place-items:center;border-radius:13px;background:#ff8c00;color:#261600;font-size:1.35rem}
+  .restaurant-hero-visual strong,.restaurant-hero-visual small{display:block}.restaurant-hero-visual strong{font-size:.98rem}.restaurant-hero-visual small{margin-top:.2rem;color:#e0eee4;font-size:.8rem}
+  .restaurant-offer{position:relative;margin:1rem 0;padding:1.2rem 1.4rem 1.2rem 1.7rem;border:1px solid #f2a137;border-left:7px solid #ff8c00;border-radius:17px;background:linear-gradient(110deg,#fff0d8,#fff9ee);color:#211600;text-align:left;font-size:1rem;font-weight:700;line-height:1.6;box-shadow:0 12px 28px #7a47001c}
+  .restaurant-offer strong{display:block;margin-bottom:.25rem;color:#8a4200;font-size:1.05rem}
+  .restaurant-sales-page .sales-cta-wrap{margin:.8rem 0 2rem;text-align:left}
+  .restaurant-sales-page .sales-cta-wrap .sales-cta{min-height:58px;padding:1rem 1.6rem;border-radius:15px;font-size:1rem;box-shadow:0 12px 28px #0e7a4f35}
+  .restaurant-sales-page .sales-grid{gap:1.2rem;margin:2.5rem 0}
+  .restaurant-sales-page .sales-card{position:relative;min-height:190px;padding:clamp(1.4rem,3vw,2rem);border:1px solid #d4e4d8;border-radius:22px;background:#f5faf6;box-shadow:0 14px 34px #0b251110}
+  .restaurant-sales-page .sales-card:nth-child(2){background:#e8f4eb;border-color:#c4dec9}
+  .restaurant-sales-page .sales-card h2{font-size:clamp(1.35rem,2.5vw,1.8rem)}
+  .restaurant-sales-page .sales-card p{font-size:1rem;line-height:1.7}
+  .restaurant-features{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:1.15rem;margin:2.5rem 0}
+  .restaurant-feature{position:relative;min-height:235px;padding:1.6rem;border:1px solid #d6e5da;border-radius:21px;background:#f2f8f3;box-shadow:0 14px 32px #0b25110d;transition:transform .2s,box-shadow .2s}
+  .restaurant-feature:hover{transform:translateY(-3px);box-shadow:0 20px 42px #0b251118}
+  .restaurant-feature:before{display:grid;width:48px;height:48px;place-items:center;margin-bottom:1rem;border-radius:15px;background:#dcefe2;font-size:1.55rem}
+  .restaurant-feature:nth-child(1):before{content:"🍽️"}.restaurant-feature:nth-child(2):before{content:"💬"}.restaurant-feature:nth-child(3):before{content:"📍"}.restaurant-feature:nth-child(4):before{content:"🎬"}
+  .restaurant-feature h2{margin:0 0 .65rem;color:#12221a;font-size:clamp(1.25rem,2.4vw,1.65rem);letter-spacing:-.025em}
+  .restaurant-feature p{margin:.5rem 0;color:#34463b;font-size:.98rem;line-height:1.7}
+  .restaurant-feature:nth-child(2){border-color:#a9d6b9;background:#e7f4eb}
+  .restaurant-feature:nth-child(3){border-color:#bdd3df;background:#edf5f7}
+  .restaurant-feature:nth-child(4){border-color:#f2d19f;background:#fff5e7}
+  .restaurant-bonus{display:inline-block;margin:.2rem 0 .55rem;padding:.45rem .75rem;border-radius:999px;background:#ff8c00;color:#201300;font-size:.82rem;font-weight:900}
+  .restaurant-prices{margin:2rem 0;padding:1.4rem;border:1px solid #c7ddcc;border-radius:20px;background:linear-gradient(120deg,#e3f1e6,#edf6ef);box-shadow:0 12px 28px #0b25110d}
+  .restaurant-prices h2{margin:0 0 1rem;font-size:1.2rem;color:#0b5e3d}
+  .restaurant-price-list{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:.75rem}
+  .restaurant-price-list span{padding:.9rem .65rem;border:1px solid #d2e4d6;border-radius:13px;background:#f6faf7;text-align:center;color:#173324;font-weight:800}
+  .restaurant-price-list strong{display:block;margin-top:.25rem;font-size:1.15rem}
+  .restaurant-academy{position:relative;margin:2.5rem 0;padding:clamp(1.6rem,4vw,2.5rem);border:1px solid #1e573b;border-radius:24px;background:radial-gradient(circle at 95% 0,#15593b 0,transparent 34%),#0a1f16;color:#fff;box-shadow:0 18px 42px #0a1f1630}
+  .restaurant-academy h2{margin:0 0 .7rem;color:#fff;font-size:clamp(1.5rem,3.5vw,2.1rem)}
+  .restaurant-academy p{max-width:850px;margin:0;color:#edf6f0;font-size:1.02rem;line-height:1.75}
+  .restaurant-bottom-ctas{display:flex;justify-content:center;flex-wrap:wrap;gap:1rem;margin:2.5rem 0 1.5rem}
+  .restaurant-bottom-ctas .sales-cta{min-width:min(100%,320px);padding:1rem 1.4rem;font-size:1rem}
   .restaurant-bottom-ctas .sales-cta-orange{background:#ff8c00;color:#241600;box-shadow:0 9px 22px #ff8c0030}
   .restaurant-bottom-ctas .sales-cta-orange:hover{background:#e97d00;color:#1c1200}
-  .restaurant-conditions{font-size:.88rem!important;color:#536359!important}
-  @media(max-width:680px){.restaurant-features{grid-template-columns:1fr}.restaurant-price-list{grid-template-columns:repeat(2,minmax(0,1fr))}.restaurant-bottom-ctas{display:grid}.restaurant-bottom-ctas .sales-cta{width:100%;box-sizing:border-box}}
+  .restaurant-sales-page .sales-founder{margin-top:2rem}
+  @media(max-width:760px){.restaurant-sales-page .sales-hero{grid-template-columns:1fr;grid-template-rows:auto;gap:1rem;min-height:0;padding:1.4rem;border-radius:23px}.restaurant-sales-page .sales-kicker,.restaurant-sales-page .sales-hero h1,.restaurant-sales-page .sales-hero>p,.restaurant-hero-visual{grid-column:1;grid-row:auto}.restaurant-sales-page .sales-hero h1{font-size:clamp(2.5rem,11vw,3.8rem)}.restaurant-hero-visual,.restaurant-hero-visual img{min-height:260px;max-height:380px}.restaurant-sales-page .sales-cta-wrap{text-align:center}}
+  @media(max-width:600px){.restaurant-features,.restaurant-sales-page .sales-grid{grid-template-columns:1fr;gap:.85rem}.restaurant-feature{min-height:0;padding:1.3rem}.restaurant-price-list{grid-template-columns:repeat(2,minmax(0,1fr))}.restaurant-bottom-ctas{display:grid}.restaurant-bottom-ctas .sales-cta{width:100%;box-sizing:border-box}.restaurant-offer{padding:1rem 1rem 1rem 1.2rem;font-size:.95rem}}
 </style>
 <div class="restaurant-offer"><strong>🔥 OFFRE DE LANCEMENT - 5 PREMIERS SEULEMENT</strong>Business à 15 000F / 30 jours : Fiche + Vendeur WhatsApp + Google Business + Maps + 1 Vidéo IA + 2 Visuels offerts.</div>
 <div class="sales-cta-wrap"><a class="sales-cta" href="https://wa.me/237680625082?text=Bonjour%2C%20je%20veux%20ma%20fiche%20restaurant%20E-Shelle.%20FICHE" target="_blank" rel="noopener noreferrer">Je veux ma fiche</a></div>
