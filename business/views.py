@@ -48,7 +48,12 @@ from .catalog_import import CatalogImportError, import_catalog_csv, import_from_
 from .ai_delivery import ensure_english_kit_content, generate_client_ai_kit, kit_summary_for_whatsapp
 from .ai_arsenal import arsenal_agents, arsenal_stats, fidelisation_agent, opportunites_agent
 from .reporting import business_report_context, render_business_report_pdf
-from .restaurant_directory import directory as restaurant_directory, public_business_restaurants, public_whatsapp_number
+from .restaurant_directory import (
+    directory as restaurant_directory,
+    directory_context,
+    public_business_restaurants,
+    public_whatsapp_number,
+)
 from .services import collect_business_items, create_tracking_event, record_event_hit
 
 
@@ -825,7 +830,8 @@ def restaurant_sales(request):
 
 
 def restaurant_landing(request):
-    return render(request, "business/restaurant_landing.html")
+    context = directory_context(request, route_name="restaurant_landing", fragment="#annuaire")
+    return render(request, "business/restaurant_landing.html", context)
 
 
 def whatsapp_seller_landing(request):

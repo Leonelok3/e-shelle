@@ -111,6 +111,17 @@ class RestaurantDirectoryTests(TestCase):
         self.assertTrue(first.context["next_url"].endswith("?city=Paris&page=2"))
         self.assertTrue(second.context["canonical"].endswith("?city=Paris&page=2"))
 
+        landing = reverse("restaurant_landing")
+        combined = self.client.get(landing, {"city": "Paris", "district": "Belleville"})
+        self.assertContains(combined, 'id="annuaire"')
+        self.assertContains(combined, 'href="#annuaire"')
+        self.assertContains(combined, f'action="{landing}#annuaire"')
+        self.assertContains(combined, "Ton menu en ligne, avec un bouton WhatsApp")
+        self.assertContains(combined, "noindex, follow")
+        self.assertEqual([card["name"] for card in combined.context["cards"]], [boosted.name, legacy.name])
+        combined = self.client.get(landing, {"city": "Paris"})
+        self.assertEqual(combined.context["next_url"], f"{landing}?city=Paris&page=2#annuaire")
+
     def test_empty_results_and_home_hidden_below_three_public_restaurants(self):
         self.business("Une table publique")
         self.business("Une table non publiée", is_active=False)

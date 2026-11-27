@@ -162,7 +162,10 @@ def _contact(request):
 def directory(request):
     if request.method == "POST":
         return _contact(request)
+    return render(request, "business/restaurant_directory.html", directory_context(request))
 
+
+def directory_context(request, *, route_name="restaurant_directory", fragment=""):
     filters = {
         field: request.GET.get(field, "").strip()[:limit]
         for field, limit in (("city", 100), ("district", 120), ("cuisine", 120), ("q", 140))
@@ -202,7 +205,7 @@ def directory(request):
     params = {key: value for key, value in filters.items() if value}
     if city_label:
         params["city"] = city_label
-    path = reverse("restaurant_directory")
+    path = reverse(route_name)
     origin = settings.SITE_URL.rstrip("/")
 
     def page_url(number):
@@ -217,14 +220,16 @@ def directory(request):
             for index, card in enumerate(cards, start=page.start_index())
         ],
     }
-    return render(request, "business/restaurant_directory.html", {
+    return {
         "cards": cards, "page": page, "filters": filters, "cities": cities, "districts": districts, "cuisines": cuisines,
         "title": f"{label} — E-Shelle",
         "description": f"{label} sur E-Shelle. Découvre les établissements inscrits, leurs menus et leur contact WhatsApp.",
         "label": label, "origin": origin,
         "canonical": origin + page_url(page.number),
+        "filter_url": path + fragment,
+        "filtered": bool(params),
         "noindex": bool(search or district or cuisine or (city and not city_label)),
-        "previous_url": page_url(page.previous_page_number()) if page.has_previous() else "",
-        "next_url": page_url(page.next_page_number()) if page.has_next() else "",
+        "previous_url": page_url(page.previous_page_number()) + fragment if page.has_previous() else "",
+        "next_url": page_url(page.next_page_number()) + fragment if page.has_next() else "",
         "item_list_json": json.dumps(item_list).replace("<", "\\u003c") if cards else "",
-    })
+    }
