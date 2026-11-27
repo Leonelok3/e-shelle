@@ -6,6 +6,7 @@
 {% block content %}
 <main class="container py-4 mt-4">
   <a href="{% url 'business:dashboard' %}?business={{ business.pk }}">← Tableau de bord Business</a>
+  {% if request.user.is_staff %}<span aria-hidden="true"> · </span><a href="{% url 'business:ai_arsenal' %}">Arsenal IA</a>{% endif %}
   <section class="es-wa-setup" aria-labelledby="agents-title">
     <header class="es-wa-setup__header"><div><h1 id="agents-title">Mes agents</h1><p>{{ business.display_name }}</p></div><a class="es-wa-setup__button" href="{% url 'business:business_progress' business.pk %}">Bilan et renouvellement</a></header>
     {% for message in messages %}<p role="status">{{ message }}</p>{% endfor %}

@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}{% if LANGUAGE_CODE == 'en' %}My agents{% else %}Mes agents{% endif %} | E-Shelle{% endblock %}
+{% block meta_robots %}noindex, nofollow{% endblock %}
+{% block extra_css %}{{ block.super }}<link rel="stylesheet" href="{% static 'css/es-whatsapp-activation.css' %}">{% endblock %}
+{% block content %}
+<main class="container py-4 mt-4">
+  <section class="es-wa-setup" aria-labelledby="agents-title">
+    <header class="es-wa-setup__header">
+      <div>
+        <h1 id="agents-title">{% if LANGUAGE_CODE == 'en' %}My agents{% else %}Mes agents{% endif %}</h1>
+        {% if businesses %}<p>{% if LANGUAGE_CODE == 'en' %}Choose your business.{% else %}Choisis la fiche que tu veux gérer.{% endif %}</p>{% endif %}
+      </div>
+      {% if request.user.is_staff %}<a class="es-wa-setup__button" href="{% url 'business:ai_arsenal' %}">Arsenal IA</a>{% endif %}
+    </header>
+    {% if businesses %}
+      <div class="es-wa-setup__grid">
+        {% for business in businesses %}
+          <article class="es-wa-setup__card">
+            <h2><a href="{% url 'whatsapp_commerce:agent_center' business.pk %}">{{ business.display_name }}</a></h2>
+            <p>{{ business.display_module }}{% if business.city %} · {{ business.city }}{% endif %}</p>
+          </article>
+        {% endfor %}
+      </div>
+    {% else %}
+      <article class="es-wa-setup__card">
+        <p>{% if LANGUAGE_CODE == 'en' %}Create your business profile to set up your agents.{% else %}Crée ta fiche Business pour configurer tes agents.{% endif %}</p>
+        <a class="es-wa-setup__button" href="{% url 'business:onboarding' %}">{% if LANGUAGE_CODE == 'en' %}Create a profile{% else %}Créer une fiche{% endif %}</a>
+      </article>
+    {% endif %}
+  </section>
+</main>
+{% endblock %}

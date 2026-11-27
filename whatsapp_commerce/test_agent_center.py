@@ -60,6 +60,41 @@ class AgentCenterTests(TestCase):
         self.client.force_login(get_user_model().objects.create_user(username="outside-center"))
         self.assertEqual(self.client.get(url).status_code, 404)
 
+    def test_shared_entry_opens_owned_agents_or_displays_only_owned_businesses(self):
+        entry = reverse("business:agents_home")
+        center = reverse("whatsapp_commerce:agent_center", args=[self.business.pk])
+        outside = get_user_model().objects.create_user(username="outside-directory")
+        BusinessProfile.objects.create(owner=outside, name="Fiche privée extérieure")
+        self.assertRedirects(self.client.get(entry), center, fetch_redirect_response=False)
+
+        second = self.profile("Agence du centre", BusinessProfile.Module.SERVICES)
+        response = self.client.get(entry)
+        self.assertContains(response, center)
+        self.assertContains(response, reverse("whatsapp_commerce:agent_center", args=[second.pk]))
+        self.assertNotContains(response, "Fiche privée extérieure")
+        self.assertIn("no-store", response["Cache-Control"])
+
+    def test_agent_entry_and_arsenal_apply_account_access(self):
+        entry = reverse("business:agents_home")
+        arsenal = reverse("business:ai_arsenal")
+        self.assertEqual(self.client.get(arsenal).status_code, 302)
+        self.client.logout()
+        for url in (entry, arsenal):
+            response = self.client.get(url)
+            self.assertEqual(response.status_code, 302)
+            self.assertEqual(parse_qs(urlsplit(response.url).query)["next"], [url])
+
+        user = get_user_model().objects.create_user(username="new-agent-owner")
+        self.client.force_login(user)
+        self.assertContains(self.client.get(entry), reverse("business:onboarding"))
+        user.is_staff = True
+        user.save(update_fields=["is_staff"])
+        self.assertRedirects(self.client.get(entry), arsenal, fetch_redirect_response=False)
+        response = self.client.get(arsenal)
+        self.assertContains(response, "Arsenal IA E-Shelle")
+        self.assertContains(response, reverse("whatsapp_commerce:tech_provider_dashboard"))
+        self.assertIn("no-store", response["Cache-Control"])
+
     def test_stock_reservation_cancellation_and_paid_receipt(self):
         item = BusinessCatalogItem.objects.create(business=self.business, title="Lampe", stock_quantity=2)
         first = self.draft(self.contact, item, 2)

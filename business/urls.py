@@ -11,6 +11,7 @@ urlpatterns = [
     path("grossistes/", views.wholesale_sales, name="wholesale_sales"),
     path("solutions/", views.solutions, name="solutions"),
     path("communication/", views.eshelle_communication, name="eshelle_communication"),
+    path("agents/", views.agents_home, name="agents_home"),
     path("arsenal-ia/", views.ai_arsenal, name="ai_arsenal"),
     path("arsenal-ia/action/", views.ai_arsenal_action, name="ai_arsenal_action"),
     path("local/", seo_geo.geo_index, name="geo_index"),

@@ -14,6 +14,7 @@ from django.core.exceptions import ValidationError
 from django.core.validators import URLValidator
 from django.urls import reverse
 from django.utils import timezone
+from django.views.decorators.cache import never_cache
 from django.views.decorators.http import require_GET, require_POST
 from urllib.parse import urlparse
 
@@ -1104,8 +1105,24 @@ def eshelle_communication(request):
     )
 
 
+@never_cache
+@login_required
+@require_GET
+def agents_home(request):
+    businesses = BusinessProfile.objects.filter(owner=request.user).order_by("name", "pk")
+    first_two = list(businesses[:2])
+    if len(first_two) == 1:
+        return redirect("whatsapp_commerce:agent_center", business_id=first_two[0].pk)
+    if not first_two and request.user.is_staff:
+        return redirect("business:ai_arsenal")
+    return render(request, "business/agents_home.html", {"businesses": businesses if first_two else []})
+
+
+@never_cache
+@staff_member_required(login_url="accounts:login")
+@require_GET
 def ai_arsenal(request):
-    """Cockpit public/interne des agents IA E-Shelle et des agents a activer."""
+    """Cockpit interne des agents IA E-Shelle."""
     days = _positive_int(request.GET.get("days"), 14)
     return render(
         request,
