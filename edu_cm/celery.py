@@ -278,4 +278,9 @@ app.conf.beat_schedule = {
         "task": "whatsapp_commerce.tasks.process_due_business_whatsapp_follow_ups",
         "schedule": crontab(minute="*/1"),
     },
+    "business-whatsapp-replies": {
+        "task": "whatsapp_commerce.tasks.dispatch_business_whatsapp_replies",
+        "schedule": 5.0,
+        "options": {"expires": 10},
+    },
 }

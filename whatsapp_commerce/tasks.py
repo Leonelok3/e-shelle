@@ -76,3 +76,21 @@ def process_due_business_whatsapp_follow_ups():
         return 0
 
     return send_due_template_follow_ups()
+
+
+@shared_task(ignore_result=True, acks_late=True, soft_time_limit=120, time_limit=150)
+def process_business_whatsapp_reply(job_id):
+    from .reply_jobs import process_reply_job
+
+    return process_reply_job(job_id)
+
+
+@shared_task(ignore_result=True)
+def dispatch_business_whatsapp_replies():
+    from .reply_jobs import dispatch_pending_jobs
+
+    return dispatch_pending_jobs(
+        lambda job_id: process_business_whatsapp_reply.apply_async(
+            args=[job_id], retry=False, expires=90,
+        )
+    )

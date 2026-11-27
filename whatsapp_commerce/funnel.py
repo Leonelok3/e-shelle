@@ -52,7 +52,7 @@ def build_funnel_reply(connection, contact, inbound_message):
 	if decision.get("pending_action", {}).get("status") == "awaiting_confirmation":
 		return decision
 	qualification = _update_qualification(contact, inbound_message.body, decision)
-	inbound_count = contact.messages.filter(direction="inbound").count()
+	inbound_count = contact.messages.filter(direction="inbound", is_activation_test=False).count()
 	if inbound_count == 1:
 		intro = _catalog_intro(connection)
 		question = "Qu’est-ce que tu recherches, quel budget as-tu prévu et pour quand en as-tu besoin ?"

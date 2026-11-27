@@ -1,5 +1,6 @@
 from django.conf import settings
 from django.db import models
+from django.utils import timezone
 import uuid
 
 
@@ -68,6 +69,27 @@ class BusinessWhatsAppConnection(models.Model):
 		return decrypt_access_token(self.access_token_encrypted)
 
 
+class BusinessWhatsAppActivation(models.Model):
+	connection = models.OneToOneField(
+		BusinessWhatsAppConnection, on_delete=models.CASCADE, related_name="activation",
+	)
+	opening_hours = models.CharField(max_length=500, blank=True)
+	answer_hours = models.BooleanField(default=True)
+	answer_catalog = models.BooleanField(default=False)
+	assist_sales = models.BooleanField(default=False)
+	activated_at = models.DateTimeField(null=True, blank=True)
+	test_code = models.CharField(max_length=16, blank=True)
+	test_sender = models.CharField(max_length=20, blank=True)
+	test_phone_number_id = models.CharField(max_length=64, blank=True)
+	test_expires_at = models.DateTimeField(null=True, blank=True)
+	test_message = models.ForeignKey(
+		"BusinessWhatsAppMessage", null=True, blank=True, on_delete=models.SET_NULL, related_name="+",
+	)
+	test_reply = models.ForeignKey(
+		"BusinessWhatsAppMessage", null=True, blank=True, on_delete=models.SET_NULL, related_name="+",
+	)
+
+
 class WhatsAppProviderReferral(models.Model):
 	class Status(models.TextChoices):
 		CLICKED = "clicked", "Lien ouvert"
@@ -133,6 +155,7 @@ class BusinessWhatsAppContact(models.Model):
 		related_name="recorded_whatsapp_consents",
 	)
 	opted_out_at = models.DateTimeField(null=True, blank=True)
+	agent_paused = models.BooleanField(default=False)
 	last_inbound_at = models.DateTimeField(null=True, blank=True, db_index=True)
 	pipeline_status = models.CharField(
 		max_length=16,
@@ -179,6 +202,7 @@ class BusinessWhatsAppMessage(models.Model):
 		related_name="messages",
 	)
 	wa_message_id = models.CharField(max_length=200, unique=True)
+	is_activation_test = models.BooleanField(default=False)
 	direction = models.CharField(max_length=12, choices=Direction.choices)
 	message_type = models.CharField(max_length=32, default="text")
 	language = models.CharField(max_length=16, blank=True)
@@ -194,6 +218,33 @@ class BusinessWhatsAppMessage(models.Model):
 
 	def __str__(self):
 		return f"{self.contact.phone} - {self.direction}"
+
+
+class BusinessWhatsAppReplyJob(models.Model):
+	"""Pending automatic reply for a single persisted incoming message."""
+
+	class Status(models.TextChoices):
+		PENDING = "pending", "Réponse en attente"
+		PROCESSING = "processing", "Réponse en cours"
+		SENT = "sent", "Réponse envoyée"
+		SKIPPED = "skipped", "Réponse automatique ignorée"
+		REVIEW = "review", "Intervention de l’équipe"
+
+	message = models.OneToOneField(
+		BusinessWhatsAppMessage, on_delete=models.CASCADE, related_name="reply_job",
+	)
+	connection = models.ForeignKey(BusinessWhatsAppConnection, on_delete=models.CASCADE)
+	phone_number_id = models.CharField(max_length=64)
+	activation_code = models.CharField(max_length=16, blank=True)
+	status = models.CharField(max_length=12, choices=Status.choices, default=Status.PENDING)
+	dispatch_after = models.DateTimeField(default=timezone.now)
+	updated_at = models.DateTimeField(auto_now=True)
+
+	class Meta:
+		indexes = [
+			models.Index(fields=["status", "dispatch_after"], name="wa_reply_due_idx"),
+			models.Index(fields=["status", "updated_at"], name="wa_reply_state_idx"),
+		]
 
 
 class BusinessWhatsAppAudit(models.Model):

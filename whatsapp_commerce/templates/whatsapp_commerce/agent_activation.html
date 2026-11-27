@@ -1,0 +1,133 @@
+<section id="activation-agent" class="es-wa-setup" aria-labelledby="agent-activation-title">
+  <header class="es-wa-setup__header">
+    <div>
+      <h2 id="agent-activation-title">Activer le Vendeur WhatsApp</h2>
+      <p>Choisis les questions auxquelles l’agent peut répondre et vérifie sa première réponse sur ton téléphone.</p>
+    </div>
+    {% if agent_enabled %}
+      <span class="es-wa-setup__status es-wa-setup__status--good">Réponses clients activées</span>
+    {% else %}
+      <span class="es-wa-setup__status">Réponses clients en pause</span>
+    {% endif %}
+  </header>
+
+  <div class="es-wa-setup__grid">
+    <section class="es-wa-setup__card" aria-labelledby="agent-connection-title">
+      <h3 id="agent-connection-title">Connexion WhatsApp</h3>
+      {% if activation.connection_blockers %}
+        <ul class="es-wa-setup__issues">
+          {% for blocker in activation.connection_blockers %}<li>{{ blocker }}</li>{% endfor %}
+        </ul>
+        {% if not connection and signup_configured and whatsapp_payment_verified %}
+          <a class="es-wa-setup__button" href="{% url 'whatsapp_commerce:business_connect' business.id %}">Connecter avec Meta</a>
+        {% endif %}
+      {% else %}
+        <span class="es-wa-setup__status es-wa-setup__status--good">Numéro prêt pour le test</span>
+        <p>{{ connection.display_phone_number|default:"Numéro d’entreprise connecté via Meta" }}</p>
+      {% endif %}
+      {% if not agent_globally_enabled %}
+        <p class="es-wa-setup__issues">L’envoi automatique doit être activé côté E-Shelle pour lancer un test.</p>
+      {% endif %}
+    </section>
+
+    {% if connection %}
+      {% url 'whatsapp_commerce:business_agent_configure' business.id as setup_url %}
+      <section class="es-wa-setup__card" aria-labelledby="agent-settings-title">
+        <h3 id="agent-settings-title">Réglages de l’agent</h3>
+        <form method="post" action="{{ setup_url }}">
+          {% csrf_token %}
+          <label for="agent-opening-hours">Horaires d’ouverture</label>
+          <textarea id="agent-opening-hours" name="opening_hours" rows="3" maxlength="500"
+                    placeholder="Lundi au samedi, 11 h–22 h. Fermé le dimanche.">{{ activation.setup.opening_hours }}</textarea>
+          <fieldset>
+            <legend>Réponses autorisées</legend>
+            <label><input type="checkbox" name="answer_hours" {% if not activation.setup or activation.setup.answer_hours %}checked{% endif %}> Donner les horaires</label>
+            <label><input type="checkbox" name="answer_catalog" {% if activation.setup.answer_catalog %}checked{% endif %}> Présenter les articles sélectionnés</label>
+            <label><input type="checkbox" name="assist_sales" {% if activation.setup.assist_sales or not activation.setup and agent_enabled %}checked{% endif %}> Aider à préparer les commandes avec l’IA</label>
+          </fieldset>
+          <p class="es-wa-setup__hint">Les paiements, rendez-vous et demandes hors du périmètre choisi sont transmis à l’équipe dans la boîte de réception.</p>
+          <label for="agent-tone">Ton des réponses assistées par IA</label>
+          <select id="agent-tone" name="agent_tone">
+            <option value="professional" {% if agent_tone == "professional" %}selected{% endif %}>Professionnel</option>
+            <option value="friendly" {% if agent_tone == "friendly" %}selected{% endif %}>Familier</option>
+            <option value="pidgin" {% if agent_tone == "pidgin" %}selected{% endif %}>Pidgin</option>
+          </select>
+          <fieldset>
+            <legend>Articles du catalogue</legend>
+            <div class="es-wa-setup__catalog">
+              {% for item in agent_catalog_items %}
+                <label><input type="checkbox" name="agent_catalog_items" value="{{ item.pk }}" {% if item.pk in selected_agent_catalog_items %}checked{% endif %}> {{ item.title }}</label>
+              {% empty %}
+                <a href="{% url 'business:catalog_manage' business.id %}">Ajouter des articles à la fiche Business</a>
+              {% endfor %}
+            </div>
+          </fieldset>
+          {% if entitlements.can_automate %}
+            <label><input type="checkbox" name="automations_enabled" {% if business_automations_enabled %}checked{% endif %}> Autoriser les relances consenties</label>
+          {% endif %}
+          <button class="es-wa-setup__button" name="action" value="settings" type="submit">Enregistrer les réglages</button>
+        </form>
+      </section>
+
+      <section class="es-wa-setup__card" aria-labelledby="agent-test-title">
+        <h3 id="agent-test-title">Test et mise en service</h3>
+        {% if activation.test_job %}
+          <dl class="es-wa-setup__result">
+            <dt>Message reçu</dt>
+            <dd>{{ activation.setup.test_message.body }}</dd>
+            <dt>Réponse de l’agent</dt>
+            <dd>{{ activation.setup.test_reply.body|default:"En attente de réponse" }}</dd>
+            <dt>Résultat</dt>
+            <dd>
+              {% if activation.test_received %}Livraison confirmée par Meta.
+              {% elif activation.test_can_confirm %}Réponse acceptée par Meta. Vérifie qu’elle apparaît sur ton téléphone.
+              {% elif activation.test_status == "failed" %}Meta a signalé un échec de livraison. Tu peux relancer un test.
+              {% elif activation.test_running %}Le message est dans la file de traitement.
+              {% else %}Le test n’a pas abouti. Vérifie la connexion puis prépare un nouveau test.{% endif %}
+            </dd>
+          </dl>
+        {% endif %}
+        {% if activation.test_pending %}
+          <div class="es-wa-setup__result">
+            <p>Depuis le <strong>{{ activation.setup.test_sender }}</strong>, envoie ce message complet {% if connection.display_phone_number %}au <strong>{{ connection.display_phone_number }}</strong>{% endif %} avant {{ activation.setup.test_expires_at|time:"H:i" }}.</p>
+            <p class="es-wa-setup__code">{{ activation.test_body }}</p>
+            {% if activation.test_destination %}
+              <a class="es-wa-setup__button" href="https://wa.me/{{ activation.test_destination }}?text={{ activation.test_body|urlencode }}" target="_blank" rel="noopener noreferrer">Ouvrir dans WhatsApp</a>
+            {% endif %}
+          </div>
+        {% endif %}
+        {% if activation.test_pending or activation.test_running or activation.test_can_confirm %}
+          <a class="es-wa-setup__refresh" href="{% url 'whatsapp_commerce:business_dashboard' business.id %}#activation-agent">Actualiser le résultat du test</a>
+        {% endif %}
+        {% if activation.can_enable %}
+          <form method="post" action="{{ setup_url }}">
+            {% csrf_token %}
+            {% if activation.test_can_confirm %}
+              <label><input type="checkbox" name="received_on_phone" required> J’ai reçu la réponse sur mon téléphone</label>
+            {% endif %}
+            <button class="es-wa-setup__button" name="action" value="enable" type="submit">Activer pour mes clients</button>
+          </form>
+        {% endif %}
+        {% if activation.test_ready and not activation.test_running and not activation.test_pending %}
+          <form method="post" action="{{ setup_url }}">
+            {% csrf_token %}
+            <label for="agent-test-sender">Ton numéro WhatsApp de test</label>
+            <input id="agent-test-sender" name="test_sender" type="tel" autocomplete="tel" maxlength="32"
+                   value="{{ activation.setup.test_sender }}" placeholder="+237 …" required>
+            <button class="es-wa-setup__button es-wa-setup__button--secondary" name="action" value="start_test" type="submit">Préparer un test</button>
+          </form>
+        {% elif activation.setup_blockers %}
+          <ul class="es-wa-setup__issues">
+            {% for blocker in activation.setup_blockers %}<li>{{ blocker }}</li>{% endfor %}
+          </ul>
+        {% endif %}
+        {% if agent_enabled %}
+          <form method="post" action="{{ setup_url }}">
+            {% csrf_token %}
+            <button class="es-wa-setup__button es-wa-setup__button--secondary" name="action" value="disable" type="submit">Mettre les réponses clients en pause</button>
+          </form>
+        {% endif %}
+      </section>
+    {% endif %}
+  </div>
+</section>

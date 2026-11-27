@@ -137,7 +137,7 @@ def generate_sales_decision(connection, contact, message):
 	intent = classify_intent(message)
 	context = _business_context(connection)
 	history = list(
-		BusinessWhatsAppMessage.objects.filter(contact=contact)
+		BusinessWhatsAppMessage.objects.filter(contact=contact, is_activation_test=False)
 		.order_by("-created_at")
 		.values_list("direction", "body")[:8]
 	)

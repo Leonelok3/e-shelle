@@ -8,11 +8,14 @@ from django.db.models import F
 from django.utils import timezone
 from business.models import BusinessProfile
 
+from .activation import TEST_SUFFIX
 from .models import (
+	BusinessWhatsAppActivation,
 	BusinessWhatsAppAudit,
 	BusinessWhatsAppConnection,
 	BusinessWhatsAppContact,
 	BusinessWhatsAppMessage,
+	BusinessWhatsAppReplyJob,
 	ScheduledBusinessWhatsAppMessage,
 )
 from .onboarding import MetaOnboardingError, _request_meta
@@ -21,6 +24,10 @@ from .entitlements import require_whatsapp_entitlement
 from whatsapp_agent.models import MessageEnvoi
 
 logger = logging.getLogger(__name__)
+
+
+class AutomatedReplySuppressed(MetaOnboardingError):
+	"""The reply did not reach Meta because it was blocked locally."""
 
 
 def _message_datetime(value):
@@ -53,13 +60,57 @@ def _save_inbound(connection, message, display_name, received_at):
 	if not phone or not message_id:
 		return None, None, False
 
+	body = _inbound_text(message)
+	test_marker = TEST_SUFFIX.search(body)
+	if not test_marker and "[eshelle-test:" in body.casefold():
+		return None, None, False
+	activation = None
+	if test_marker:
+		activation = BusinessWhatsAppActivation.objects.select_for_update().filter(
+			connection=connection,
+			test_code=test_marker.group(1).lower(),
+			test_sender=phone,
+			test_phone_number_id=connection.phone_number_id,
+			test_expires_at__gt=timezone.now(),
+			test_message__isnull=True,
+		).first()
+		if activation is None:
+			return None, None, False
+		body = body[:test_marker.start()].strip()
+
 	contact, _ = BusinessWhatsAppContact.objects.get_or_create(
 		business=connection.business,
 		phone=phone,
 	)
+	contact = BusinessWhatsAppContact.objects.select_for_update().get(pk=contact.pk)
+	saved_message, created = BusinessWhatsAppMessage.objects.get_or_create(
+		wa_message_id=message_id,
+		defaults={
+			"contact": contact,
+			"direction": BusinessWhatsAppMessage.Direction.INBOUND,
+			"message_type": message.get("type", "text"),
+			"body": body,
+			"status": "received",
+			"meta_timestamp": received_at,
+			"is_activation_test": activation is not None,
+		},
+	)
+	if not created:
+		return contact, saved_message, False
+
 	contact.display_name = display_name or contact.display_name
-	contact.last_inbound_at = received_at or timezone.now()
-	body = _inbound_text(message)
+	inbound_at = received_at or timezone.now()
+	contact.last_inbound_at = max(contact.last_inbound_at or inbound_at, inbound_at)
+	if activation:
+		BusinessWhatsAppContact.objects.filter(pk=contact.pk).update(last_inbound_at=contact.last_inbound_at)
+		activation.test_message = saved_message
+		activation.save(update_fields=["test_message"])
+		BusinessWhatsAppReplyJob.objects.create(
+			message=saved_message, connection=connection, phone_number_id=connection.phone_number_id,
+			activation_code=activation.test_code,
+		)
+		return contact, saved_message, True
+
 	did_opt_out = body.casefold() in {"stop", "arret", "arrêt", "desinscrire", "désinscrire", "unsubscribe"}
 	consent_marketing = body.casefold() in {"oui pub", "oui promotions", "oui marketing"}
 	contact.consent_service = True
@@ -102,36 +153,41 @@ def _save_inbound(connection, message, display_name, received_at):
 			action="whatsapp_oui_pub",
 			details={"message_id": message_id},
 		)
-	saved_message, created = BusinessWhatsAppMessage.objects.get_or_create(
-		wa_message_id=message_id,
-		defaults={
-			"contact": contact,
-			"direction": BusinessWhatsAppMessage.Direction.INBOUND,
-			"message_type": message.get("type", "text"),
-			"body": body,
-			"status": "received",
-			"meta_timestamp": received_at,
-		},
-	)
-	if created and not did_opt_out:
+	if not did_opt_out:
 		from .automations import cancel_scheduled_contact_messages
 
 		cancel_scheduled_contact_messages(
 			contact,
 			"Le contact a répondu; les relances précédentes sont annulées.",
 		)
+		if not contact.opted_out_at and not contact.agent_paused:
+			BusinessWhatsAppReplyJob.objects.create(
+				message=saved_message, connection=connection, phone_number_id=connection.phone_number_id,
+			)
 	return contact, saved_message, created
 
 
-def _run_sales_agent(connection, contact, inbound_message):
+def _refund_ai_credit(business):
+	BusinessProfile.objects.filter(
+		pk=business.pk,
+		plan=business.plan,
+		subscription_expires_at=business.subscription_expires_at,
+		subscription_expires_at__gt=timezone.now(),
+		is_active=True,
+		is_trial=False,
+	).update(ai_credits=F("ai_credits") + 1, updated_at=timezone.now())
+
+
+def _run_sales_agent(connection, contact, inbound_message, *, reply_job_id=None):
 	from django.conf import settings
 
 	if (
 		not getattr(settings, "WHATSAPP_COMMERCE_AI_ENABLED", False)
 		or not connection.agent_enabled
 		or contact.opted_out_at
+		or contact.agent_paused
 	):
-		return
+		return BusinessWhatsAppReplyJob.Status.SKIPPED
 
 	from .entitlements import require_whatsapp_entitlement
 	from .funnel import build_funnel_reply
@@ -139,7 +195,7 @@ def _run_sales_agent(connection, contact, inbound_message):
 
 	business = contact.business
 	if not require_whatsapp_entitlement(business, "can_use_crm"):
-		return
+		return BusinessWhatsAppReplyJob.Status.SKIPPED
 	reserved = BusinessProfile.objects.filter(
 		pk=business.pk,
 		plan__in=[
@@ -148,6 +204,8 @@ def _run_sales_agent(connection, contact, inbound_message):
 		],
 		is_active=True,
 		is_trial=False,
+		plan=business.plan,
+		subscription_expires_at=business.subscription_expires_at,
 		subscription_expires_at__gt=timezone.now(),
 		ai_credits__gt=0,
 	).update(ai_credits=F("ai_credits") - 1, updated_at=timezone.now())
@@ -159,15 +217,17 @@ def _run_sales_agent(connection, contact, inbound_message):
 			action="reply_skipped",
 			details={"reason": "No active AI credits."},
 		)
-		return
+		return BusinessWhatsAppReplyJob.Status.SKIPPED
 
+	send_attempted = False
 	try:
 		from .orchestrator import confirm_draft_order, is_explicit_draft_confirmation
 
 		if is_explicit_draft_confirmation(contact, inbound_message.body):
 			confirmation = confirm_draft_order(contact.phone, inbound_message.body, business=contact.business)
 			if confirmation.get("status") == "already_confirmed":
-				return
+				_refund_ai_credit(business)
+				return BusinessWhatsAppReplyJob.Status.SKIPPED
 			if confirmation.get("status") == "confirmed":
 				draft = confirmation["draft"]
 				order = confirmation["order"]
@@ -176,7 +236,11 @@ def _run_sales_agent(connection, contact, inbound_message):
 					f"{contact.business.name} va te contacter pour le paiement Mobile Money "
 					"et la livraison. Merci !"
 				)
-				message_id = send_business_reply(contact, reply)
+				send_attempted = True
+				message_id = send_business_reply(
+					contact, reply, expected_phone_number_id=connection.phone_number_id, reply_job_id=reply_job_id,
+					require_agent_enabled=True,
+				)
 				BusinessWhatsAppAudit.objects.create(
 					connection=connection,
 					contact=contact,
@@ -190,12 +254,16 @@ def _run_sales_agent(connection, contact, inbound_message):
 						"wa_message_id": message_id,
 					},
 				)
-				return
+				return BusinessWhatsAppReplyJob.Status.SENT
 		decision = build_funnel_reply(connection, contact, inbound_message)
 		action = resolve_action(connection, contact, decision)
 		decision["action_next"] = action
 		audit = record_sales_decision(connection, contact, decision)
-		message_id = send_business_reply(contact, decision["reponse"])
+		send_attempted = True
+		message_id = send_business_reply(
+			contact, decision["reponse"], expected_phone_number_id=connection.phone_number_id, reply_job_id=reply_job_id,
+			require_agent_enabled=True,
+		)
 		audit.details = {
 			**audit.details,
 			"outcome": "sent",
@@ -212,14 +280,14 @@ def _run_sales_agent(connection, contact, inbound_message):
 				connection.business_id,
 				contact.pk,
 			)
+		return BusinessWhatsAppReplyJob.Status.SENT
+	except AutomatedReplySuppressed:
+		_refund_ai_credit(business)
+		return BusinessWhatsAppReplyJob.Status.SKIPPED
 	except Exception as exc:
-		BusinessProfile.objects.filter(
-			pk=business.pk,
-			plan=business.plan,
-			subscription_expires_at__gt=timezone.now(),
-			is_active=True,
-			is_trial=False,
-		).update(ai_credits=F("ai_credits") + 1, updated_at=timezone.now())
+		# A timeout or failure after dispatch may still represent an accepted Meta send.
+		if not send_attempted:
+			_refund_ai_credit(business)
 		logger.exception(
 			"WhatsApp Commerce: agent vendeur en échec (business_id=%s, contact_id=%s).",
 			connection.business_id,
@@ -230,8 +298,9 @@ def _run_sales_agent(connection, contact, inbound_message):
 			contact=contact,
 			event_type="sales_agent_error",
 			action="reply_failed",
-			details={"error_type": type(exc).__name__, "message": str(exc)[:400]},
+			details={"error_type": type(exc).__name__, "send_attempted": send_attempted},
 		)
+		return BusinessWhatsAppReplyJob.Status.REVIEW
 
 
 def _record_template_status_update(connection, value):
@@ -285,45 +354,31 @@ def process_business_whatsapp_webhook(payload):
 
 			for message in value.get("messages", []):
 				if isinstance(message, dict):
-					contact, saved_message, created = _save_inbound(
+					_save_inbound(
 						connection,
 						message,
 						names.get(str(message.get("from", "")), ""),
 						_message_datetime(message.get("timestamp")),
 					)
-					if created and contact and saved_message and not contact.opted_out_at:
-						from .campaigns import accept_njangi_invitation
-
-						accepted = accept_njangi_invitation(contact, saved_message.body)
-						if accepted:
-							reply = (
-								f"Participation confirmée : {accepted['quantity']} unité(s) à "
-								f"{accepted['group'].prix_njangi}F. Merci pour ta réponse !"
-							)
-							wa_message_id = send_business_reply(contact, reply)
-							BusinessWhatsAppAudit.objects.create(
-								connection=connection,
-								contact=contact,
-								event_type="njangi_group_buy_accepted",
-								action="explicit_oui",
-								details={
-									"group_buy_id": accepted["group"].pk,
-									"quantity": accepted["quantity"],
-									"wa_message_id": wa_message_id,
-								},
-							)
-						else:
-							_run_sales_agent(connection, contact, saved_message)
 
 			for status in value.get("statuses", []):
 				if not isinstance(status, dict) or not status.get("id"):
 					continue
 				wa_status = str(status.get("status", ""))[:24]
-				BusinessWhatsAppMessage.objects.filter(
+				outbound = BusinessWhatsAppMessage.objects.filter(
 					wa_message_id=status["id"],
 					contact__business=connection.business,
 					direction=BusinessWhatsAppMessage.Direction.OUTBOUND,
-				).update(status=wa_status)
+				)
+				outbound.filter(is_activation_test=False).update(status=wa_status)
+				test_previous_statuses = {
+					"sent": ["accepted"],
+					"delivered": ["accepted", "sent", "failed"],
+					"read": ["accepted", "sent", "delivered", "failed"],
+					"failed": ["accepted", "sent"],
+				}
+				if wa_status in test_previous_statuses:
+					outbound.filter(is_activation_test=True, status__in=test_previous_statuses[wa_status]).update(status=wa_status)
 				ScheduledBusinessWhatsAppMessage.objects.filter(
 					wa_message_id=status["id"],
 					connection=connection,
@@ -369,27 +424,45 @@ def is_business_whatsapp_connection(waba_id, phone_number_id):
 	).exists()
 
 
-def send_business_reply(contact, text):
+def send_business_reply(
+	contact, text, *, expected_phone_number_id=None, reply_job_id=None,
+	activation_test=False, require_agent_enabled=False,
+):
 	"""Send a customer-service reply within the WhatsApp 24-hour window only."""
+	if expected_phone_number_id is not None:
+		contact.refresh_from_db(fields=["agent_paused", "opted_out_at", "last_inbound_at", "business"])
+		if contact.agent_paused or contact.opted_out_at:
+			raise AutomatedReplySuppressed("La réponse automatique a été désactivée pour ce contact.")
+	error_class = AutomatedReplySuppressed if expected_phone_number_id is not None else MetaOnboardingError
 	if contact.opted_out_at:
-		raise MetaOnboardingError("Ce contact a demandé à ne plus recevoir de messages.")
+		raise error_class("Ce contact a demandé à ne plus recevoir de messages.")
 	if not require_whatsapp_entitlement(contact.business, "can_use_crm"):
-		raise MetaOnboardingError("L’inbox WhatsApp nécessite une formule Business active.")
-	connection = BusinessWhatsAppConnection.objects.filter(
+		raise error_class("L’inbox WhatsApp nécessite une formule Business active.")
+	connections = BusinessWhatsAppConnection.objects.filter(
 		business=contact.business,
 		status=BusinessWhatsAppConnection.Status.ACTIVE,
-	).first()
-	if connection is None or not connection.get_access_token():
-		raise MetaOnboardingError("Connectez d’abord le compte WhatsApp Business.")
+	)
+	if expected_phone_number_id is not None:
+		connections = connections.filter(phone_number_id=expected_phone_number_id)
+	connection = connections.first()
+	token = connection.get_access_token() if connection else ""
+	if not token:
+		raise error_class("Connectez d’abord le compte WhatsApp Business.")
+	if require_agent_enabled and not connection.agent_enabled:
+		raise AutomatedReplySuppressed("Les réponses automatiques de cette entreprise sont en pause.")
 	if not contact.last_inbound_at or contact.last_inbound_at < timezone.now() - timedelta(hours=24):
-		raise MetaOnboardingError("La fenêtre de réponse de 24 h est fermée. Utilisez un modèle approuvé par Meta.")
+		raise error_class("La fenêtre de réponse de 24 h est fermée. Utilisez un modèle approuvé par Meta.")
 	if not text or len(text) > 4096:
-		raise MetaOnboardingError("Le message doit contenir entre 1 et 4096 caractères.")
+		raise error_class("Le message doit contenir entre 1 et 4096 caractères.")
+	if reply_job_id is not None and not BusinessWhatsAppReplyJob.objects.filter(
+		pk=reply_job_id, message__contact=contact, status=BusinessWhatsAppReplyJob.Status.PROCESSING,
+	).exists():
+		raise AutomatedReplySuppressed("Cette réponse est passée en revue manuelle.")
 
 	result = _request_meta(
 		"POST",
 		f"{connection.phone_number_id}/messages",
-		token=connection.get_access_token(),
+		token=token,
 		payload={
 			"messaging_product": "whatsapp",
 			"recipient_type": "individual",
@@ -408,8 +481,9 @@ def send_business_reply(contact, text):
 		direction=BusinessWhatsAppMessage.Direction.OUTBOUND,
 		message_type="text",
 		body=text,
-		status="sent",
+		status="accepted" if activation_test else "sent",
 		meta_timestamp=timezone.now(),
+		is_activation_test=activation_test,
 	)
 	BusinessWhatsAppContact.objects.filter(pk=contact.pk).update(last_activity_at=timezone.now())
 	return message_id

@@ -10,7 +10,7 @@ from django.contrib.admin.views.decorators import staff_member_required
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from django.db import IntegrityError
+from django.db import IntegrityError, transaction
 from django.http import HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.template.loader import get_template
@@ -21,6 +21,9 @@ from django.views.decorators.http import require_GET, require_POST
 from django.db.models import Q
 
 from business.models import BusinessProfile
+from .activation import (
+	DELIVERED, SEND_CONFIRMED, activation_context, configuration_blockers, connection_blockers,
+)
 from .automations import (
 	cancel_scheduled_contact_messages,
 	get_approved_template_catalog,
@@ -29,7 +32,9 @@ from .automations import (
 from .business_catalog import sync_business_catalog as sync_business_catalog_items
 from .entitlements import whatsapp_entitlements
 from .inbox import send_business_reply
+from .reply_jobs import set_agent_paused
 from .models import (
+	BusinessWhatsAppActivation,
 	BusinessWhatsAppAudit,
 	BusinessCatalogWhatsAppSync,
 	BusinessWhatsAppConnection,
@@ -338,6 +343,10 @@ def business_whatsapp_dashboard(request, business_id):
 	contact_id = request.GET.get("contact")
 	if contact_id and entitlements["can_use_crm"]:
 		contact = contacts.filter(pk=contact_id).first()
+	conversation = (
+		contact.messages.filter(is_activation_test=False).select_related("reply_job").order_by("-created_at", "-pk")[:100]
+		if contact else []
+	)
 	catalog_syncs = BusinessCatalogWhatsAppSync.objects.filter(
 		connection=connection,
 		business_catalog_item__business=business,
@@ -356,6 +365,7 @@ def business_whatsapp_dashboard(request, business_id):
 		{
 			"business": business,
 			"connection": connection,
+			"activation": activation_context(connection),
 			"meta_messaging_limit_display": meta_messaging_limit_display,
 			"agent_enabled": bool(connection and connection.agent_enabled),
 			"business_automations_enabled": bool(connection and connection.automations_enabled),
@@ -368,7 +378,7 @@ def business_whatsapp_dashboard(request, business_id):
 			"agent_globally_enabled": getattr(settings, "WHATSAPP_COMMERCE_AI_ENABLED", False),
 			"contacts": contacts[:100],
 			"selected_contact": contact,
-			"conversation_messages": contact.messages.all()[:100] if contact else [],
+			"conversation_messages": list(reversed(conversation)),
 			"entitlements": entitlements,
 			"status_choices": BusinessWhatsAppContact.PipelineStatus.choices,
 			"status_filter": status_filter,
@@ -454,47 +464,140 @@ def sync_existing_waba_for_business(request, business_id):
 
 @login_required
 @require_POST
+@transaction.atomic
 def configure_sales_agent(request, business_id):
 	business = _owned_business(request, business_id)
-	connection = get_object_or_404(BusinessWhatsAppConnection, business=business)
-	enabled = request.POST.get("agent_enabled") == "on"
+	connection = get_object_or_404(
+		BusinessWhatsAppConnection.objects.select_for_update(no_key=True), business=business,
+	)
+	action = request.POST.get("action", "settings")
+	url = reverse("whatsapp_commerce:business_dashboard", args=[business.pk]) + "#activation-agent"
+	if action == "disable":
+		connection.agent_enabled = False
+		connection.save(update_fields=["agent_enabled", "updated_at"])
+		messages.success(request, "Les réponses aux clients sont en pause.")
+		return redirect(url)
+	if not whatsapp_entitlements(business)["can_use_crm"]:
+		messages.error(request, "Une formule Business ou Premium active est nécessaire.")
+		return redirect(url)
+	activation = BusinessWhatsAppActivation.objects.select_for_update().filter(connection=connection).first()
+	if action == "settings":
+		error = _save_agent_settings(request, connection, activation)
+		if error:
+			messages.error(request, error)
+		else:
+			messages.success(request, "Réglages enregistrés. Tu peux préparer un test sur ton téléphone.")
+		return redirect(url)
+	if not getattr(settings, "WHATSAPP_COMMERCE_AI_ENABLED", False):
+		messages.error(request, "Les réponses automatiques doivent être activées côté E-Shelle.")
+		return redirect(url)
+	blockers = connection_blockers(connection) + configuration_blockers(activation)
+	if blockers:
+		messages.error(request, blockers[0])
+		return redirect(url)
+	if action == "start_test":
+		error = _start_agent_test(request, connection, activation)
+		if error:
+			messages.error(request, error)
+		else:
+			messages.success(request, "Test prêt. Envoie le message indiqué depuis ton téléphone.")
+	elif action == "enable":
+		status = activation.test_reply.status if activation.test_reply_id else ""
+		confirmed = request.POST.get("received_on_phone") == "on" and status in SEND_CONFIRMED
+		if activation.test_phone_number_id != connection.phone_number_id or not (status in DELIVERED or confirmed):
+			messages.error(request, "Vérifie la réception de la réponse de test sur ton téléphone avant d’activer l’agent.")
+		else:
+			if not connection.agent_enabled:
+				activation.activated_at = timezone.now()
+				activation.save(update_fields=["activated_at"])
+			connection.agent_enabled = True
+			connection.save(update_fields=["agent_enabled", "updated_at"])
+			BusinessWhatsAppAudit.objects.create(
+				connection=connection,
+				event_type="sales_agent_activated",
+				action="enabled",
+				details={"owner_id": request.user.pk, "confirmed_on_phone": confirmed},
+			)
+			messages.success(request, "L’agent répond maintenant aux clients selon tes réglages.")
+	return redirect(url)
+
+
+def _test_in_progress(activation):
+	if not activation or not activation.test_message_id:
+		return False
+	job = activation.test_message.reply_job
+	return job.status in {job.Status.PENDING, job.Status.PROCESSING} and (
+		job.status == job.Status.PROCESSING or activation.test_expires_at > timezone.now()
+	)
+
+
+def _save_agent_settings(request, connection, activation):
+	if _test_in_progress(activation):
+		return "Attends la fin du test avant de modifier les réglages."
 	automations_enabled = request.POST.get("automations_enabled") == "on"
-	if enabled and (
-		not getattr(settings, "WHATSAPP_COMMERCE_AI_ENABLED", False)
-		or connection.status != BusinessWhatsAppConnection.Status.ACTIVE
-		or not whatsapp_entitlements(business)["can_use_crm"]
-	):
-		messages.error(request, "L’agent nécessite le drapeau serveur actif, une connexion WhatsApp et une formule éligible.")
-		return redirect("whatsapp_commerce:business_dashboard", business_id=business.pk)
-	if automations_enabled and (
-		connection.status != BusinessWhatsAppConnection.Status.ACTIVE
-		or not whatsapp_entitlements(business)["can_automate"]
-	):
-		messages.error(request, "Les relances exigent une connexion active et une formule Business ou Premium.")
-		return redirect("whatsapp_commerce:business_dashboard", business_id=business.pk)
+	if automations_enabled and connection.status != BusinessWhatsAppConnection.Status.ACTIVE:
+		return "Les relances exigent une connexion WhatsApp active."
 	tone = request.POST.get("agent_tone", "friendly")
 	if tone not in {"professional", "friendly", "pidgin"}:
-		messages.error(request, "Choisissez un ton valide.")
-		return redirect("whatsapp_commerce:business_dashboard", business_id=business.pk)
-	item_ids = request.POST.getlist("agent_catalog_items")
-	items = business.catalog_items.filter(pk__in=item_ids, is_active=True)
-	connection.agent_enabled = enabled
+		return "Choisis un ton valide."
+	hours = request.POST.get("opening_hours", "").strip()
+	answer_hours = request.POST.get("answer_hours") == "on"
+	answer_catalog = request.POST.get("answer_catalog") == "on"
+	assist_sales = request.POST.get("assist_sales") == "on"
+	if len(hours) > 500 or (answer_hours and not hours):
+		return "Renseigne les horaires en 500 caractères maximum."
+	try:
+		item_ids = {int(value) for value in request.POST.getlist("agent_catalog_items")}
+	except ValueError:
+		return "Choisis des articles valides."
+	items = list(connection.business.catalog_items.filter(pk__in=item_ids, is_active=True).values_list("pk", flat=True))
+	if set(items) != item_ids or (answer_catalog and not items):
+		return "Choisis au moins un article actif de cette entreprise pour répondre sur le catalogue."
+	if not (answer_hours or answer_catalog):
+		return "Choisis au moins un sujet à tester, les horaires ou le catalogue."
+	activation = activation or BusinessWhatsAppActivation(connection=connection)
+	changed = (
+		(activation.opening_hours, activation.answer_hours, activation.answer_catalog, activation.assist_sales)
+		!= (hours, answer_hours, answer_catalog, assist_sales)
+		or connection.agent_tone != tone
+		or set(connection.agent_catalog_items.values_list("pk", flat=True)) != item_ids
+	)
+	if changed:
+		activation.test_code = activation.test_sender = activation.test_phone_number_id = ""
+		activation.test_expires_at = activation.test_message = activation.test_reply = None
+	activation.opening_hours = hours
+	activation.answer_hours = answer_hours
+	activation.answer_catalog = answer_catalog
+	activation.assist_sales = assist_sales
+	activation.save()
 	connection.automations_enabled = automations_enabled
 	connection.agent_tone = tone
-	connection.save(update_fields=["agent_enabled", "automations_enabled", "agent_tone", "updated_at"])
+	connection.save(update_fields=["automations_enabled", "agent_tone", "updated_at"])
 	connection.agent_catalog_items.set(items)
 	BusinessWhatsAppAudit.objects.create(
 		connection=connection,
 		event_type="sales_agent_configured",
-		action="enabled" if enabled else "disabled",
-		details={
-			"tone": tone,
-			"catalog_item_ids": list(items.values_list("pk", flat=True)),
-			"automations_enabled": automations_enabled,
-		},
+		action="settings",
+		details={"tone": tone, "catalog_item_ids": items, "automations_enabled": automations_enabled},
 	)
-	messages.success(request, "Les réglages de l’agent vendeur ont été enregistrés.")
-	return redirect("whatsapp_commerce:business_dashboard", business_id=business.pk)
+	return ""
+
+
+def _start_agent_test(request, connection, activation):
+	if _test_in_progress(activation):
+		return "Un message de test est déjà en cours de traitement."
+	sender = normalize_phone(request.POST.get("test_sender", ""))
+	if not sender or sender == normalize_phone(connection.display_phone_number):
+		return "Indique un numéro WhatsApp de test avec son indicatif, différent du numéro connecté."
+	activation.test_sender = sender
+	activation.test_phone_number_id = connection.phone_number_id
+	activation.test_code = secrets.token_hex(8)
+	activation.test_expires_at = timezone.now() + timedelta(minutes=30)
+	activation.test_message = activation.test_reply = None
+	activation.save(update_fields=[
+		"test_sender", "test_phone_number_id", "test_code", "test_expires_at", "test_message", "test_reply",
+	])
+	return ""
 
 
 @login_required
@@ -717,13 +820,20 @@ def reply_to_business_contact(request, business_id, contact_id):
 		)
 		return redirect("tarifs")
 	contact = get_object_or_404(BusinessWhatsAppContact, pk=contact_id, business=business)
+	return_url = f"{reverse('whatsapp_commerce:business_dashboard', args=[business.pk])}?contact={contact.pk}"
+	mode = request.POST.get("agent_mode")
+	if mode in {"pause", "resume"}:
+		paused = mode == "pause"
+		set_agent_paused(contact.pk, paused)
+		messages.success(request, "Conversation reprise par ton équipe." if paused else "Agent réactivé pour les prochains messages.")
+		return redirect(return_url)
 	try:
 		send_business_reply(contact, request.POST.get("body", "").strip())
 	except MetaOnboardingError as exc:
 		messages.error(request, str(exc))
 	else:
 		messages.success(request, "Réponse envoyée à Meta.")
-	return redirect(f"{reverse('whatsapp_commerce:business_dashboard', args=[business.pk])}?contact={contact.pk}")
+	return redirect(return_url)
 
 
 @login_required

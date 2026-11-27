@@ -276,6 +276,7 @@ class BusinessWhatsAppTests(TestCase):
 	@patch("whatsapp_commerce.campaigns._request_meta")
 	@patch("whatsapp_commerce.campaigns._generate_business_vocal")
 	def test_vocal_pidgin_sends_via_business_waba(self, generate_audio, meta_request):
+		self.create_verified_provider_payment(self.business)
 		connection = BusinessWhatsAppConnection.objects.create(
 			business=self.business,
 			waba_id="vocal-waba",
@@ -345,6 +346,7 @@ class BusinessWhatsAppTests(TestCase):
 			city="Douala",
 			district="Akwa",
 		)
+		self.create_verified_provider_payment(shop)
 		connection = BusinessWhatsAppConnection.objects.create(
 			business=shop,
 			waba_id="njangi-waba",
@@ -893,6 +895,13 @@ class BusinessWhatsAppTests(TestCase):
 			HTTP_X_HUB_SIGNATURE_256=signature,
 		)
 		self.assertEqual(response.status_code, 200)
+		call_llm_mock.assert_not_called()
+		meta_request.assert_not_called()
+		from .reply_jobs import process_reply_job
+
+		job = BusinessWhatsAppMessage.objects.get(wa_message_id="wamid-agent-inbound").reply_job
+		self.assertTrue(process_reply_job(job.pk))
+		self.assertFalse(process_reply_job(job.pk))
 		self.assertEqual(call_llm_mock.call_count, 1)
 		self.assertEqual(meta_request.call_count, 1)
 		self.assertEqual(
@@ -1088,6 +1097,10 @@ class BusinessWhatsAppTests(TestCase):
 
 		process_business_whatsapp_webhook(payload)
 
+		from .reply_jobs import process_reply_job
+
+		job = BusinessWhatsAppMessage.objects.get(wa_message_id="wamid-order-yes").reply_job
+		self.assertTrue(process_reply_job(job.pk))
 		draft.refresh_from_db()
 		order = Commande.objects.get(whatsapp_draft_order=draft)
 		transaction = Transaction.objects.get(whatsapp_draft_order=draft)
