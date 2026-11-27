@@ -2,6 +2,7 @@ from django.contrib import admin
 from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
+from django.db import DatabaseError
 from django.views.generic import TemplateView
 from django.shortcuts import render, redirect
 from django.http import HttpResponse
@@ -314,6 +315,12 @@ def home_view(request):
     except Exception:
         # L'indisponibilité du catalogue ne doit pas bloquer la page d'accueil.
         ctx["academy_formations"] = []
+    try:
+        from business.restaurant_directory import featured_cards
+
+        ctx["directory_cards"] = featured_cards()
+    except DatabaseError:
+        ctx["directory_cards"] = []
     return render(request, "home.html", ctx)
 
 
@@ -965,6 +972,7 @@ urlpatterns = [
     # Page d'accueil
     path("", home_view, name="home"),
     path("restaurant/", business_views.restaurant_landing, name="restaurant_landing"),
+    path("restaurants/", business_views.restaurant_directory, name="restaurant_directory"),
     path("vendeur-whatsapp/", business_views.whatsapp_seller_landing, name="whatsapp_seller_landing"),
     path("on-fait-ta-fiche/", business_views.done_for_you_landing, name="done_for_you_landing"),
     path("boutique-en-ligne/", TemplateView.as_view(template_name="business/shop_landing.html"), name="shop_landing"),

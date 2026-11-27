@@ -48,6 +48,7 @@ from .catalog_import import CatalogImportError, import_catalog_csv, import_from_
 from .ai_delivery import ensure_english_kit_content, generate_client_ai_kit, kit_summary_for_whatsapp
 from .ai_arsenal import arsenal_agents, arsenal_stats, fidelisation_agent, opportunites_agent
 from .reporting import business_report_context, render_business_report_pdf
+from .restaurant_directory import directory as restaurant_directory, public_business_restaurants, public_whatsapp_number
 from .services import collect_business_items, create_tracking_event, record_event_hit
 
 
@@ -702,6 +703,20 @@ def public_profile(request, public_slug):
     whatsapp_url = reverse(
         "business:go_business", kwargs={"business_id": business.pk, "event_type": "whatsapp"}
     ) + "?source=profile"
+    directory_restaurant = (
+        business.module == BusinessProfile.Module.RESTO and
+        public_business_restaurants().filter(pk=business.pk).exists()
+    )
+    items = collect_business_items(business)
+    directory_contact = None
+    if directory_restaurant:
+        number = public_whatsapp_number(business.whatsapp, business.country)
+        if number:
+            directory_contact = {"kind": "business", "id": business.pk}
+        for item in items:
+            item["contact_url"] = build_whatsapp_url(
+                f"Bonjour, je t’écris depuis E-Shelle au sujet de {item['title']}.", number,
+            ) if number else ""
     is_owner = request.user.is_authenticated and business.owner == request.user
     reviews = business.reviews.all() if is_owner else business.approved_reviews
     return render(
@@ -711,7 +726,9 @@ def public_profile(request, public_slug):
             "business": business,
             "source_object": source_object,
             "source_url": source_url,
-            "items": collect_business_items(business),
+            "items": items,
+            "directory_restaurant": directory_restaurant,
+            "directory_contact": directory_contact,
             "public_url": public_url,
             "share_text": share_text,
             "share_whatsapp_url": f"https://wa.me/?text={urllib.parse.quote(share_text)}",

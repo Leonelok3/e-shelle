@@ -1,0 +1,31 @@
+<article class="es-dir-card">
+  <a class="es-dir-picture" href="{{ card.url }}" tabindex="-1" aria-hidden="true">
+    {% if card.image %}
+      <img src="{{ card.image }}" alt="" width="400" height="235" loading="lazy" decoding="async">
+    {% else %}
+      <span class="es-dir-placeholder">🍽</span>
+    {% endif %}
+  </a>
+  <div class="es-dir-card-body">
+    {% if card.featured %}<p class="es-dir-featured">Mis en avant</p>{% endif %}
+    <h3><a href="{{ card.url }}">{{ card.name }}</a></h3>
+    <p class="es-dir-location">
+      {% if card.city %}{{ card.city }}{% if card.district %} · {{ card.district }}{% endif %}{% if card.country %} · {{ card.country }}{% endif %}
+      {% elif card.country %}{{ card.country }}{% else %}Localisation non renseignée{% endif %}
+    </p>
+    {% if card.cuisines %}<p class="es-dir-cuisines">{{ card.cuisines|join:" · " }}</p>{% endif %}
+    {% if card.menu and not compact %}
+      <ul class="es-dir-menu" aria-label="Quelques plats de la carte">
+        {% for name, price in card.menu %}
+          <li><span>{{ name }}</span>{% if price %}<strong>{{ price }}</strong>{% endif %}</li>
+        {% endfor %}
+      </ul>
+    {% endif %}
+    {% if not compact %}
+      <div class="es-dir-actions">
+        <a class="es-dir-button es-dir-button-outline" href="{{ card.url }}">Voir la fiche</a>
+        {% if card.can_contact %}{% include "partials/es_dir/contact.html" %}{% endif %}
+      </div>
+    {% endif %}
+  </div>
+</article>

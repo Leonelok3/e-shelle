@@ -20,6 +20,7 @@ PUBLIC_URLS = [
     ("/", "Accueil E-Shelle", "Page mère de conversion"),
     ("/business/local/", "GEO Local Business", "Pages ville + service déjà amorcées"),
     ("/resto/", "Restaurants", "Module restaurants"),
+    ("/restaurants/", "Annuaire des restaurants", "Fiches publiques"),
     ("/gaz/", "Gaz", "Livraison gaz"),
     ("/pressing/", "Pressing", "Pressing et blanchisserie"),
     ("/immobilier/", "Immobilier", "Biens immobiliers"),
@@ -399,13 +400,29 @@ def build_sitemap_entries(request):
     # Individual Business Profiles (/b/<slug>/)
     try:
         from business.models import BusinessProfile
-        for biz in BusinessProfile.publicly_visible().exclude(public_slug=None).exclude(public_slug=""):
+        businesses = (
+            BusinessProfile.publicly_visible().exclude(public_slug=None).exclude(public_slug="")
+            .exclude(module=BusinessProfile.Module.RESTO, content_type__app_label="resto", content_type__model="restaurant")
+        )
+        for biz in businesses:
             try:
                 path = reverse("business_public_short", kwargs={"public_slug": biz.public_slug})
             except Exception:
                 path = biz.get_absolute_url()
             url = f"{base}{path}"
             entries.append({"loc": url, "label": biz.name, "kind": "Fiche client"})
+    except Exception:
+        pass
+
+    try:
+        from resto.models import Restaurant
+
+        for restaurant in Restaurant.objects.visible().only("slug", "name", "updated_at"):
+            path = reverse("resto:restaurant_detail", args=[restaurant.slug])
+            entries.append({
+                "loc": base + path, "label": restaurant.name, "kind": "Fiche restaurant",
+                "lastmod": restaurant.updated_at.date().isoformat(),
+            })
     except Exception:
         pass
 

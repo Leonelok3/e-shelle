@@ -1,0 +1,94 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}{{ title }}{% endblock %}
+{% block meta_description %}{{ description }}{% endblock %}
+{% block canonical_url %}{{ canonical }}{% endblock %}
+{% block og_title %}{{ title }}{% endblock %}
+{% block og_description %}{{ description }}{% endblock %}
+{% block og_url %}{{ canonical }}{% endblock %}
+{% block twitter_title %}{{ title }}{% endblock %}
+{% block twitter_description %}{{ description }}{% endblock %}
+{% block meta_robots %}{% if noindex %}noindex, follow{% else %}{{ block.super }}{% endif %}{% endblock %}
+{% block extra_head %}
+  {% if previous_url %}<link rel="prev" href="{{ origin }}{{ previous_url }}">{% endif %}
+  {% if next_url %}<link rel="next" href="{{ origin }}{{ next_url }}">{% endif %}
+  {% if item_list_json %}<script type="application/ld+json">{{ item_list_json|safe }}</script>{% endif %}
+{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'css/es-restaurant-directory.css' %}">{% endblock %}
+
+{% block content %}
+<div class="es-dir-page" lang="fr">
+  <header class="es-dir-hero">
+    <div class="es-dir-wrap">
+      <h1>{{ label }}</h1>
+      <p>Regarde la carte avant de choisir ta table. Trouve un restaurant par ville, quartier ou nom de plat, puis écris-lui directement sur WhatsApp.</p>
+      {% if cards %}<a class="es-dir-invite" href="{% url 'business:onboarding' %}?plan=free">Inscris ton restaurant gratuitement <span aria-hidden="true">→</span></a>{% endif %}
+    </div>
+  </header>
+  <div class="es-dir-wrap es-dir-results">
+    <details class="es-dir-filters"{% if filters.city or filters.district or filters.cuisine or filters.q %} open{% endif %}>
+      <summary>Filtrer les restaurants</summary>
+      <form class="es-dir-form" method="get" action="{% url 'restaurant_directory' %}">
+        <label for="dir-search">Nom ou plat
+          <input id="dir-search" type="search" name="q" value="{{ filters.q }}" maxlength="140" placeholder="Ex. poulet braisé">
+        </label>
+        <label for="dir-city">Ville
+          <select id="dir-city" name="city">
+            <option value="">Toutes les villes</option>
+            {% for city in cities %}<option value="{{ city }}"{% if city|lower == filters.city|lower %} selected{% endif %}>{{ city }}</option>{% endfor %}
+          </select>
+        </label>
+        <label for="dir-district">Quartier
+          <select id="dir-district" name="district">
+            <option value="">Tous les quartiers</option>
+            {% for district in districts %}<option value="{{ district }}"{% if district|lower == filters.district|lower %} selected{% endif %}>{{ district }}</option>{% endfor %}
+          </select>
+        </label>
+        {% if cuisines or filters.cuisine %}
+          <label for="dir-cuisine">Cuisine
+            <select id="dir-cuisine" name="cuisine">
+              <option value="">Toutes les cuisines</option>
+              {% for cuisine in cuisines %}<option value="{{ cuisine.slug }}"{% if cuisine.slug == filters.cuisine %} selected{% endif %}>{{ cuisine.localized_name }}</option>{% endfor %}
+            </select>
+          </label>
+        {% endif %}
+        <div class="es-dir-actions">
+          <button class="es-dir-button es-dir-button-primary" type="submit">Appliquer les filtres</button>
+          <a class="es-dir-button es-dir-button-outline" href="{% url 'restaurant_directory' %}">Réinitialiser</a>
+        </div>
+      </form>
+    </details>
+
+    {% if cards %}
+      <section aria-labelledby="dir-results-title">
+        <div class="es-dir-result-head">
+          <h2 id="dir-results-title">Restaurants inscrits <span>{{ page.paginator.count }}</span></h2>
+          <p>Fiches mises en avant, puis les plus récentes.</p>
+        </div>
+        <div class="es-dir-grid">
+          {% for card in cards %}{% include "partials/es_dir/card.html" %}{% endfor %}
+        </div>
+      </section>
+      {% if previous_url or next_url %}
+        <nav class="es-dir-pagination" aria-label="Pagination des restaurants">
+          {% if previous_url %}<a class="es-dir-button es-dir-button-outline" href="{{ previous_url }}" rel="prev">← Précédente</a>{% endif %}
+          <span>Page {{ page.number }} sur {{ page.paginator.num_pages }}</span>
+          {% if next_url %}<a class="es-dir-button es-dir-button-outline" href="{{ next_url }}" rel="next">Suivante →</a>{% endif %}
+        </nav>
+      {% endif %}
+    {% else %}
+      <section class="es-dir-empty" aria-labelledby="dir-empty-title">
+        {% if filters.city or filters.district or filters.cuisine or filters.q %}
+          <h2 id="dir-empty-title">Aucun restaurant ne correspond à ta recherche</h2>
+          <p>Essaie un autre nom de plat, une autre ville ou enlève un filtre.</p>
+        {% else %}
+          <h2 id="dir-empty-title">Aucun restaurant publié pour le moment</h2>
+          <p>Dès qu’un restaurant publie sa fiche, elle peut apparaître ici.</p>
+        {% endif %}
+        <a class="es-dir-button es-dir-button-primary" href="{% url 'business:onboarding' %}?plan=free">Inscris ton restaurant gratuitement</a>
+      </section>
+    {% endif %}
+    <p class="es-dir-note">Chaque restaurant fournit les informations de sa fiche. Tu conviens du paiement et de la livraison directement avec le restaurant.</p>
+  </div>
+</div>
+{% endblock %}
