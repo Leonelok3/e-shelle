@@ -7,9 +7,10 @@ from django.conf import settings
 from django.db import transaction
 from django.db.models import Exists, OuterRef, Q
 from django.utils import timezone
+from immobilier_cameroun.agency import is_estate_agency
 
 from .activation import automatic_answer, connection_blockers
-from .inbox import AutomatedReplySuppressed, _run_sales_agent, send_business_reply
+from .inbox import AutomatedReplySuppressed, _refund_ai_credit, _reserve_ai_credit, _run_sales_agent, send_business_reply
 from .models import (
     BusinessWhatsAppActivation,
     BusinessWhatsAppAudit,
@@ -97,6 +98,10 @@ def _respond(job):
     if job.activation_code:
         return _respond_to_test(job, connection, contact)
 
+    if is_estate_agency(contact.business):
+        activation = BusinessWhatsAppActivation.objects.filter(connection=connection).first()
+        return _respond_with_scope(job, activation, connection, contact) if activation else Status.SKIPPED
+
     accepted = accept_njangi_invitation(contact, message.body)
     if not accepted:
         activation = BusinessWhatsAppActivation.objects.filter(connection=connection).first()
@@ -136,7 +141,12 @@ def _respond_to_test(job, connection, contact):
         or connection_blockers(connection)
     ):
         return Status.SKIPPED
-    reply = automatic_answer(activation, job.message.body)
+    if is_estate_agency(connection.business):
+        from .estate import estate_preview
+
+        reply = estate_preview(connection.business)
+    else:
+        reply = automatic_answer(activation, job.message.body)
     if not reply:
         return Status.REVIEW
     outbound_id = send_business_reply(
@@ -154,8 +164,10 @@ def _respond_to_test(job, connection, contact):
 
 def _respond_with_scope(job, activation, connection, contact):
     from .brain import classify_intent
+    from .bookings import booking_reply
     from .entitlements import require_whatsapp_entitlement
     from .orchestrator import is_explicit_draft_confirmation
+    from .voice import transcribe_voice, voice_available
 
     if (
         not connection.agent_enabled
@@ -165,14 +177,37 @@ def _respond_with_scope(job, activation, connection, contact):
     ):
         return Status.SKIPPED
     body = job.message.body
-    intent = classify_intent(body)
-    if activation.assist_sales and (
-        intent == "commande" or is_explicit_draft_confirmation(contact, body)
-    ):
-        return _run_sales_agent(connection, contact, job.message, reply_job_id=job.pk)
-    if intent in {"paiement", "rdv", "commande"}:
-        return Status.REVIEW
-    reply = automatic_answer(activation, body)
+    typed = job.message.message_type in {"text", "interactive", "button"}
+    if job.message.message_type == "audio":
+        if (
+            not activation.voice_enabled or not voice_available() or not job.message.media_id
+            or not _reserve_ai_credit(contact.business)
+        ):
+            return Status.REVIEW
+        try:
+            body = transcribe_voice(connection, job.message)
+        except Exception as exc:
+            logger.warning("WhatsApp : transcription indisponible (job_id=%s, type=%s).", job.pk, type(exc).__name__)
+            body = ""
+        if not body:
+            _refund_ai_credit(contact.business)
+            return Status.REVIEW
+        BusinessWhatsAppMessage.objects.filter(pk=job.message_id).update(body=body)
+    if is_estate_agency(contact.business):
+        from .estate import estate_reply
+
+        reply = estate_reply(activation, contact, body, typed=typed)
+    else:
+        intent = classify_intent(body)
+        if typed and activation.assist_sales and (
+            intent == "commande" or is_explicit_draft_confirmation(contact, body)
+        ):
+            return _run_sales_agent(connection, contact, job.message, reply_job_id=job.pk)
+        reply = booking_reply(activation, contact, body, typed=typed)
+        if reply is None and intent in {"paiement", "rdv", "commande"}:
+            return Status.REVIEW
+    if reply is None:
+        reply = automatic_answer(activation, body)
     if not reply:
         return Status.REVIEW
     send_business_reply(

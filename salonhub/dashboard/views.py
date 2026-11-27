@@ -2,10 +2,12 @@ import datetime as dt
 
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
+from django.db import transaction
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_POST
 
 from salonhub.bookings.models import Appointment
+from salonhub.bookings.utils import get_available_slots
 from salonhub.salons.models import Salon, Service, OpeningHour
 from .forms import SalonForm, ServiceForm
 
@@ -134,11 +136,31 @@ def service_delete(request, pk):
 
 @login_required
 @require_POST
+@transaction.atomic
 def update_appointment_status(request, pk):
     appointment = get_object_or_404(Appointment, pk=pk, salon__owner=request.user)
+    salon = get_object_or_404(Salon.objects.select_for_update(), pk=appointment.salon_id, owner=request.user)
+    appointment.refresh_from_db()
     new_status = request.POST.get("status")
     if new_status in dict(Appointment.Status.choices):
+        reserved = {Appointment.Status.PENDING, Appointment.Status.CONFIRMED}
+        if new_status in reserved and appointment.status not in reserved and appointment.time not in get_available_slots(
+            salon, appointment.date, appointment.service, exclude_appointment=appointment.pk,
+        ):
+            messages.error(request, "Ce créneau n’est plus disponible.")
+            return redirect("salonhub_dashboard:home")
         appointment.status = new_status
         appointment.save(update_fields=["status"])
+        if new_status != Appointment.Status.DONE:
+            from immobilier_cameroun.models import DemandeVisite, StatutVisite
+            from whatsapp_commerce.models import BusinessWhatsAppBooking
+
+            visit_status = {
+                Appointment.Status.PENDING: StatutVisite.EN_ATTENTE,
+                Appointment.Status.CONFIRMED: StatutVisite.CONFIRME,
+                Appointment.Status.CANCELLED: StatutVisite.ANNULE,
+            }
+            visit_ids = BusinessWhatsAppBooking.objects.filter(appointment=appointment).values("property_visit_id")
+            DemandeVisite.objects.filter(pk__in=visit_ids).update(statut=visit_status[new_status])
         messages.success(request, "Statut du rendez-vous mis à jour.")
     return redirect("salonhub_dashboard:home")

@@ -1,0 +1,79 @@
+{% extends "business/sales_landing_base.html" %}
+{% load static %}
+{% block page_class %}estate-sales{% endblock %}
+{% block title %}Agent WhatsApp pour agences immobilières | E-Shelle{% endblock %}
+{% block meta_description %}Publiez vos biens sur E-Shelle. L’agent WhatsApp de votre agence répond sur les annonces disponibles et propose de vrais créneaux de visite.{% endblock %}
+{% block canonical_url %}https://e-shelle.com/immobilier/agences/{% endblock %}
+{% block og_url %}https://e-shelle.com/immobilier/agences/{% endblock %}
+{% block og_title %}De WhatsApp à la visite immobilière | E-Shelle{% endblock %}
+{% block og_description %}Aidez les prospects à trouver un bien dans votre catalogue et à réserver une visite sur votre agenda.{% endblock %}
+{% block og_image %}<meta property="og:image" content="https://e-shelle.com{% static 'img/immobilier-agences.webp' %}">{% endblock %}
+{% block extra_css %}{{ block.super }}<link rel="stylesheet" href="{% static 'css/es-estate-sales.css' %}">{% endblock %}
+{% block kicker %}Pour les agences immobilières{% endblock %}
+{% block headline %}De la première question à la visite confirmée{% endblock %}
+{% block intro %}Publiez vos biens et connectez le WhatsApp de votre agence. E-Shelle répond à partir de vos annonces disponibles, aide le prospect à choisir un bien et lui propose un créneau sur votre agenda.{% endblock %}
+{% block hero_visual %}
+  <figure class="estate-hero-image">
+    <img src="{% static 'img/immobilier-agences.webp' %}" alt="Illustration d’une résidence contemporaine entourée de palmiers à Douala" width="1122" height="1402" fetchpriority="high">
+    <figcaption>Illustration d’une résidence à Douala</figcaption>
+  </figure>
+{% endblock %}
+{% block hero_actions %}
+  <div class="estate-actions">
+    <a class="sales-cta" href="{% url 'business:onboarding' %}?module=immobilier{% if agency_plans %}&amp;plan=business{% endif %}">Créer ma fiche agence</a>
+    <a class="estate-secondary" href="{% url 'immobilier:liste_biens' %}">Voir les biens à louer ou à vendre</a>
+  </div>
+{% endblock %}
+{% block sales_sections %}
+  <section class="estate-flow" aria-labelledby="estate-flow-title">
+    <div>
+      <h2 id="estate-flow-title">Vos annonces deviennent le catalogue de l’agent</h2>
+      <ol class="estate-steps">
+        <li><strong>Publiez vos biens.</strong> Rattachez chaque annonce à la fiche de la bonne agence.</li>
+        <li><strong>Connectez votre numéro.</strong> Le prospect peut préciser sa ville, son quartier, son budget et le type de bien recherché, y compris en note vocale si l’option est active.</li>
+        <li><strong>Configurez vos visites.</strong> L’agent propose les créneaux de votre agenda. Le prospect confirme par écrit et votre équipe retrouve la visite dans le tableau de bord.</li>
+      </ol>
+    </div>
+    <div class="estate-demo">
+      <h3>Exemple de conversation</h3>
+      <p>Je cherche un appartement à Bonapriso, jusqu’à 300 000 F CFA par mois.</p>
+      <p>L’agent affiche les biens de l’agence qui correspondent au budget. Le client choisit une référence et peut demander une visite.</p>
+    </div>
+  </section>
+
+  {% if listings %}
+    <section class="estate-listings" aria-labelledby="estate-listings-title">
+      <h2 id="estate-listings-title">Biens disponibles dans les agences E-Shelle</h2>
+      <div class="estate-listing-grid">
+        {% for listing in listings %}
+          <article class="sales-card">
+            {% with photo=listing.sales_photos.0 %}
+              {% if photo and photo.image %}<img src="{{ photo.image.url }}" alt="{{ listing.titre }}" width="400" height="240" loading="lazy">{% endif %}
+            {% endwith %}
+            <div class="estate-listing-text">
+              <p>{{ listing.get_type_transaction_display }} · {{ listing.quartier }}, {{ listing.ville }}</p>
+              <h3><a href="{{ listing.get_absolute_url }}">{{ listing.titre }}</a></h3>
+              <p><strong>{{ listing.prix_formate }}</strong> · {{ listing.get_periode_prix_display }}</p>
+              <p>{{ listing.agence.name }}</p>
+            </div>
+          </article>
+        {% endfor %}
+      </div>
+    </section>
+  {% endif %}
+
+  <section class="sales-grid" aria-label="Outils de l’agence">
+    <article class="sales-card"><h2>Reprendre une conversation</h2><p>Votre équipe reprend l’échange pour les dossiers, les acomptes et les négociations. Elle peut aussi réactiver l’agent après sa réponse.</p></article>
+    <article class="sales-card"><h2>Suivre la visibilité de votre agence</h2><p>Complétez votre fiche avec l’audit de visibilité locale, validez sa description et suivez ses clics WhatsApp.</p></article>
+  </section>
+  <section class="estate-price" aria-labelledby="estate-price-title">
+    <div>
+      <h2 id="estate-price-title">Mettre en service l’agent de votre agence</h2>
+      {% for plan in agency_plans %}
+        <p><strong>{{ plan.display_name }}</strong> · {{ plan.monthly_price_xaf }} F CFA / {{ plan.duration_days }} jours</p>
+      {% endfor %}
+      <p>La messagerie nécessite une connexion WhatsApp Business active. Configurez un agenda pour proposer des visites. Les frais Meta sont en plus.</p>
+    </div>
+    <a class="sales-cta" href="{% url 'business:onboarding' %}?module=immobilier">Démarrer avec E-Shelle</a>
+  </section>
+{% endblock %}

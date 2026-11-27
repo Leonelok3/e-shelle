@@ -83,12 +83,15 @@ def _save_inbound(connection, message, display_name, received_at):
 		phone=phone,
 	)
 	contact = BusinessWhatsAppContact.objects.select_for_update().get(pk=contact.pk)
+	audio = message.get("audio")
+	media_id = str(audio.get("id") or "")[:80] if message.get("type") == "audio" and isinstance(audio, dict) else ""
 	saved_message, created = BusinessWhatsAppMessage.objects.get_or_create(
 		wa_message_id=message_id,
 		defaults={
 			"contact": contact,
 			"direction": BusinessWhatsAppMessage.Direction.INBOUND,
 			"message_type": message.get("type", "text"),
+			"media_id": media_id,
 			"body": body,
 			"status": "received",
 			"meta_timestamp": received_at,
@@ -178,6 +181,19 @@ def _refund_ai_credit(business):
 	).update(ai_credits=F("ai_credits") + 1, updated_at=timezone.now())
 
 
+def _reserve_ai_credit(business):
+	return BusinessProfile.objects.filter(
+		pk=business.pk,
+		plan__in=[BusinessProfile.Plan.BUSINESS, BusinessProfile.Plan.PREMIUM],
+		plan=business.plan,
+		is_active=True,
+		is_trial=False,
+		subscription_expires_at=business.subscription_expires_at,
+		subscription_expires_at__gt=timezone.now(),
+		ai_credits__gt=0,
+	).update(ai_credits=F("ai_credits") - 1, updated_at=timezone.now())
+
+
 def _run_sales_agent(connection, contact, inbound_message, *, reply_job_id=None):
 	from django.conf import settings
 
@@ -196,20 +212,7 @@ def _run_sales_agent(connection, contact, inbound_message, *, reply_job_id=None)
 	business = contact.business
 	if not require_whatsapp_entitlement(business, "can_use_crm"):
 		return BusinessWhatsAppReplyJob.Status.SKIPPED
-	reserved = BusinessProfile.objects.filter(
-		pk=business.pk,
-		plan__in=[
-			BusinessProfile.Plan.BUSINESS,
-			BusinessProfile.Plan.PREMIUM,
-		],
-		is_active=True,
-		is_trial=False,
-		plan=business.plan,
-		subscription_expires_at=business.subscription_expires_at,
-		subscription_expires_at__gt=timezone.now(),
-		ai_credits__gt=0,
-	).update(ai_credits=F("ai_credits") - 1, updated_at=timezone.now())
-	if not reserved:
+	if not _reserve_ai_credit(business):
 		BusinessWhatsAppAudit.objects.create(
 			connection=connection,
 			contact=contact,
@@ -229,13 +232,18 @@ def _run_sales_agent(connection, contact, inbound_message, *, reply_job_id=None)
 				_refund_ai_credit(business)
 				return BusinessWhatsAppReplyJob.Status.SKIPPED
 			if confirmation.get("status") == "confirmed":
+				from .checkout import checkout_url
+
 				draft = confirmation["draft"]
 				order = confirmation["order"]
+				payment = confirmation["transaction"]
 				reply = (
 					f"Commande #{order.reference} confirmée. "
 					f"{contact.business.name} va te contacter pour le paiement Mobile Money "
 					"et la livraison. Merci !"
 				)
+				if payment.methode == "campay":
+					reply = f"Commande #{order.reference} confirmée. Pour régler par Mobile Money : {checkout_url(payment)}"
 				send_attempted = True
 				message_id = send_business_reply(
 					contact, reply, expected_phone_number_id=connection.phone_number_id, reply_job_id=reply_job_id,
@@ -246,7 +254,7 @@ def _run_sales_agent(connection, contact, inbound_message, *, reply_job_id=None)
 					contact=contact,
 					event_type="sales_order_handoff_sent",
 					intent="commande",
-					action="manual_payment_handoff",
+					action="campay_checkout" if payment.methode == "campay" else "manual_payment_handoff",
 					details={
 						"draft_id": draft.pk,
 						"order_id": order.pk,

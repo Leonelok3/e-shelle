@@ -13,10 +13,12 @@ from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import get_user_model
 from django.views.decorators.csrf import csrf_exempt
-from django.views.decorators.http import require_POST
+from django.views.decorators.cache import never_cache
+from django.views.decorators.http import require_http_methods, require_POST
 from django.contrib import messages
 from django.urls import reverse
 from django.db import transaction as db_transaction
+from django.db.models import F
 from django.utils import timezone
 
 from .models import Transaction
@@ -273,6 +275,62 @@ def _start_campay_checkout(request, transaction_obj, *, description, fallback_ur
         "metadata", "erreur", "updated_at",
     ])
     return redirect(link)
+
+
+@never_cache
+@require_http_methods(["GET", "POST"])
+def whatsapp_campay_order(request, token):
+    from whatsapp_commerce.checkout import CHECKOUT_MAX_AGE, CHECKOUT_SALT, checkout_enabled, payment_status
+
+    try:
+        payload = signing.loads(token, salt=CHECKOUT_SALT, max_age=CHECKOUT_MAX_AGE)
+    except signing.BadSignature:
+        payload = {}
+    payment = get_object_or_404(
+        Transaction.objects.select_related("commande", "whatsapp_draft_order__business"),
+        pk=payload.get("id"), reference=payload.get("reference"), methode="campay",
+        whatsapp_draft_order__status="confirmed", commande__whatsapp_draft_order_id=F("whatsapp_draft_order_id"),
+    )
+    draft = payment.whatsapp_draft_order
+    payable = (
+        payment.commande.statut == "en_attente"
+        and payment.commande.business_profile_id == draft.business_id
+        and draft.total_price == payment.commande.montant_total == payment.montant > 0
+        and checkout_enabled(draft.business_id)
+    )
+    if request.method == "POST" and payable:
+        with db_transaction.atomic():
+            order = Commande.objects.select_for_update().get(pk=payment.commande_id)
+            current = Transaction.objects.select_for_update().get(pk=payment.pk)
+            if order.statut != "en_attente" or order.montant_total != current.montant:
+                return redirect(request.path)
+            if current.statut == "en_attente" and current.payment_link:
+                response = redirect(current.payment_link)
+                response["Referrer-Policy"] = "no-referrer"
+                return response
+            if current.statut == "initie" and not current.metadata.get("checkout_requested"):
+                current.metadata = {**current.metadata, "checkout_requested": True}
+                current.save(update_fields=["metadata", "updated_at"])
+            else:
+                return redirect(request.path)
+        response = _start_campay_checkout(
+            request, current, description=f"E-Shelle commande {payment.commande.reference}",
+            fallback_url=request.path,
+        )
+        response["Referrer-Policy"] = "no-referrer"
+        return response
+    response = render(request, "payments/whatsapp_checkout.html", {
+        "payment": payment, "payment_status": payment_status(payment),
+        "can_pay": payable and (
+            (payment.statut == "initie" and not payment.metadata.get("checkout_requested"))
+            or (payment.statut == "en_attente" and payment.payment_link)
+        ),
+        "business": draft.business,
+        "verified_payment": payment_status(payment) in {"Paiement vérifié", "Paiement de test vérifié"},
+    })
+    response["Referrer-Policy"] = "no-referrer"
+    response["X-Robots-Tag"] = "noindex"
+    return response
 
 
 @login_required
@@ -559,6 +617,12 @@ def campay_return(request):
         tx.refresh_from_db()
 
     provider_business_id = (tx.metadata or {}).get("provider_whatsapp_business_id")
+    if tx.whatsapp_draft_order_id and (tx.metadata or {}).get("source") == "whatsapp_confirmed":
+        from whatsapp_commerce.checkout import checkout_url
+
+        response = redirect(checkout_url(tx))
+        response["Referrer-Policy"] = "no-referrer"
+        return response
     return render(request, "payments/campay_result.html", {
         "transaction": tx,
         "verified": verified,

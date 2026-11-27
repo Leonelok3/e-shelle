@@ -5,6 +5,7 @@ Formulaires : publication de bien, profil, visite, soumission, signalement, rech
 from django import forms
 from django.forms import inlineformset_factory
 from django.conf import settings
+from .agency import agency_profiles
 
 from .models import (
     Bien, PhotoBien, EquipementBien, ProfilImmo,
@@ -36,7 +37,7 @@ class BienForm(forms.ModelForm):
     class Meta:
         model  = Bien
         fields = [
-            "titre", "type_bien", "type_transaction",
+            "agence", "titre", "type_bien", "type_transaction",
             "description", "prix", "devise", "periode_prix",
             "surface", "nombre_pieces", "nombre_chambres", "nombre_salles_bain",
             "etage", "nombre_etages_immeuble",
@@ -48,6 +49,7 @@ class BienForm(forms.ModelForm):
             "titre": forms.TextInput(attrs={
                 "class": "form-control", "placeholder": "Ex : Appartement meublé 3 pièces à Bastos"
             }),
+            "agence": forms.Select(attrs={"class": "form-select"}),
             "type_bien":        forms.Select(attrs={"class": "form-select"}),
             "type_transaction": forms.Select(attrs={"class": "form-select"}),
             "description": forms.Textarea(attrs={
@@ -78,6 +80,9 @@ class BienForm(forms.ModelForm):
     def __init__(self, *args, user=None, **kwargs):
         super().__init__(*args, **kwargs)
         self.user = user
+        owner_id = self.instance.proprietaire_id or getattr(user, "pk", None)
+        self.fields["agence"].queryset = agency_profiles(owner_id)
+        self.fields["agence"].empty_label = "Annonce indépendante"
 
         # Pré-remplir les équipements si on modifie un bien existant
         if self.instance.pk:
@@ -85,6 +90,11 @@ class BienForm(forms.ModelForm):
                 self.instance.equipements.values_list("nom", flat=True)
             )
             self.fields["equipements"].initial = equip_existants
+
+    def clean_agence(self):
+        if self.instance.pk and "agence" not in self.data:
+            return self.instance.agence
+        return self.cleaned_data["agence"]
 
     def clean_titre(self):
         titre = self.cleaned_data.get("titre", "").strip()
@@ -124,12 +134,14 @@ class BienForm(forms.ModelForm):
     def save(self, commit=True):
         bien = super().save(commit=commit)
         if commit:
-            # Gestion des équipements
-            equipements_choisis = self.cleaned_data.get("equipements", [])
-            bien.equipements.all().delete()
-            for nom in equipements_choisis:
-                EquipementBien.objects.create(bien=bien, nom=nom)
+            self.save_equipements()
         return bien
+
+    def save_equipements(self):
+        self.instance.equipements.all().delete()
+        EquipementBien.objects.bulk_create(
+            EquipementBien(bien=self.instance, nom=nom) for nom in self.cleaned_data.get("equipements", [])
+        )
 
 
 # ─────────────────────────────────────────────────────────────────

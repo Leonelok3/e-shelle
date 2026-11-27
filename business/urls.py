@@ -46,6 +46,7 @@ urlpatterns = [
     path("onboarding/", views.onboarding, name="onboarding"),
     path("dashboard/", views.dashboard, name="dashboard"),
     path("fiche/<int:business_id>/modifier/", views.business_edit, name="business_edit"),
+    path("fiche/<int:business_id>/visibilite/", views.apply_visibility_description, name="business_visibility_apply"),
     path("catalogue/<int:business_id>/", views.catalog_manage, name="catalog_manage"),
     path("catalogue/<int:business_id>/importer-csv/", views.catalog_import_csv, name="catalog_import_csv"),
     path("catalog/photo-upload/", views.catalog_photo_upload, name="catalog_photo_upload"),

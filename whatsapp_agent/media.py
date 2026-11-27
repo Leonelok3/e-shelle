@@ -150,6 +150,45 @@ def meta_error(data, fallback):
     return f"{fallback} {error.get('message', '')} (code {code})".strip()
 
 
+def retrieve_media(media_id, token, buffer, *, max_bytes, phone_number_id="", media_kind="", graph_base=""):
+    """Download from Meta into the supplied temporary buffer and return the MIME type."""
+    if not re.fullmatch(r"[a-zA-Z0-9_-]{1,80}", str(media_id or "")) or not token:
+        return ""
+    headers = {"Authorization": f"Bearer {token}"}
+    params = {"phone_number_id": phone_number_id} if phone_number_id else None
+    response = requests.get(
+        f"{graph_base or api_base()}/{media_id}", headers=headers, params=params, timeout=(5, 12), allow_redirects=False,
+    )
+    if response.status_code != 200:
+        return ""
+    data = response.json()
+    if not isinstance(data, dict):
+        return ""
+    url = data.get("url") or ""
+    parsed = urlparse(url)
+    host = parsed.hostname or ""
+    if parsed.scheme != "https" or parsed.username or parsed.password or not any(
+        host == domain or host.endswith("." + domain) for domain in ("facebook.com", "fbcdn.net", "fbsbx.com")
+    ):
+        return ""
+    mime = (data.get("mime_type") or "").split(";", 1)[0].strip().lower()
+    if int(data.get("file_size") or 0) > max_bytes or (media_kind and not mime.startswith(media_kind + "/")):
+        return ""
+    with requests.get(url, headers=headers, timeout=(5, 15), stream=True, allow_redirects=False) as remote:
+        if remote.status_code != 200:
+            return ""
+        size = 0
+        for chunk in remote.iter_content(64 * 1024):
+            size += len(chunk)
+            if size > max_bytes:
+                return ""
+            buffer.write(chunk)
+    if size:
+        buffer.seek(0)
+        return mime or "application/octet-stream"
+    return ""
+
+
 def download_attachment(media_id, media_type='', filename='', mime_type=''):
     if not media_id or getattr(settings, 'WHATSAPP_DRY_RUN', True):
         return ''
@@ -157,37 +196,16 @@ def download_attachment(media_id, media_type='', filename='', mime_type=''):
     if not token:
         return ''
     try:
-        headers = {'Authorization': f'Bearer {token}'}
-        response = requests.get(f'{api_base()}/{media_id}', headers=headers, timeout=(10, 15))
-        if response.status_code != 200:
-            return ''
-        data = response.json()
-        url = data.get('url', '')
-        host = urlparse(url).hostname or ''
-        if urlparse(url).scheme != 'https' or not (host == 'facebook.com' or host.endswith('.facebook.com')
-                or host == 'fbcdn.net' or host.endswith('.fbcdn.net')
-                or host == 'fbsbx.com' or host.endswith('.fbsbx.com')):
-            return ''
-        if int(data.get('file_size') or 0) > 100 * MB:
-            return ''
-        mime = data.get('mime_type') or mime_type
-        extension = mimetypes.guess_extension(mime or '') or {'image': '.jpg', 'document': '.pdf', 'audio': '.ogg', 'video': '.mp4', 'sticker': '.webp'}.get(media_type, '.bin')
-        name = clean_filename(filename or f'{media_type or "fichier"}{extension}')
         from tempfile import SpooledTemporaryFile
         from django.core.files import File
-        with requests.get(url, headers=headers, timeout=(10, 60), stream=True, allow_redirects=False) as remote:
-            if remote.status_code != 200:
+        with SpooledTemporaryFile(max_size=2 * MB) as buffer:
+            mime = retrieve_media(media_id, token, buffer, max_bytes=100 * MB)
+            if not mime:
                 return ''
-            with SpooledTemporaryFile(max_size=2 * MB) as buffer:
-                size = 0
-                for chunk in remote.iter_content(64 * 1024):
-                    size += len(chunk)
-                    if size > 100 * MB:
-                        return ''
-                    buffer.write(chunk)
-                if not size:
-                    return ''
-                buffer.seek(0)
-                return save_private(File(buffer, name=name), name)
+            if mime == "application/octet-stream":
+                mime = mime_type
+            extension = mimetypes.guess_extension(mime or '') or {'image': '.jpg', 'document': '.pdf', 'audio': '.ogg', 'video': '.mp4', 'sticker': '.webp'}.get(media_type, '.bin')
+            name = clean_filename(filename or f'{media_type or "fichier"}{extension}')
+            return save_private(File(buffer, name=name), name)
     except (requests.RequestException, ValueError, OSError):
         return ''

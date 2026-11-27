@@ -220,6 +220,7 @@ def confirm_draft_order(contact_phone, token_ou_oui, *, business=None):
 	"""Confirm only an explicit OUI/token; idempotently create the manual-payment handoff."""
 	from boutique.models import Commande, LigneCommande
 	from payments.models import Transaction
+	from .checkout import checkout_enabled
 
 	value = str(token_ou_oui or "").strip()
 	is_yes = _normalized(value) in {"oui", "oui confirme", "oui je confirme"}
@@ -285,17 +286,18 @@ def confirm_draft_order(contact_phone, token_ou_oui, *, business=None):
 		quantite=draft.quantity,
 		prix_unit=draft.unit_price,
 	)
+	campay = checkout_enabled(draft.business_id) and draft.total_price > 0 and draft.total_price == draft.total_price.to_integral_value()
 	payment = Transaction.objects.create(
 		utilisateur=None,
 		type_tx="service",
-		methode="mtn_momo",
+		methode="campay" if campay else "mtn_momo",
 		montant=draft.total_price,
 		devise="XAF",
 		telephone=contact.phone,
-		statut="pending_awaiting_manual_validation",
+		statut="initie" if campay else "pending_awaiting_manual_validation",
 		commande=order,
 		whatsapp_draft_order=draft,
-		payment_link=draft.business.whatsapp_url(
+		payment_link="" if campay else draft.business.whatsapp_url(
 			text=(
 				f"Bonjour {draft.business.name}, je souhaite régler la commande "
 				f"{order.reference} de {_format_fcfa(draft.total_price)} FCFA. "
@@ -307,7 +309,7 @@ def confirm_draft_order(contact_phone, token_ou_oui, *, business=None):
 			"business_id": draft.business_id,
 			"draft_id": draft.pk,
 			"manual_validation_required": True,
-			"payment_link_kind": "business_whatsapp_contact",
+			"payment_link_kind": "campay" if campay else "business_whatsapp_contact",
 		},
 	)
 	draft.status = WhatsAppDraftOrder.Status.CONFIRMED
@@ -324,7 +326,7 @@ def confirm_draft_order(contact_phone, token_ou_oui, *, business=None):
 		contact=contact,
 		event_type="draft_order_confirmed",
 		intent="commande",
-		action="manual_payment_handoff",
+		action="campay_checkout" if campay else "manual_payment_handoff",
 		details={
 			"draft_id": draft.pk,
 			"order_id": order.pk,

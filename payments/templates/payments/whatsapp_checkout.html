@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Paiement de la commande | E-Shelle</title>
+  <style>
+    body { margin: 0; background: #f1f7f3; color: #123129; font: 1rem/1.55 system-ui, sans-serif; }
+    main { max-width: 35rem; margin: 3rem auto; padding: 1.5rem; background: white; border: 1px solid #c9ded2; border-radius: 1rem; }
+    h1 { font-size: clamp(1.5rem, 5vw, 2rem); margin-top: 0; }
+    button { background: #0d6249; color: white; border: 0; border-radius: .6rem; padding: .8rem 1rem; font: inherit; cursor: pointer; }
+    button:focus-visible { outline: 3px solid #b04a09; outline-offset: 3px; }
+    @media (max-width: 40rem) { main { margin: 1rem; } }
+  </style>
+</head>
+<body>
+<main>
+  <h1>Commande chez {{ business.display_name }}</h1>
+  <p>Référence {{ payment.commande.reference }}</p>
+  <p><strong>{{ payment.montant|floatformat:0 }} {{ payment.devise }}</strong> · {{ payment_status }}</p>
+  {% if can_pay %}
+    <form method="post">
+      {% csrf_token %}
+      <button type="submit">Continuer vers le paiement Mobile Money</button>
+    </form>
+  {% elif not verified_payment %}
+    <p>Pour toute question sur ce paiement, retrouve ton échange WhatsApp avec l’entreprise.</p>
+  {% endif %}
+</main>
+</body>
+</html>

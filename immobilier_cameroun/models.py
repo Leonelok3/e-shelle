@@ -265,6 +265,10 @@ class Bien(models.Model):
         settings.AUTH_USER_MODEL, on_delete=models.CASCADE,
         related_name="biens_immo", verbose_name="Propriétaire"
     )
+    agence = models.ForeignKey(
+        "business.BusinessProfile", on_delete=models.SET_NULL, null=True, blank=True,
+        related_name="biens_agence", verbose_name="Fiche agence E-Shelle",
+    )
     publie_par_admin = models.BooleanField("Publié par admin", default=False)
     note_admin       = models.TextField("Note admin (interne)", blank=True)
 

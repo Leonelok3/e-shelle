@@ -167,11 +167,13 @@ def reconcile_transaction(transaction_obj, client=None):
     with transaction.atomic():
         current = Transaction.objects.select_for_update().get(pk=transaction_obj.pk)
         metadata = dict(current.metadata or {})
-        metadata["campay"] = {
-            "provider_status": status,
-            "verified_at": timezone.now().isoformat(),
-            "mode": client.mode,
-        }
+        previous = metadata.get("campay") or {}
+        if previous.get("provider_status") != "SUCCESSFUL" or status == "SUCCESSFUL":
+            metadata["campay"] = {
+                "provider_status": status,
+                "verified_at": timezone.now().isoformat(),
+                "mode": client.mode,
+            }
         current.metadata = metadata
         if status == "SUCCESSFUL":
             if current.statut not in {"succes", "rembourse"}:

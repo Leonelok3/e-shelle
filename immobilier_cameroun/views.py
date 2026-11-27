@@ -9,7 +9,7 @@ from django.http import JsonResponse, HttpResponseForbidden
 from django.core.paginator import Paginator
 from django.db.models import Q
 from django.utils import timezone
-from django.views.decorators.http import require_POST
+from django.views.decorators.http import require_GET, require_POST
 from django.conf import settings
 from django.contrib.auth import get_user_model
 
@@ -23,9 +23,25 @@ from .forms import (
     SignalementForm, RechercheForm,
 )
 from .utils import calculer_stats_bien
+from .agency import agency_whatsapp_url, public_agency_properties
 
 BIENS_PAR_PAGE = 12
 MAX_BIENS_GRATUIT = getattr(settings, "IMMOBILIER_MAX_BIENS_GRATUIT", 3)
+
+
+@require_GET
+def offres_agences(request):
+    from django.db.models import Prefetch
+    from business.models import ProviderPlan
+    from .models import PhotoBien
+
+    listings = public_agency_properties().select_related("agence").prefetch_related(
+        Prefetch("photos", queryset=PhotoBien.objects.order_by("-est_photo_principale", "ordre", "pk"), to_attr="sales_photos"),
+    )[:6]
+    return render(request, "immobilier_cameroun/agences.html", {
+        "listings": listings,
+        "agency_plans": ProviderPlan.objects.filter(code__in=["business", "premium"], is_active=True),
+    })
 
 
 # ─────────────────────────────────────────────────────────────────
@@ -153,7 +169,24 @@ def detail_bien(request, slug):
         "est_favori":  est_favori,
         "similaires":  similaires,
         "stats":       calculer_stats_bien(bien),
+        "agency_assistant": bool(agency_whatsapp_url(bien)),
     })
+
+
+@require_GET
+def whatsapp_bien(request, slug):
+    from business.models import BusinessLeadEvent
+    from business.services import create_tracking_event, record_event_hit
+
+    bien = get_object_or_404(Bien.objects.select_related("agence"), slug=slug, statut=StatutBien.PUBLIE)
+    target = agency_whatsapp_url(bien)
+    if not target:
+        return redirect(bien.get_absolute_url())
+    source = "profile" if request.GET.get("source") == "profile" else "immobilier"
+    event = create_tracking_event(
+        bien.agence, BusinessLeadEvent.EventType.WHATSAPP, target, source=source, metadata={"bien_id": bien.pk},
+    )
+    return redirect(record_event_hit(event, request=request))
 
 
 # ─────────────────────────────────────────────────────────────────
@@ -248,7 +281,7 @@ def mon_compte(request):
 @login_required
 def mes_biens(request):
     profil = _get_or_create_profil(request.user)
-    biens  = Bien.objects.filter(proprietaire=request.user).prefetch_related("photos").order_by("-created_at")
+    biens  = Bien.objects.filter(proprietaire=request.user).select_related("agence").prefetch_related("photos").order_by("-created_at")
     return render(request, "immobilier_cameroun/mon_compte/mes_biens.html", {
         "profil": profil,
         "biens":  biens,
@@ -279,8 +312,7 @@ def publier_bien(request):
 
             bien.save()
 
-            # Sauvegarde des équipements (gérée dans le form.save())
-            form.save_m2m() if hasattr(form, "save_m2m") else None
+            form.save_equipements()
 
             # Photos
             formset.instance = bien
@@ -297,7 +329,9 @@ def publier_bien(request):
 
             return redirect("immobilier:mes_biens")
     else:
-        form    = BienForm(user=request.user)
+        agence_id = request.GET.get("agence", "")
+        initial = {"agence": agence_id} if agence_id.isascii() and agence_id.isdecimal() and len(agence_id) <= 18 else {}
+        form    = BienForm(user=request.user, initial=initial)
         formset = PhotoBienFormSet()
 
     return render(request, "immobilier_cameroun/mon_compte/publier_bien.html", {
@@ -336,10 +370,11 @@ def modifier_bien(request, slug):
         form    = BienForm(instance=bien, user=request.user)
         formset = PhotoBienFormSet(instance=bien)
 
-    return render(request, "immobilier_cameroun/mon_compte/modifier_bien.html", {
+    return render(request, "immobilier_cameroun/mon_compte/publier_bien.html", {
         "form":    form,
         "formset": formset,
         "bien":    bien,
+        "is_create": False,
     })
 
 

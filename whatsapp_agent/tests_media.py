@@ -20,6 +20,13 @@ from .models import ContactWhatsApp, ConversationWhatsApp, MessageWhatsApp
 from .media import private_storage, download_attachment, validate_upload
 
 
+@override_settings(
+    WHATSAPP_DRY_RUN=False,
+    WHATSAPP_TOKEN="media-test-token",
+    WHATSAPP_PHONE_ID="123",
+    WHATSAPP_API_URL="https://graph.facebook.com/v23.0/123/messages",
+    WHATSAPP_APP_SECRET="test-secret",
+)
 class AttachmentTests(TestCase):
     @override_settings(TEMPLATES=[{
         'BACKEND': 'django.template.backends.django.DjangoTemplates',

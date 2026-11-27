@@ -679,6 +679,8 @@ WHATSAPP_BUSINESS_AUTOMATIONS_ENABLED = os.getenv(
     "False",
 ).lower() in ("1", "true", "yes")
 WHATSAPP_COMMERCE_AI_ENABLED = os.getenv("WHATSAPP_COMMERCE_AI_ENABLED", "True").lower() in ("1", "true", "yes")
+WHATSAPP_CAMPAY_BUSINESS_IDS = os.getenv("WHATSAPP_CAMPAY_BUSINESS_IDS", "")
+WHATSAPP_INBOUND_VOICE_ENABLED = os.getenv("WHATSAPP_INBOUND_VOICE_ENABLED", "false").lower() in ("1", "true", "yes")
 WHATSAPP_COMMERCE_FOLLOW_UP_TEMPLATES = {
     f"j{day}": {
         "name": os.getenv(f"WHATSAPP_COMMERCE_FOLLOW_UP_J{day}_TEMPLATE", ""),

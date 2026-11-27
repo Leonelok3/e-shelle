@@ -149,9 +149,8 @@ def _contact(request):
 
     target = whatsapp_url(f"Bonjour, je t’écris depuis E-Shelle au sujet de {restaurant.name}.", number)
     if kind == "business":
-        event = create_tracking_event(
-            restaurant, BusinessLeadEvent.EventType.WHATSAPP, target, source="restaurant_directory",
-        )
+        source = "profile" if request.POST.get("contact_source") == "profile" else "restaurant_directory"
+        event = create_tracking_event(restaurant, BusinessLeadEvent.EventType.WHATSAPP, target, source=source)
         target = record_event_hit(event, request=request)
     else:
         ContactLog.objects.create(restaurant=restaurant, action="whatsapp", session_key=request.session.session_key or "")

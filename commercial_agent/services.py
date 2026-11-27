@@ -5,15 +5,15 @@ from datetime import timedelta
 from django.conf import settings
 from django.db.models import Q
 from django.utils import timezone
+from business.models import ProviderPlan
 
 from .models import CampagneProspection, ProspectBusiness, RelanceProspect, ScriptCommercial
 
 
-PLAN_PRICES = {
-    "pro": 5000,
-    "business": 10000,
-    "premium": 25000,
-}
+def active_plan_price(plan):
+    return ProviderPlan.objects.filter(code=plan, plan_level=plan, is_active=True).values_list(
+        "monthly_price_xaf", flat=True,
+    ).first()
 
 
 MODULE_PITCHES = {
@@ -72,7 +72,7 @@ class CommercialAgentService:
     def refresh_prospect(cls, prospect: ProspectBusiness):
         prospect.score = cls.score_prospect(prospect)
         prospect.plan_recommande = cls.recommend_plan(prospect)
-        prospect.montant_potentiel_xaf = PLAN_PRICES.get(prospect.plan_recommande, 5000)
+        prospect.montant_potentiel_xaf = active_plan_price(prospect.plan_recommande) or 0
         if not prospect.prochain_contact and prospect.statut in {
             ProspectBusiness.Statut.NOUVEAU,
             ProspectBusiness.Statut.QUALIFIE,
@@ -202,13 +202,16 @@ class CommercialAgentService:
 
         pitch = MODULE_PITCHES.get(prospect.module, "recevoir plus de clients via E-Shelle")
         plan = prospect.plan_recommande or cls.recommend_plan(prospect)
-        prix = PLAN_PRICES.get(plan, 5000)
+        prix = active_plan_price(plan)
+        offer = f"Le forfait {plan.title()} est à {prix:,} FCFA pour sa période d’abonnement. " if prix is not None else ""
         fallback = (
             f"Bonjour {prospect.responsable or prospect.nom}, je suis de E-Shelle. "
             f"On peut aider {prospect.nom} a {pitch}. "
-            f"Le plan {plan.title()} commence a {prix:,} FCFA/mois. "
+            f"{offer}"
             "Voulez-vous une demo rapide sur WhatsApp ?"
         ).replace(",", " ")
+        if prix is None:
+            return fallback
 
         try:
             from ai_engine.services.llm_service import call_llm
@@ -218,7 +221,7 @@ Prospect: {prospect.nom}
 Module: {prospect.module or "general"}
 Ville: {prospect.ville or "non renseignee"}
 Besoin: {pitch}
-Plan conseille: {plan} ({prix} FCFA/mois)
+Plan conseille: {plan} ({prix} FCFA pour la période d’abonnement)
 Contexte: {contexte}
 Objectif: obtenir une reponse ou une demo rapide.
 Reponds uniquement avec le message."""

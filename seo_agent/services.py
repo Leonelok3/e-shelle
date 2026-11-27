@@ -24,6 +24,7 @@ PUBLIC_URLS = [
     ("/gaz/", "Gaz", "Livraison gaz"),
     ("/pressing/", "Pressing", "Pressing et blanchisserie"),
     ("/immobilier/", "Immobilier", "Biens immobiliers"),
+    ("/immobilier/agences/", "Agent WhatsApp pour agences immobilières", "Visites immobilières"),
     ("/auto/", "Auto", "Vente auto"),
     ("/annonces/", "Annonces & Marketplace", "Petites annonces et boutiques"),
     ("/agro/", "Agro", "Marketplace agro"),
@@ -266,6 +267,39 @@ class LocalSEOAgent:
         for item in self.ideas()[:limit]:
             pages.append({**item, "path": item["url"], "count": 0, "score": 50, "reason": "Page conseillee par defaut"})
         return pages
+
+
+def audit_business_profile(business):
+    """Review the public facts a business owner can edit on E-Shelle."""
+    from immobilier_cameroun.agency import is_estate_agency, public_agency_properties
+
+    estate = is_estate_agency(business)
+    if estate:
+        names = list(public_agency_properties(business).values_list("titre", flat=True)[:3])
+        stock_advice = "Publie un bien disponible et rattache-le à cette fiche agence."
+    else:
+        names = list(business.catalog_items.filter(is_active=True).order_by("order", "pk").values_list("title", flat=True)[:3])
+        stock_advice = "Ajoute au moins un produit ou service actif au catalogue."
+    description = (business.description or "").strip()
+    issues = [
+        message for ok, message in (
+            (business.city, "Indique la ville où tes clients peuvent te trouver."),
+            (business.district, "Précise le quartier ou la zone desservie."),
+            (business.whatsapp, "Ajoute un numéro WhatsApp à la fiche."),
+            (len(description) >= 60, "Décris tes prestations et précise à qui elles s’adressent."),
+            (names, stock_advice),
+        ) if not ok
+    ]
+    location = ", ".join(part for part in (business.district, business.city) if part)
+    heading = f"{business.name} — {business.get_module_display()}"
+    if location:
+        heading += f" à {location}"
+    draft = f"{heading}."
+    if names:
+        draft += " À découvrir : " + ", ".join(names) + "."
+    if business.whatsapp:
+        draft += " Consultez la fiche pour nous contacter sur WhatsApp."
+    return {"issues": issues, "title": heading, "draft": description if len(description) >= 60 else draft, "estate": estate}
 
 
 class SchemaAgent:

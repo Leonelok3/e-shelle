@@ -41,18 +41,36 @@
                     placeholder="Lundi au samedi, 11 h–22 h. Fermé le dimanche.">{{ activation.setup.opening_hours }}</textarea>
           <fieldset>
             <legend>Réponses autorisées</legend>
-            <label><input type="checkbox" name="answer_hours" {% if not activation.setup or activation.setup.answer_hours %}checked{% endif %}> Donner les horaires</label>
-            <label><input type="checkbox" name="answer_catalog" {% if activation.setup.answer_catalog %}checked{% endif %}> Présenter les articles sélectionnés</label>
-            <label><input type="checkbox" name="assist_sales" {% if activation.setup.assist_sales or not activation.setup and agent_enabled %}checked{% endif %}> Aider à préparer les commandes avec l’IA</label>
+            <label><input type="checkbox" name="answer_hours" {% if activation.setup.answer_hours or not activation.setup and not is_estate %}checked{% endif %}> Donner les horaires</label>
+            {% if is_estate %}
+              <p><strong>{{ estate_available_count }}</strong> bien{{ estate_available_count|pluralize }} publié{{ estate_available_count|pluralize }} et disponible{{ estate_available_count|pluralize }} pour cette agence</p>
+              <a href="{% url 'immobilier:publier_bien' %}?agence={{ business.pk }}">Publier un bien pour cette agence</a>
+              <a href="{% url 'immobilier:mes_biens' %}">Rattacher une annonce existante</a>
+            {% else %}
+              <label><input type="checkbox" name="answer_catalog" {% if activation.setup.answer_catalog %}checked{% endif %}> Présenter les articles sélectionnés</label>
+              <label><input type="checkbox" name="assist_sales" {% if activation.setup.assist_sales or not activation.setup and agent_enabled %}checked{% endif %}> Aider à préparer les commandes avec l’IA</label>
+            {% endif %}
           </fieldset>
-          <p class="es-wa-setup__hint">Les paiements, rendez-vous et demandes hors du périmètre choisi sont transmis à l’équipe dans la boîte de réception.</p>
+          <label for="agent-booking-service">{% if is_estate %}Agenda des visites{% else %}Rendez-vous WhatsApp{% endif %}</label>
+          <select id="agent-booking-service" name="booking_service">
+            <option value="">Transmettre les demandes à l’équipe</option>
+            {% for service in booking_services %}
+              <option value="{{ service.pk }}" {% if service.pk == activation.setup.booking_service_id %}selected{% endif %}>{{ service.salon.name }} · {{ service.name }} ({{ service.duration_minutes }} min)</option>
+            {% endfor %}
+          </select>
+          <a href="{% url 'salonhub_dashboard:home' %}">Gérer les prestations dans SalonHub</a>
+          {% if voice_available %}
+            <label><input type="checkbox" name="voice_enabled" {% if activation.setup.voice_enabled %}checked{% endif %}> Transcrire les notes vocales entrantes</label>
+            <p class="es-wa-setup__hint">La transcription par OpenAI utilise un crédit IA par note transcrite. Une commande ou une réservation exige une confirmation écrite.</p>
+          {% endif %}
+          <p class="es-wa-setup__hint">Les demandes hors du périmètre choisi sont transmises à l’équipe dans la boîte de réception.</p>
           <label for="agent-tone">Ton des réponses assistées par IA</label>
           <select id="agent-tone" name="agent_tone">
             <option value="professional" {% if agent_tone == "professional" %}selected{% endif %}>Professionnel</option>
             <option value="friendly" {% if agent_tone == "friendly" %}selected{% endif %}>Familier</option>
             <option value="pidgin" {% if agent_tone == "pidgin" %}selected{% endif %}>Pidgin</option>
           </select>
-          <fieldset>
+          {% if not is_estate %}<fieldset>
             <legend>Articles du catalogue</legend>
             <div class="es-wa-setup__catalog">
               {% for item in agent_catalog_items %}
@@ -61,7 +79,7 @@
                 <a href="{% url 'business:catalog_manage' business.id %}">Ajouter des articles à la fiche Business</a>
               {% endfor %}
             </div>
-          </fieldset>
+          </fieldset>{% endif %}
           {% if entitlements.can_automate %}
             <label><input type="checkbox" name="automations_enabled" {% if business_automations_enabled %}checked{% endif %}> Autoriser les relances consenties</label>
           {% endif %}

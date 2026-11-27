@@ -21,6 +21,11 @@ from django.views.decorators.http import require_GET, require_POST
 from django.db.models import Q
 
 from business.models import BusinessProfile
+from immobilier_cameroun.agency import is_estate_agency, public_agency_properties
+from salonhub.bookings.models import Appointment
+from .bookings import owner_services
+from .checkout import payment_status
+from .voice import voice_available
 from .activation import (
 	DELIVERED, SEND_CONFIRMED, activation_context, configuration_blockers, connection_blockers,
 )
@@ -36,6 +41,7 @@ from .reply_jobs import set_agent_paused
 from .models import (
 	BusinessWhatsAppActivation,
 	BusinessWhatsAppAudit,
+	BusinessWhatsAppBooking,
 	BusinessCatalogWhatsAppSync,
 	BusinessWhatsAppConnection,
 	BusinessWhatsAppContact,
@@ -304,7 +310,22 @@ def business_whatsapp_dashboard(request, business_id):
 		return redirect("tarifs")
 	connection = BusinessWhatsAppConnection.objects.filter(business=business).first()
 	contacts = BusinessWhatsAppContact.objects.filter(business=business)
-	today = timezone.localdate()
+	is_estate = is_estate_agency(business)
+	now = timezone.localtime()
+	today = now.date()
+	bookings = BusinessWhatsAppBooking.objects.filter(
+		contact__business=business, appointment__status=Appointment.Status.CONFIRMED,
+	).filter(
+		Q(appointment__date__gt=today) | Q(appointment__date=today, appointment__time__gte=now.time())
+	)
+	draft_orders = list(WhatsAppDraftOrder.objects.filter(
+		business=business, status__in=[
+			WhatsAppDraftOrder.Status.DRAFT, WhatsAppDraftOrder.Status.AWAITING_CONFIRMATION,
+			WhatsAppDraftOrder.Status.CONFIRMED,
+		],
+	).select_related("contact", "catalog_item", "boutique_order", "payment_transaction")[:50])
+	for draft in draft_orders:
+		draft.payment_display = payment_status(getattr(draft, "payment_transaction", None))
 	agent_metrics = {
 		"conversations": contacts.exclude(pipeline_status__in=[
 			BusinessWhatsAppContact.PipelineStatus.WON,
@@ -314,7 +335,7 @@ def business_whatsapp_dashboard(request, business_id):
 			pipeline_status=BusinessWhatsAppContact.PipelineStatus.WON,
 			last_activity_at__date=today,
 		).count(),
-		"appointments_upcoming": 0,
+		"appointments_upcoming": bookings.count(),
 		"follow_ups_pending": ScheduledBusinessWhatsAppMessage.objects.filter(
 			connection__business=business,
 			status=ScheduledBusinessWhatsAppMessage.Status.SCHEDULED,
@@ -343,6 +364,10 @@ def business_whatsapp_dashboard(request, business_id):
 	contact_id = request.GET.get("contact")
 	if contact_id and entitlements["can_use_crm"]:
 		contact = contacts.filter(pk=contact_id).first()
+	selected_estate_property = (
+		public_agency_properties(business).filter(pk=contact.selected_property_id).first()
+		if is_estate and contact and contact.selected_property_id else None
+	)
 	conversation = (
 		contact.messages.filter(is_activation_test=False).select_related("reply_job").order_by("-created_at", "-pk")[:100]
 		if contact else []
@@ -378,6 +403,7 @@ def business_whatsapp_dashboard(request, business_id):
 			"agent_globally_enabled": getattr(settings, "WHATSAPP_COMMERCE_AI_ENABLED", False),
 			"contacts": contacts[:100],
 			"selected_contact": contact,
+			"selected_estate_property": selected_estate_property,
 			"conversation_messages": list(reversed(conversation)),
 			"entitlements": entitlements,
 			"status_choices": BusinessWhatsAppContact.PipelineStatus.choices,
@@ -389,14 +415,14 @@ def business_whatsapp_dashboard(request, business_id):
 			"scheduled_messages": (
 				contact.scheduled_messages.all()[:10] if contact else []
 			),
-			"draft_orders": WhatsAppDraftOrder.objects.filter(
-				business=business,
-				status__in=[
-					WhatsAppDraftOrder.Status.DRAFT,
-					WhatsAppDraftOrder.Status.AWAITING_CONFIRMATION,
-					WhatsAppDraftOrder.Status.CONFIRMED,
-				],
-			).select_related("contact", "catalog_item", "boutique_order", "payment_transaction")[:50],
+			"draft_orders": draft_orders,
+			"booking_services": owner_services(business.owner_id).select_related("salon"),
+			"is_estate": is_estate,
+			"estate_available_count": public_agency_properties(business).count() if is_estate else 0,
+			"upcoming_bookings": bookings.select_related("appointment__service", "property_visit__bien", "contact").order_by(
+				"appointment__date", "appointment__time",
+			)[:10],
+			"voice_available": voice_available(),
 			"signup_configured": bool(
 				getattr(settings, "WHATSAPP_TECH_PROVIDER_APP_ID", "")
 				and getattr(settings, "WHATSAPP_TECH_PROVIDER_APP_SECRET", "")
@@ -544,6 +570,7 @@ def _save_agent_settings(request, connection, activation):
 	answer_hours = request.POST.get("answer_hours") == "on"
 	answer_catalog = request.POST.get("answer_catalog") == "on"
 	assist_sales = request.POST.get("assist_sales") == "on"
+	is_estate = is_estate_agency(connection.business)
 	if len(hours) > 500 or (answer_hours and not hours):
 		return "Renseigne les horaires en 500 caractères maximum."
 	try:
@@ -553,8 +580,18 @@ def _save_agent_settings(request, connection, activation):
 	items = list(connection.business.catalog_items.filter(pk__in=item_ids, is_active=True).values_list("pk", flat=True))
 	if set(items) != item_ids or (answer_catalog and not items):
 		return "Choisis au moins un article actif de cette entreprise pour répondre sur le catalogue."
-	if not (answer_hours or answer_catalog):
+	if not (answer_hours or answer_catalog or is_estate):
 		return "Choisis au moins un sujet à tester, les horaires ou le catalogue."
+	if is_estate:
+		assist_sales = False
+	booking_service_id = request.POST.get("booking_service", "").strip()
+	booking_service = None
+	if booking_service_id:
+		if not booking_service_id.isascii() or not booking_service_id.isdecimal() or len(booking_service_id) > 18:
+			return "Choisis une prestation valide."
+		booking_service = owner_services(connection.business.owner_id).filter(pk=booking_service_id).first()
+		if not booking_service:
+			return "Cette prestation ne fait pas partie des agendas que tu peux gérer."
 	activation = activation or BusinessWhatsAppActivation(connection=connection)
 	changed = (
 		(activation.opening_hours, activation.answer_hours, activation.answer_catalog, activation.assist_sales)
@@ -569,6 +606,9 @@ def _save_agent_settings(request, connection, activation):
 	activation.answer_hours = answer_hours
 	activation.answer_catalog = answer_catalog
 	activation.assist_sales = assist_sales
+	activation.booking_service = booking_service
+	if voice_available():
+		activation.voice_enabled = request.POST.get("voice_enabled") == "on"
 	activation.save()
 	connection.automations_enabled = automations_enabled
 	connection.agent_tone = tone

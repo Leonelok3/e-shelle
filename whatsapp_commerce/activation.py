@@ -5,6 +5,7 @@ import unicodedata
 
 from django.conf import settings
 from django.utils import timezone
+from immobilier_cameroun.agency import is_estate_agency, public_agency_properties
 
 from .models import BusinessWhatsAppActivation, BusinessWhatsAppConnection, BusinessWhatsAppReplyJob
 from .services import normalize_phone
@@ -41,9 +42,13 @@ def selected_catalog(connection):
 def configuration_blockers(activation):
     if activation is None:
         return ["Enregistre les réglages de l’agent."]
-    if not (activation.answer_hours or activation.answer_catalog):
+    estate = is_estate_agency(activation.connection.business)
+    if not (estate or activation.answer_hours or activation.answer_catalog):
         return ["Choisis au moins un sujet à tester."]
     missing = []
+    if estate:
+        if not public_agency_properties(activation.connection.business).exists():
+            missing.append("Rattache au moins un bien publié et disponible à cette fiche agence.")
     if activation.answer_hours and not activation.opening_hours:
         missing.append("Renseigne les horaires d’ouverture.")
     if activation.answer_catalog and not selected_catalog(activation.connection).exists():
@@ -52,6 +57,8 @@ def configuration_blockers(activation):
 
 
 def test_question(activation):
+    if is_estate_agency(activation.connection.business):
+        return "Quels biens avez-vous disponibles ?"
     return "Quels sont vos horaires ?" if activation.answer_hours else "Puis-je voir votre catalogue ?"
 
 

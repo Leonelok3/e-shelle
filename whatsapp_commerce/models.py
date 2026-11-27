@@ -77,6 +77,10 @@ class BusinessWhatsAppActivation(models.Model):
 	answer_hours = models.BooleanField(default=True)
 	answer_catalog = models.BooleanField(default=False)
 	assist_sales = models.BooleanField(default=False)
+	voice_enabled = models.BooleanField(default=False)
+	booking_service = models.ForeignKey(
+		"salonhub_salons.Service", null=True, blank=True, on_delete=models.SET_NULL,
+	)
 	activated_at = models.DateTimeField(null=True, blank=True)
 	test_code = models.CharField(max_length=16, blank=True)
 	test_sender = models.CharField(max_length=20, blank=True)
@@ -165,6 +169,10 @@ class BusinessWhatsAppContact(models.Model):
 	)
 	tags = models.JSONField(default=list, blank=True)
 	custom_fields = models.JSONField(default=dict, blank=True)
+	property_filters = models.JSONField(default=dict, blank=True)
+	selected_property = models.ForeignKey(
+		"immobilier_cameroun.Bien", null=True, blank=True, on_delete=models.SET_NULL,
+	)
 	notes = models.TextField(blank=True)
 	next_follow_up_at = models.DateField(null=True, blank=True, db_index=True)
 	last_activity_at = models.DateTimeField(auto_now=True, db_index=True)
@@ -205,6 +213,7 @@ class BusinessWhatsAppMessage(models.Model):
 	is_activation_test = models.BooleanField(default=False)
 	direction = models.CharField(max_length=12, choices=Direction.choices)
 	message_type = models.CharField(max_length=32, default="text")
+	media_id = models.CharField(max_length=80, blank=True)
 	language = models.CharField(max_length=16, blank=True)
 	body = models.TextField(blank=True)
 	status = models.CharField(max_length=24, blank=True)
@@ -271,6 +280,14 @@ class BusinessWhatsAppAudit(models.Model):
 	class Meta:
 		ordering = ["-created_at", "-pk"]
 		indexes = [models.Index(fields=["connection", "event_type", "created_at"])]
+
+
+class BusinessWhatsAppBooking(models.Model):
+	appointment = models.OneToOneField("salonhub_bookings.Appointment", on_delete=models.CASCADE)
+	contact = models.ForeignKey(BusinessWhatsAppContact, on_delete=models.CASCADE)
+	property_visit = models.OneToOneField(
+		"immobilier_cameroun.DemandeVisite", null=True, blank=True, on_delete=models.SET_NULL,
+	)
 
 
 class WhatsAppDraftOrder(models.Model):

@@ -12,6 +12,7 @@ urlpatterns = [
     path("historique/",                  views.historique,    name="historique"),
     path("webhook/",                     views.webhook,       name="webhook"),
     path("campay/webhook/",              views.campay_webhook, name="campay_webhook"),
+    path("campay/whatsapp/<str:token>/", views.whatsapp_campay_order, name="whatsapp_campay_order"),
     path("campay/return/",               views.campay_return, name="campay_return"),
     path("formation/<int:formation_id>/", views.payer_formation, name="payer_formation"),
     path("formation/<int:formation_id>/campay/", views.payer_formation_campay, name="campay_formation"),

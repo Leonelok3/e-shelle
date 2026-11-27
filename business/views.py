@@ -774,7 +774,8 @@ def capture_whatsapp_consent(request, public_slug):
     )
     public_url = request.build_absolute_uri(business.get_absolute_url())
     whatsapp_url = _public_profile_whatsapp_url(request, business, public_url)
-    return redirect(whatsapp_url)
+    event = create_tracking_event(business, BusinessLeadEvent.EventType.WHATSAPP, whatsapp_url, source="profile")
+    return redirect(record_event_hit(event, request=request))
 
 
 def provider_plans(request):
@@ -2414,6 +2415,7 @@ def onboarding(request):
             "plan": plan,
             "modules": BusinessProfile.Module.choices,
             "languages": BusinessProfile.Language.choices,
+            "selected_module": request.POST.get("module") or request.GET.get("module", ""),
         },
     )
 
@@ -2577,6 +2579,9 @@ def special_offer(request):
 
 @login_required
 def dashboard(request):
+    from hashlib import sha256
+    from seo_agent.services import audit_business_profile
+
     businesses = BusinessProfile.objects.filter(owner=request.user).order_by("-updated_at")
     current_id = request.GET.get("business")
     current = businesses.filter(pk=current_id).first() if current_id else businesses.first()
@@ -2596,6 +2601,7 @@ def dashboard(request):
     product_limit_display = "0"
     whatsapp_status = "Non disponible"
     can_manage_whatsapp = False
+    visibility = None
     if current:
         current.check_expiry()
         if current.plan == BusinessProfile.Plan.FREE and current.free_visibility_expires_at:
@@ -2641,6 +2647,12 @@ def dashboard(request):
         )
         chart_stats = _event_chart_stats(event_stats, request.LANGUAGE_CODE)
         marketing_pack = _build_marketing_pack(current, request.LANGUAGE_CODE)
+        visibility = audit_business_profile(current)
+        visibility["version"] = sha256(current.description.encode()).hexdigest()
+        visibility["profile_clicks"] = filtered_events.filter(
+            event_type=BusinessLeadEvent.EventType.WHATSAPP, source="profile",
+        ).count()
+        visibility["social_draft"] = f'{visibility["draft"]}\n{public_url}'
     from whatsapp_agent.models import Campagne
 
     whatsapp_campaigns = (
@@ -2671,8 +2683,30 @@ def dashboard(request):
             "product_limit_display": product_limit_display,
             "whatsapp_status": whatsapp_status,
             "can_manage_whatsapp": can_manage_whatsapp,
+            "visibility": visibility,
         },
     )
+
+
+@login_required
+@require_POST
+def apply_visibility_description(request, business_id):
+    from hashlib import sha256
+
+    business = get_object_or_404(BusinessProfile, pk=business_id, owner=request.user)
+    url = f"{reverse('business:dashboard')}?business={business.pk}#visibilite-locale"
+    description = request.POST.get("description", "").strip()
+    if not description or len(description) > 800:
+        messages.error(request, "Saisis une description de 1 à 800 caractères.")
+    elif sha256(business.description.encode()).hexdigest() != request.POST.get("version"):
+        messages.error(request, "La description a changé. Recharge la fiche avant de la modifier.")
+    elif BusinessProfile.objects.filter(pk=business.pk, owner=request.user, description=business.description).update(
+        description=description, updated_at=timezone.now(),
+    ):
+        messages.success(request, "La description de ta fiche a été enregistrée.")
+    else:
+        messages.error(request, "La description a changé. Recharge la fiche avant de la modifier.")
+    return redirect(url)
 
 
 def _positive_int_simple(value):

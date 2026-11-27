@@ -426,6 +426,19 @@ def collect_business_items(business: BusinessProfile, limit: int = 24) -> list[d
     if not business.catalog_video_enabled:
         for item in manual_items:
             item["video"] = ""
+    if business.module == BusinessProfile.Module.IMMOBILIER:
+        from immobilier_cameroun.agency import agency_assistant_phone, agency_contact_path, public_agency_properties
+
+        listings = list(public_agency_properties(business).prefetch_related("photos")[:limit])
+        if listings:
+            route_to_assistant = bool(agency_assistant_phone(business.pk))
+            properties = []
+            for listing in listings:
+                item = _item_direct_listing(listing, "Bien immobilier", "Immobilier")
+                if route_to_assistant:
+                    item["contact_url"] = agency_contact_path(listing)
+                properties.append(item)
+            return properties + manual_items[:limit - len(properties)]
     remaining = max(limit - len(manual_items), 0)
     if remaining <= 0:
         return manual_items
@@ -458,6 +471,10 @@ def collect_business_items(business: BusinessProfile, limit: int = 24) -> list[d
     if model_name == "Vehicule":
         return manual_items + [_item_direct_listing(obj, "Vehicule", "Auto")]
     if model_name == "Bien":
+        from immobilier_cameroun.models import StatutBien
+
+        if obj.statut != StatutBien.PUBLIE or obj.agence_id not in (None, business.pk):
+            return manual_items
         return manual_items + [_item_direct_listing(obj, "Bien immobilier", "Immobilier")]
     if model_name == "Product":
         return manual_items + [_item_tibo_product(obj)]

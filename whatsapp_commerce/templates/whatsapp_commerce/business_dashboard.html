@@ -109,13 +109,23 @@
       <p style="padding:1rem;border-radius:12px;background:rgba(255,255,255,.06);color:rgba(255,255,255,.72)">Le parcours Meta sera disponible après configuration et validation des accès du Tech Provider.</p>
     {% endif %}
     {% if entitlements.can_use_crm %}
+    {% if upcoming_bookings %}
+    <section style="margin:1rem 0;padding:1rem;border:1px solid rgba(34,197,94,.3);border-radius:14px">
+      <h2>Rendez-vous WhatsApp à venir</h2>
+      <ul>
+        {% for booking in upcoming_bookings %}
+          <li>{{ booking.appointment.date|date:"d/m/Y" }} à {{ booking.appointment.time|time:"H:i" }} · {% if booking.property_visit %}{{ booking.property_visit.bien.titre }}{% else %}{{ booking.appointment.service.name }}{% endif %} · <a href="?contact={{ booking.contact_id }}">{{ booking.contact.display_name|default:booking.contact.phone }}</a></li>
+        {% endfor %}
+      </ul>
+    </section>
+    {% endif %}
     <section style="margin:1rem 0;padding:1rem;border:1px solid rgba(34,197,94,.3);border-radius:14px;background:rgba(34,197,94,.05)">
       <h2>Commandes WhatsApp</h2>
       {% for draft in draft_orders %}
         <article style="padding:.75rem 0;border-bottom:1px solid rgba(255,255,255,.1)">
           <strong>{{ draft.catalog_item.title }} × {{ draft.quantity }}</strong>
           <span> — {{ draft.total_price }} FCFA — {{ draft.contact.display_name|default:draft.contact.phone }}</span>
-          <span style="display:block;color:rgba(255,255,255,.65)">État : {{ draft.get_status_display }}{% if draft.boutique_order %} · Commande {{ draft.boutique_order.reference }}{% endif %}{% if draft.payment_transaction %} · Paiement à valider manuellement{% endif %}</span>
+          <span style="display:block;color:rgba(255,255,255,.65)">{{ draft.get_status_display }}{% if draft.boutique_order %} · Commande {{ draft.boutique_order.reference }} · {{ draft.payment_display }}{% endif %}</span>
           {% if draft.status == "awaiting_confirmation" %}
             <div style="display:flex;gap:.5rem;margin-top:.5rem">
               <form method="post" action="{% url 'whatsapp_commerce:draft_order_update' business.id draft.id %}">
@@ -159,6 +169,7 @@
       <article style="padding:1rem;border:1px solid rgba(255,255,255,.12);border-radius:14px">
         {% if selected_contact %}
           <h2 style="margin-top:0">{{ selected_contact.display_name|default:selected_contact.phone }}</h2>
+          {% if selected_estate_property %}<p>Bien sélectionné · <a href="{{ selected_estate_property.get_absolute_url }}">{{ selected_estate_property.titre }}</a></p>{% endif %}
           <p style="color:rgba(255,255,255,.58)">{{ selected_contact.phone }}{% if selected_contact.opted_out_at %} · Ce contact a demandé à ne plus recevoir de messages.{% endif %}</p>
           <form method="post" action="{% url 'whatsapp_commerce:business_contact_update' business.id selected_contact.id %}" style="display:grid;gap:.55rem;margin:1rem 0;padding:1rem;border-radius:10px;background:rgba(255,255,255,.05)">
             {% csrf_token %}
