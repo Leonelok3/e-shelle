@@ -1,6 +1,7 @@
 from decimal import Decimal, ROUND_HALF_UP
 
 from django import template
+from django.utils.translation import gettext as _
 
 register = template.Library()
 
@@ -39,8 +40,8 @@ def home_faq():
     return (
         (
             "Qu’est-ce qu’E-Shelle ?",
-            "E-Shelle permet aux restaurants de publier un menu en ligne avec leurs prix, "
-            "leur quartier et un bouton WhatsApp. Le client contacte directement le restaurant.",
+            _("E-Shelle aide les restaurants à publier un menu en ligne avec leurs prix, "
+              "à créer un site sur devis ou à utiliser un agent IA WhatsApp selon leur formule."),
         ),
         (
             "Combien coûte une fiche E-Shelle ?",
@@ -66,10 +67,33 @@ def home_faq():
             "paiement et de la livraison directement avec tes clients.",
         ),
         (
+            _("Est-ce que ça marche dans mon pays ?"),
+            _("Tu peux créer et gérer une fiche en ligne à distance. Avant de choisir une "
+              "formule payante, vérifie les moyens de paiement disponibles. La connexion "
+              "WhatsApp Business dépend aussi de ton pays, de ton numéro et des règles Meta."),
+        ),
+        (
+            _("Comment connecter mon numéro WhatsApp Business ?"),
+            _("Avec Business ou Premium, lance la connexion depuis ton compte E-Shelle. "
+              "Prépare ton numéro et tes accès Meta. Notre équipe peut t’aider à suivre les étapes."),
+        ),
+        (
+            _("Puis-je avoir un site restaurant sur mesure ?"),
+            _("Oui, tu peux demander un devis. On définit ensemble le contenu, les "
+              "fonctionnalités et les conditions d’hébergement selon ton projet."),
+        ),
+        (
+            _("L’agent IA remplace-t-il mon personnel ?"),
+            _("L’agent répond aux questions courantes à partir de ta fiche et de ton menu. "
+              "Ton équipe garde la main sur les décisions et les demandes qui exigent une validation."),
+        ),
+        (
             "Comment fonctionne WhatsApp sur ma fiche ?",
             "Le client touche le bouton WhatsApp et t’écrit directement. L’agent et les "
             "relances dépendent de la formule, de la configuration, des droits, des "
-            "validations Meta et du consentement requis. Meta facture les frais de messagerie.",
+            "validations Meta et du consentement requis. Pour la prospection sur WhatsApp, "
+            "recueille le consentement quand il est requis et respecte les règles locales, "
+            "dont le RGPD lorsqu’il s’applique. Meta facture les frais de messagerie.",
         ),
         (
             "Puis-je gérer mon restaurant en Afrique depuis l’étranger ?",
