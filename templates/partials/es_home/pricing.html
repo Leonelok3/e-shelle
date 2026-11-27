@@ -1,0 +1,72 @@
+{% load es_home %}
+{% with launch_places=5 launch_value=25000 pack_after_launch=30000 %}
+<section class="es-home-section es-home-wrap" aria-labelledby="launch-title">
+  <div class="es-home-launch">
+    <div>
+      <p class="es-home-kicker">Offre de lancement de décembre</p>
+      <h2 id="launch-title">Le pack de lancement offert aux 5 premiers restaurants</h2>
+      <p>Passe à Croissance Business à <strong>{{ prices.business|home_eur }} / 30 jours</strong> ({{ prices.business|home_xaf }}) par fiche.</p>
+      <ul>
+        <li>Fiche restaurant et Vendeur WhatsApp</li>
+        <li>Accompagnement Google Business et Google Maps</li>
+        <li>1 vidéo IA et 2 visuels</li>
+      </ul>
+      <p>Valeur du pack offert <strong>{{ launch_value|home_eur }} ({{ launch_value|home_xaf }})</strong>. Après les 5 premiers restaurants, le pack coûte <strong>{{ pack_after_launch|home_eur }} ({{ pack_after_launch|home_xaf }})</strong> en plus du forfait Business.</p>
+      <p class="es-home-small">Vendeur WhatsApp sous réserve de configuration, de droits, des validations Meta et du consentement requis. Google valide la publication et l’affichage sur Maps. Les frais de messagerie Meta sont en plus.</p>
+    </div>
+    <div class="es-home-launch-action">
+      {% if launch_places > 0 %}
+        <p><strong>{{ launch_places }} place{{ launch_places|pluralize }} restante{{ launch_places|pluralize }}</strong></p>
+        <a class="es-home-btn es-home-btn-accent" href="{{ onboarding_url }}?plan=business">Choisir Business</a>
+      {% else %}
+        <p><strong>Places de lancement épuisées</strong></p>
+        <a class="es-home-btn es-home-btn-accent" href="#tarifs">Voir les forfaits</a>
+      {% endif %}
+    </div>
+  </div>
+</section>
+{% endwith %}
+
+<section class="es-home-section es-home-soft" id="tarifs" aria-labelledby="prices-title">
+  <div class="es-home-wrap">
+    <h2 id="prices-title">Les tarifs pour ta fiche restaurant</h2>
+    <p>Commence gratuitement. Choisis une formule payante si tu as besoin de plus d’articles ou d’outils.</p>
+    <div class="es-home-grid es-home-grid-four">
+      <article class="es-home-plan">
+        <h3>Gratuit</h3>
+        {% include "partials/es_home/price.html" with xaf=prices.free only %}
+        <ul><li>Une fiche publique</li><li>Jusqu’à 5 articles</li><li>Visibilité pendant 14 jours</li><li>Contact direct sur WhatsApp</li></ul>
+        <a class="es-home-btn es-home-btn-outline" href="{{ onboarding_url }}?plan=free">Créer ma fiche gratuite</a>
+      </article>
+      <article class="es-home-plan">
+        <h3>Présence Pro</h3>
+        {% include "partials/es_home/price.html" with xaf=prices.pro only %}
+        <ul><li>Jusqu’à 20 articles</li><li>Photos pour tes articles</li><li>5 crédits IA</li><li>Tableau de bord</li></ul>
+        <a class="es-home-btn es-home-btn-outline" href="{{ onboarding_url }}?plan=pro">Choisir Pro</a>
+      </article>
+      <article class="es-home-plan es-home-plan-featured">
+        <p class="es-home-badge">Recommandé</p>
+        <h3>Croissance Business</h3>
+        {% include "partials/es_home/price.html" with xaf=prices.business only %}
+        <ul><li>Tout ce qui est inclus dans Pro</li><li>Connexion WhatsApp Business</li><li>Vendeur WhatsApp et relances sous conditions</li><li>Accompagnement pour connecter ton numéro</li></ul>
+        <a class="es-home-btn es-home-btn-primary" href="{{ onboarding_url }}?plan=business">Choisir Business</a>
+        <a class="es-home-text-link" href="#connect-whatsapp">Connecter mon WhatsApp</a>
+      </article>
+      <article class="es-home-plan">
+        <h3>Premium</h3>
+        {% include "partials/es_home/price.html" with xaf=prices.premium only %}
+        <ul><li>Catalogue étendu</li><li>50 crédits IA selon la formule</li><li>15 jours de boost selon la formule</li><li>Fonctions WhatsApp selon prérequis et droits</li></ul>
+        <a class="es-home-btn es-home-btn-outline" href="{{ onboarding_url }}?plan=premium">Choisir Premium</a>
+      </article>
+    </div>
+    <p class="es-home-pricing-note">Prix par fiche. Montant facturé en F CFA, équivalent en euros indicatif. Les frais de messagerie WhatsApp facturés par Meta sont en plus.</p>
+    <a class="es-home-text-link" href="{% url 'business:provider_plans' %}">Voir les conditions détaillées <span aria-hidden="true">→</span></a>
+    <details class="es-home-disclosure es-home-connect" id="connect-whatsapp">
+      <summary>Connecter mon WhatsApp Business</summary>
+      <div>
+        <p>La connexion, le vendeur WhatsApp, les relances et les campagnes dépendent du forfait, de la configuration, des droits et des validations Meta. Les campagnes exigent les modèles approuvés et le consentement des destinataires quand ils sont requis. Meta contrôle la livraison et peut appliquer des restrictions.</p>
+        <a class="es-home-btn es-home-btn-outline" href="https://wa.me/237680625082?text=Bonjour%2C%20je%20veux%20connecter%20mon%20WhatsApp%20Business%20sur%20E-Shelle." target="_blank" rel="noopener noreferrer">Nous écrire pour connecter WhatsApp</a>
+      </div>
+    </details>
+  </div>
+</section>

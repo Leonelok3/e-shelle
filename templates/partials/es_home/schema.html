@@ -1,0 +1,34 @@
+{% load static es_home %}
+{% home_faq as questions %}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "Organization",
+      "@id": "https://e-shelle.com/#organization",
+      "name": "E-Shelle",
+      "url": "https://e-shelle.com/",
+      "logo": "https://e-shelle.com{% static 'img/logo.png' %}",
+      "founder": {"@type": "Person", "name": "Leonel Djiala"}
+    },
+    {
+      "@type": "WebSite",
+      "@id": "https://e-shelle.com/#website",
+      "url": "https://e-shelle.com/",
+      "name": "E-Shelle",
+      "publisher": {"@id": "https://e-shelle.com/#organization"},
+      "inLanguage": "fr"
+    },
+    {
+      "@type": "FAQPage",
+      "@id": "https://e-shelle.com/#faq",
+      "mainEntity": [
+        {% for question, answer in questions %}
+        {"@type": "Question", "name": "{{ question|escapejs }}", "acceptedAnswer": {"@type": "Answer", "text": "{{ answer|escapejs }}"}}{% if not forloop.last %},{% endif %}
+        {% endfor %}
+      ]
+    }
+  ]
+}
+</script>

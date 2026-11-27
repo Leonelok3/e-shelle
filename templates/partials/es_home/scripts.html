@@ -1,0 +1,70 @@
+<script>
+  document.querySelectorAll('a[href="#connect-whatsapp"]').forEach((link) => link.addEventListener('click', () => { const panel = document.getElementById('connect-whatsapp'); if (panel) panel.open = true; }));
+  // Le panier boutique appartient aux autres parcours, pas à la page d'accueil.
+  document.getElementById('cart-panel')?.remove();
+  document.getElementById('cart-backdrop')?.remove();
+
+  (() => {
+    const carousel = document.querySelector('[data-demo-carousel]');
+    if (!carousel) return;
+    const track = carousel.querySelector('[data-demo-track]');
+    const viewport = carousel.querySelector('[data-demo-viewport]');
+    const slides = Array.from(track.querySelectorAll('.es-home-demo-slide'));
+    const dots = Array.from(carousel.querySelectorAll('[data-demo-dot]'));
+    const count = carousel.querySelector('[data-demo-count]');
+    const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    let active = 0;
+    let timer = null;
+    let pointerStart = null;
+    let visible = false;
+    let hovered = false;
+    let focused = false;
+
+    if (slides.length < 2) return;
+    carousel.classList.add('es-home-is-ready');
+
+    const show = (index) => {
+      active = (index + slides.length) % slides.length;
+      track.style.transform = `translate3d(-${active * 100}%, 0, 0)`;
+      slides.forEach((slide, position) => {
+        const selected = position === active;
+        slide.setAttribute('aria-hidden', selected ? 'false' : 'true');
+        slide.inert = !selected;
+      });
+      dots.forEach((dot, position) => dot.setAttribute('aria-current', position === active ? 'true' : 'false'));
+      if (count) count.textContent = `${active + 1} / ${slides.length}`;
+    };
+    const stop = () => { if (timer) window.clearInterval(timer); timer = null; };
+    const start = () => {
+      stop();
+      if (visible && !hovered && !focused && !reduceMotion && !document.hidden) timer = window.setInterval(() => show(active + 1), 6500);
+    };
+
+    carousel.querySelector('[data-demo-prev]')?.addEventListener('click', () => { show(active - 1); start(); });
+    carousel.querySelector('[data-demo-next]')?.addEventListener('click', () => { show(active + 1); start(); });
+    dots.forEach((dot) => dot.addEventListener('click', () => { show(Number(dot.dataset.demoDot)); start(); }));
+    carousel.addEventListener('mouseenter', () => { hovered = true; stop(); });
+    carousel.addEventListener('mouseleave', () => { hovered = false; start(); });
+    carousel.addEventListener('focusin', () => { focused = true; stop(); });
+    carousel.addEventListener('focusout', (event) => { if (!carousel.contains(event.relatedTarget)) { focused = false; start(); } });
+    viewport.addEventListener('pointerdown', (event) => { pointerStart = event.clientX; }, { passive: true });
+    viewport.addEventListener('pointerup', (event) => {
+      if (pointerStart === null) return;
+      const distance = event.clientX - pointerStart;
+      pointerStart = null;
+      if (Math.abs(distance) > 45) { show(active + (distance < 0 ? 1 : -1)); start(); }
+    }, { passive: true });
+    document.addEventListener('visibilitychange', () => document.hidden ? stop() : start());
+    show(0);
+    if ('IntersectionObserver' in window) {
+      const observer = new IntersectionObserver((entries) => {
+        visible = entries.some((entry) => entry.isIntersecting);
+        visible ? start() : stop();
+      }, { threshold: 0.2 });
+      observer.observe(carousel);
+    } else {
+      visible = true;
+      start();
+    }
+  })();
+</script>
