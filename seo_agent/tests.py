@@ -1,7 +1,10 @@
 import xml.etree.ElementTree as ET
+from datetime import timedelta
+
 from django.conf import settings
 from django.test import TestCase, Client
 from django.urls import reverse
+from django.utils import timezone
 
 from seo_agent.services import SEOAuditAgent, LocalSEOAgent, build_sitemap_entries
 
@@ -240,6 +243,7 @@ class FacebookAutoShareAntiCasseTestCase(TestCase):
             module=BusinessProfile.Module.SERVICES,
             plan=BusinessProfile.Plan.PREMIUM,
             activation_status=BusinessProfile.ActivationStatus.ACTIVE,
+            subscription_expires_at=timezone.now() + timedelta(days=30),
             is_active=True,
             whatsapp="690000000",
         )

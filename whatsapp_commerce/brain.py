@@ -89,7 +89,7 @@ def _safe_fallback(intent, context):
 	return f"Merci de contacter {name} à {city} ! Qu’est-ce que tu recherches et quel budget souhaites-tu prévoir ?"
 
 
-def _attach_order_action(connection, contact, message, decision):
+def _attach_order_action(connection, contact, message, decision, *, offer_click=None):
 	if decision["intention"] not in {"commande", "paiement"}:
 		return decision
 	from .orchestrator import create_order_safe
@@ -99,6 +99,7 @@ def _attach_order_action(connection, contact, message, decision):
 		contact,
 		message,
 		intent=decision["intention"],
+		offer_click=offer_click,
 	)
 	if result.get("status") == "awaiting_confirmation":
 		return {
@@ -117,6 +118,8 @@ def _attach_order_action(connection, contact, message, decision):
 			reply = "Quel article exact souhaites-tu commander ? Choisis un produit actif du catalogue E-Shelle pour que je prépare le récapitulatif."
 		elif reason == "catalog_price_requires_business_confirmation":
 			reply = "Le prix de cet article doit d’abord être confirmé par le prestataire. Je lui transmets ta demande."
+		elif reason == "catalog_quantity_unavailable":
+			reply = "La quantité demandée dépasse le stock affiché. Écris COMMANDER avec une quantité plus petite ou contacte le prestataire."
 		else:
 			reply = "Je transmets ta demande au prestataire pour vérification avant de confirmer une commande ou un paiement."
 		return {
@@ -132,9 +135,15 @@ def _attach_order_action(connection, contact, message, decision):
 	}
 
 
-def generate_sales_decision(connection, contact, message):
+def generate_sales_decision(connection, contact, message, *, offer_click=None):
 	"""Return a validated intent, reply and next action grounded in business facts."""
 	intent = classify_intent(message)
+	from .offer_tracking import ORDER_WITHOUT_TITLE
+
+	if offer_click and intent == "commande" and ORDER_WITHOUT_TITLE.fullmatch(message):
+		return _attach_order_action(connection, contact, message, {
+			"intention": intent, "reponse": "", "action_next": "proposer_commande",
+		}, offer_click=offer_click)
 	context = _business_context(connection)
 	history = list(
 		BusinessWhatsAppMessage.objects.filter(contact=contact, is_activation_test=False)
@@ -186,7 +195,7 @@ def generate_sales_decision(connection, contact, message):
 			"action_next": str(result.get("action_next", "aucune"))[:64],
 			"context": context,
 			"history_count": len(history_text),
-		})
+		}, offer_click=offer_click)
 	except (RuntimeError, ValueError, TypeError, json.JSONDecodeError):
 		logger.warning("WhatsApp Commerce: réponse IA indisponible ou invalide; repli vendeur.", exc_info=True)
 		return _attach_order_action(connection, contact, message, {
@@ -195,4 +204,4 @@ def generate_sales_decision(connection, contact, message):
 			"action_next": "qualifier" if intent in {"prospection", "qualification"} else "aucune",
 			"context": context,
 			"history_count": len(history_text),
-		})
+		}, offer_click=offer_click)

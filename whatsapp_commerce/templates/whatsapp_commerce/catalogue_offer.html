@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}{{ seo.title }} | E-Shelle{% endblock %}
+{% block meta_description %}{{ seo.summary|truncatechars:155 }}{% endblock %}
+{% block canonical_url %}{{ seo.canonical }}{% endblock %}
+{% block og_url %}{{ seo.canonical }}{% endblock %}
+{% block og_title %}{{ seo.title }}{% endblock %}
+{% block og_description %}{{ seo.summary|truncatechars:155 }}{% endblock %}
+{% block og_image %}{% if seo.images %}<meta property="og:image" content="{{ seo.images.0 }}">{% else %}{{ block.super }}{% endif %}{% endblock %}
+{% block twitter_title %}{{ seo.title }}{% endblock %}
+{% block twitter_description %}{{ seo.summary|truncatechars:155 }}{% endblock %}
+{% block twitter_image %}{% if seo.images %}<meta name="twitter:image" content="{{ seo.images.0 }}">{% else %}{{ block.super }}{% endif %}{% endblock %}
+{% block extra_head %}{{ block.super }}<script type="application/ld+json">{{ seo.schema }}</script>{% endblock %}
+{% block extra_css %}{{ block.super }}<link rel="stylesheet" href="{% static 'css/es-whatsapp-activation.css' %}">{% endblock %}
+{% block content %}
+<main class="container py-4 mt-4">
+  <section class="es-wa-setup" aria-labelledby="offer-title">
+    <div class="es-wa-setup__grid">
+      <div class="es-wa-setup__card">
+        <a href="{{ business.get_absolute_url }}">← {{ business.display_name }}</a>
+        <h1 id="offer-title">{{ item.display_title }}</h1>
+        {% if item.display_description %}<p>{{ item.display_description|linebreaksbr }}</p>{% endif %}
+        <dl class="es-wa-setup__result">
+          <dt>Prix</dt><dd><strong>{{ seo.price_label|default:'Prix sur demande' }}</strong></dd>
+          {% if item.stock_quantity is not None %}<dt>Disponibilité</dt><dd>{% if item.stock_quantity %}En stock{% else %}Stock épuisé{% endif %}</dd>{% endif %}
+          {% if seo.location %}<dt>Lieu du prestataire</dt><dd>{{ seo.location }}</dd>{% endif %}
+          {% if item.sku %}<dt>Référence</dt><dd>{{ item.sku }}</dd>{% endif %}
+        </dl>
+        {% if can_contact %}
+          <a class="es-wa-setup__button" href="{% url 'whatsapp_commerce:catalogue_offer_whatsapp' business.public_slug item.pk %}{% if campaign_token %}?campagne={{ campaign_token|urlencode }}{% endif %}">Écrire au prestataire sur WhatsApp</a>
+        {% endif %}
+      </div>
+      {% if seo.images %}
+        <img src="{{ seo.images.0 }}" alt="{{ item.display_title }}" style="width:100%;max-height:440px;object-fit:contain;border-radius:14px">
+      {% endif %}
+    </div>
+  </section>
+</main>
+{% endblock %}

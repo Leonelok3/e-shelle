@@ -70,11 +70,16 @@ def check_abandoned_carts():
 @shared_task
 def process_due_business_whatsapp_follow_ups():
     from .automations import cancel_all_scheduled_follow_ups, send_due_template_follow_ups
+    from .workflows import plan_workflows
 
     if not getattr(settings, "WHATSAPP_BUSINESS_AUTOMATIONS_ENABLED", False):
         cancel_all_scheduled_follow_ups("Les relances WhatsApp ont été désactivées côté serveur.")
         return 0
 
+    try:
+        plan_workflows()
+    except Exception:
+        logger.exception("Échec de la planification des automatisations WhatsApp.")
     return send_due_template_follow_ups()
 
 
@@ -94,3 +99,33 @@ def dispatch_business_whatsapp_replies():
             args=[job_id], retry=False, expires=90,
         )
     )
+
+
+@shared_task(ignore_result=True, acks_late=True, soft_time_limit=120, time_limit=150)
+def process_whatsapp_catalog_submission(submission_id):
+    from .catalog_forwarding import process_submission
+
+    return process_submission(submission_id)
+
+
+@shared_task(ignore_result=True)
+def dispatch_whatsapp_catalog_submissions():
+    from .catalog_forwarding import dispatch_catalog_submissions
+
+    return dispatch_catalog_submissions(
+        lambda submission_id: process_whatsapp_catalog_submission.apply_async(
+            args=[submission_id], retry=False, expires=90,
+        )
+    )
+
+
+@shared_task(ignore_result=True)
+def notify_whatsapp_catalog_published(submission_id):
+    from .catalog_forwarding import Status, _notice
+    from .models import WhatsAppCatalogSubmission
+
+    submission = WhatsAppCatalogSubmission.objects.select_related("sender__business").filter(
+        pk=submission_id, status=Status.PUBLISHED,
+    ).first()
+    if submission and submission.item_id:
+        _notice(submission)

@@ -11,6 +11,7 @@ from django.utils import timezone
 
 from business.models import BusinessCatalogItem
 
+from .catalog_messages import PRICE, parse_offer
 from .models import (
 	BusinessWhatsAppAudit,
 	BusinessWhatsAppConnection,
@@ -18,6 +19,7 @@ from .models import (
 	BusinessWhatsAppMessage,
 	WhatsAppDraftOrder,
 )
+from .offer_tracking import ORDER_WITHOUT_TITLE
 
 logger = logging.getLogger(__name__)
 
@@ -29,16 +31,15 @@ def _normalized(value):
 
 def _find_catalog_item(connection, message):
 	text = _normalized(message)
-	items = connection.agent_catalog_items.filter(
-		business=connection.business,
-		is_active=True,
-	)
-	if not items.exists():
-		items = BusinessCatalogItem.objects.filter(business=connection.business, is_active=True)
 	return next(
-		(item for item in items.order_by("order", "-created_at") if _normalized(item.title) in text),
+		(item for item in _sale_items(connection).order_by("order", "-created_at") if _normalized(item.title) in text),
 		None,
 	)
+
+
+def _sale_items(connection):
+	items = connection.agent_catalog_items.filter(business=connection.business, is_active=True)
+	return items if items.exists() else connection.business.catalog_items.filter(is_active=True)
 
 
 def _extract_quantity(message):
@@ -55,6 +56,24 @@ def _catalog_price(item):
 		return Decimal(digits)
 	except InvalidOperation:
 		return None
+
+
+def offer_price_xaf(item):
+	label = unicodedata.normalize("NFKC", item.price_label).strip()
+	if re.fullmatch(r"(?:\d{1,3}(?: \d{3})+|\d{1,10})", label):
+		label += " XAF"
+	if PRICE.fullmatch(label):
+		price, _ = parse_offer(label)
+		if price["currency"] == "XAF":
+			return price["price_amount"]
+	return None
+
+
+def can_offer_order(connection, item):
+	return (
+		item.stock_quantity != 0 and offer_price_xaf(item) is not None
+		and _sale_items(connection).filter(pk=item.pk).exists()
+	)
 
 
 def _pending_action_audit(connection, contact, intent, reason, item=None):
@@ -122,24 +141,33 @@ def can_create_order(connection, contact, catalog_item, *, now=None):
 
 
 @transaction.atomic
-def create_order_safe(connection, contact, message, *, intent="commande", now=None):
+def create_order_safe(connection, contact, message, *, intent="commande", now=None, offer_click=None):
 	"""Create an auditable WhatsApp draft without creating an order before confirmation."""
 	contact = BusinessWhatsAppContact.objects.select_for_update().get(pk=contact.pk)
-	item = _find_catalog_item(connection, message)
+	if offer_click and offer_click.catalog_item_id and ORDER_WITHOUT_TITLE.fullmatch(message):
+		item = _sale_items(connection).filter(pk=offer_click.catalog_item_id).first()
+	else:
+		item = _find_catalog_item(connection, message)
 	allowed, reason = can_create_order(connection, contact, item, now=now)
 	if not allowed:
 		return _pending_action_audit(connection, contact, intent, reason, item)
-	unit_price = _catalog_price(item)
+	source_click = offer_click if offer_click and offer_click.catalog_item_id == item.pk else None
+	unit_price = offer_price_xaf(item) if source_click else _catalog_price(item)
 	if unit_price is None:
 		return _pending_action_audit(connection, contact, intent, "catalog_price_requires_business_confirmation", item)
 
 	quantity = _extract_quantity(message)
+	if item.stock_quantity is not None and quantity > item.stock_quantity:
+		return _pending_action_audit(connection, contact, intent, "catalog_quantity_unavailable", item)
 	draft = WhatsAppDraftOrder.objects.filter(
 		contact=contact,
 		status=WhatsAppDraftOrder.Status.AWAITING_CONFIRMATION,
 	).first()
 	if draft:
 		if draft.catalog_item_id == item.pk and draft.quantity == quantity:
+			if source_click and draft.source_click_id is None:
+				draft.source_click = source_click
+				draft.save(update_fields=["source_click"])
 			return {
 				"status": draft.status,
 				"draft": draft,
@@ -154,6 +182,7 @@ def create_order_safe(connection, contact, message, *, intent="commande", now=No
 		connection=connection,
 		contact=contact,
 		catalog_item=item,
+		source_click=source_click,
 		quantity=quantity,
 		unit_price=unit_price,
 		total_price=unit_price * quantity,
@@ -216,11 +245,12 @@ def is_explicit_draft_confirmation(contact, value):
 
 
 @transaction.atomic
-def confirm_draft_order(contact_phone, token_ou_oui, *, business=None):
+def confirm_draft_order(contact_phone, token_ou_oui, *, business=None, offer_click=None):
 	"""Confirm only an explicit OUI/token; idempotently create the manual-payment handoff."""
 	from boutique.models import Commande, LigneCommande
 	from payments.models import Transaction
 	from .checkout import checkout_enabled
+	from .order_operations import reserve_stock
 
 	value = str(token_ou_oui or "").strip()
 	is_yes = _normalized(value) in {"oui", "oui confirme", "oui je confirme"}
@@ -267,6 +297,18 @@ def confirm_draft_order(contact_phone, token_ou_oui, *, business=None):
 		return {"status": "confirmation_incomplete"}
 	if draft.status != WhatsAppDraftOrder.Status.AWAITING_CONFIRMATION:
 		return {"status": "draft_not_awaiting_confirmation"}
+	if (is_yes and offer_click and offer_click.catalog_item_id != draft.catalog_item_id
+	    and draft.created_at < offer_click.entry_message.created_at):
+		return {"status": "different_offer"}
+	item = BusinessCatalogItem.objects.select_for_update().filter(
+		pk=draft.catalog_item_id, business_id=draft.business_id, is_active=True,
+	).first()
+	if (not item or (draft.source_click_id and offer_price_xaf(item) != draft.unit_price)
+	    or (item.stock_quantity is not None and draft.quantity > item.stock_quantity)):
+		draft.status = WhatsAppDraftOrder.Status.CANCELLED
+		draft.audit = {**draft.audit, "cancel_reason": "catalog_offer_changed"}
+		draft.save(update_fields=["status", "audit"])
+		return {"status": "catalog_offer_changed"}
 
 	order = Commande.objects.create(
 		utilisateur=None,
@@ -321,6 +363,7 @@ def confirm_draft_order(contact_phone, token_ou_oui, *, business=None):
 		"transaction_id": payment.pk,
 	}
 	draft.save(update_fields=["status", "confirmed_at", "audit"])
+	reserve_stock(draft, item)
 	BusinessWhatsAppAudit.objects.create(
 		connection=draft.connection,
 		contact=contact,

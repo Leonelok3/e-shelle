@@ -4,12 +4,37 @@ from datetime import timedelta
 from django.apps import apps
 from django.conf import settings
 from django.db import transaction
-from django.db.models.signals import post_save
+from django.db.models.signals import post_save, pre_save
 from django.utils import timezone
 
-from .models import ProductView
+from .models import BusinessWhatsAppBooking, ProductView, WhatsAppCatalogChange
 
 logger = logging.getLogger(__name__)
+CATALOG_FIELDS = {"title": "Nom", "sku": "Référence", "price_label": "Prix", "stock_quantity": "Stock", "image": "Photo", "is_active": "Publication"}
+
+
+def _catalog_before_save(sender, instance, raw=False, update_fields=None, using=None, **kwargs):
+    if not raw and (update_fields is None or CATALOG_FIELDS.keys() & update_fields):
+        instance._catalog_previous = sender.objects.using(using).filter(pk=instance.pk).values(*CATALOG_FIELDS).first() if instance.pk else None
+
+
+def _catalog_after_save(sender, instance, raw=False, update_fields=None, using=None, **kwargs):
+    if raw or not hasattr(instance, "_catalog_previous"):
+        return
+    previous = instance._catalog_previous
+    del instance._catalog_previous
+    current = {field: getattr(instance, field) for field in CATALOG_FIELDS}
+    current["image"] = current["image"].name or ""
+    if previous is None:
+        changes = {"Création": [None, current["title"]]}
+    else:
+        previous["image"] = previous["image"] or ""
+        changes = {label: [previous[field], current[field]] for field, label in CATALOG_FIELDS.items()
+                   if (update_fields is None or field in update_fields) and previous[field] != current[field]}
+        if "Photo" in changes:
+            changes["Photo"] = [None, "Photo mise à jour"]
+    if changes:
+        WhatsAppCatalogChange.objects.using(using).create(business_id=instance.business_id, item=instance, title=instance.title, changes=changes)
 
 
 def _sync_product_after_commit(product_id):
@@ -77,6 +102,20 @@ def _business_item_saved(sender, instance, raw=False, **kwargs):
     transaction.on_commit(sync_after_commit)
 
 
+def _record_appointment_completion(sender, instance, raw=False, **kwargs):
+    if not raw and instance.status == sender.Status.DONE:
+        BusinessWhatsAppBooking.objects.filter(appointment_id=instance.pk, completed_at__isnull=True).update(
+            completed_at=timezone.now(),
+        )
+
+
+def _settle_whatsapp_inventory(sender, instance, raw=False, update_fields=None, **kwargs):
+    if not raw and (update_fields is None or "statut" in update_fields):
+        from .order_operations import settle_stock
+
+        settle_stock(instance)
+
+
 post_save.connect(
     _product_saved,
     sender="boutique.Produit",
@@ -92,3 +131,15 @@ post_save.connect(
     sender="business.BusinessCatalogItem",
     dispatch_uid="whatsapp_commerce.sync_business_catalog_item",
 )
+post_save.connect(
+    _record_appointment_completion,
+    sender="salonhub_bookings.Appointment",
+    dispatch_uid="whatsapp_commerce.appointment_completed",
+)
+post_save.connect(
+    _settle_whatsapp_inventory,
+    sender="boutique.Commande",
+    dispatch_uid="whatsapp_commerce.settle_order_inventory",
+)
+pre_save.connect(_catalog_before_save, sender="business.BusinessCatalogItem", dispatch_uid="whatsapp_commerce.catalog_before_save")
+post_save.connect(_catalog_after_save, sender="business.BusinessCatalogItem", dispatch_uid="whatsapp_commerce.catalog_after_save")

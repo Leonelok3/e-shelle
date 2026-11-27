@@ -12,6 +12,10 @@
         <p style="color:rgba(255,255,255,.68);margin:.35rem 0">{{ business.name }}</p>
       </div>
       {% if entitlements.can_use_crm %}
+        <a href="{% url 'whatsapp_commerce:agent_center' business.id %}" style="color:#86efac;font-weight:800">Mes agents</a>
+        <a href="{% url 'whatsapp_commerce:business_workflows' business.id %}" style="color:#86efac;font-weight:800">Automatisations</a>
+        <a href="{% url 'whatsapp_commerce:follow_up_list' business.id %}" style="color:#fde68a;font-weight:800">À reprendre</a>
+        <a href="{% url 'whatsapp_commerce:offer_report' business.id %}" style="color:#86efac;font-weight:800">Résultats par offre</a>
         <a href="{% url 'whatsapp_commerce:business_campaigns' business.id %}" style="padding:.8rem 1rem;border-radius:10px;background:#16a34a;color:#fff;text-decoration:none;font-weight:800">Mes campagnes WhatsApp</a>
       {% endif %}
       {% if connection and connection.status == "active" %}
@@ -114,7 +118,7 @@
       <h2>Rendez-vous WhatsApp à venir</h2>
       <ul>
         {% for booking in upcoming_bookings %}
-          <li>{{ booking.appointment.date|date:"d/m/Y" }} à {{ booking.appointment.time|time:"H:i" }} · {% if booking.property_visit %}{{ booking.property_visit.bien.titre }}{% else %}{{ booking.appointment.service.name }}{% endif %} · <a href="?contact={{ booking.contact_id }}">{{ booking.contact.display_name|default:booking.contact.phone }}</a></li>
+          <li>{{ booking.appointment.date|date:"d/m/Y" }} à {{ booking.appointment.time|time:"H:i" }} · {% if booking.property_visit %}{{ booking.property_visit.bien.titre }}{% else %}{{ booking.appointment.service.name }}{% endif %} · <a href="?contact={{ booking.contact_id }}">{{ booking.contact.display_name|default:booking.contact.phone }}</a>{% if booking.presence_confirmed_at %} · Présence confirmée{% endif %}</li>
         {% endfor %}
       </ul>
     </section>
@@ -166,7 +170,7 @@
           <p style="color:rgba(255,255,255,.62)">Les nouveaux messages WhatsApp autorisés apparaîtront ici.</p>
         {% endfor %}
       </aside>
-      <article style="padding:1rem;border:1px solid rgba(255,255,255,.12);border-radius:14px">
+      <article id="conversation" style="scroll-margin-top:7rem;padding:1rem;border:1px solid rgba(255,255,255,.12);border-radius:14px">
         {% if selected_contact %}
           <h2 style="margin-top:0">{{ selected_contact.display_name|default:selected_contact.phone }}</h2>
           {% if selected_estate_property %}<p>Bien sélectionné · <a href="{{ selected_estate_property.get_absolute_url }}">{{ selected_estate_property.titre }}</a></p>{% endif %}

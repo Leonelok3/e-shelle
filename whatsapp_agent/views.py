@@ -1147,8 +1147,10 @@ def webhook_meta(request):
         return JsonResponse({"error": "Payload WhatsApp invalide"}, status=400)
 
     if apps.is_installed("whatsapp_commerce"):
+        from whatsapp_commerce.catalog_forwarding import receive_and_exclude_catalog
         from whatsapp_commerce.inbox import process_business_whatsapp_webhook
 
+        data = receive_and_exclude_catalog(data)
         process_business_whatsapp_webhook(data)
 
     for entry in data.get("entry", []):

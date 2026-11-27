@@ -1,5 +1,6 @@
 import csv
 import io
+from urllib.parse import urlencode
 
 from django.conf import settings
 from django.contrib import messages
@@ -15,11 +16,16 @@ from business.services import get_audience_for_campaign
 from whatsapp_agent.forms import TemplateSelectionForm
 from whatsapp_agent.models import Campagne, MessageEnvoi
 from whatsapp_agent.tasks import lancer_campagne_direct, lancer_campagne_task, recalculer_stats_campagne
+from immobilier_cameroun.agency import is_estate_agency, public_agency_properties
+from immobilier_cameroun.models import StatutVisite
+from salonhub.bookings.models import Appointment
 
 from .campaigns import business_campaign_template_catalog, validate_business_campaign_template
 from .entitlements import whatsapp_entitlements
-from .models import BusinessWhatsAppConnection, BusinessWhatsAppContact
+from .models import BusinessWhatsAppBooking, BusinessWhatsAppConnection, BusinessWhatsAppContact, WhatsAppOfferClick
 from .onboarding import MetaOnboardingError
+from .offer_tracking import campaign_offer_token, catalogue_offer_path
+from .order_operations import orders_for_business, paid_orders
 from .services import normalize_phone
 
 MAX_CAMPAIGN_RECIPIENTS = 250
@@ -281,6 +287,34 @@ def business_campaign_detail(request, business_id, campaign_id):
     page_obj = Paginator(
         campaign.messages.select_related("business_contact").order_by("pk"), 50
     ).get_page(request.GET.get("page"))
+    active_items = business.catalog_items.filter(is_active=True).order_by("title")
+    active_biens = public_agency_properties(business).order_by("titre") if is_estate_agency(business) else None
+    offers = [(f"article-{item.pk}", item.title) for item in active_items[:60]]
+    if active_biens is not None:
+        offers.extend((f"bien-{bien.pk}", bien.titre) for bien in active_biens[:60])
+    campaign_link = ""
+    campaign_copy = ""
+    campaign_image = ""
+    kind, _, identifier = request.GET.get("offre", "").partition("-")
+    if business.is_published and identifier.isascii() and identifier.isdecimal() and len(identifier) <= 18:
+        draft_offer = (active_items.filter(pk=identifier).first() if kind == "article" else
+                       active_biens.filter(pk=identifier).first() if kind == "bien" and active_biens is not None else None)
+        if draft_offer:
+            path = catalogue_offer_path(business, draft_offer.pk) if kind == "article" else draft_offer.get_absolute_url()
+            campaign_link = request.build_absolute_uri(path + "?" + urlencode({"campagne": campaign_offer_token(campaign, kind, draft_offer.pk)}))
+            if kind == "article":
+                subject, price, campaign_image = draft_offer.title, draft_offer.price_label, draft_offer.image_url
+            else:
+                subject, price = draft_offer.titre, draft_offer.prix_formate
+                photo = draft_offer.photo_principale
+                campaign_image = photo.image.url if photo and photo.image else ""
+            campaign_copy = "\n".join(part for part in (f"Découvrez {subject} chez {business.display_name}.", price, campaign_link) if part)
+    clicks = WhatsAppOfferClick.objects.filter(campaign=campaign, connection__business=business)
+    paid = paid_orders(orders_for_business(business).filter(source_click__in=clicks)).exclude(boutique_order__statut__in=["annulee", "remboursee"])
+    bookings = BusinessWhatsAppBooking.objects.filter(
+        contact__business=business, source_click__in=clicks,
+        appointment__status__in=[Appointment.Status.CONFIRMED, Appointment.Status.DONE],
+    ).exclude(property_visit__statut=StatutVisite.ANNULE)
     return render(
         request,
         "whatsapp_commerce/business_campaigns.html",
@@ -289,6 +323,12 @@ def business_campaign_detail(request, business_id, campaign_id):
             "campaign_detail": campaign,
             "page_obj": page_obj,
             "campaign_limit": MAX_CAMPAIGN_RECIPIENTS,
+            "tracked_offers": offers,
+            "campaign_offer_link": campaign_link,
+            "campaign_copy": campaign_copy,
+            "campaign_image": campaign_image,
+            "attributed": {"clicks": clicks.count(), "conversations": clicks.filter(entry_message__isnull=False).values("entry_message__contact_id").distinct().count(),
+                           "paid": paid.count(), "bookings": bookings.count()},
         },
     )
 

@@ -10,6 +10,7 @@ from django.utils import timezone
 from immobilier_cameroun.agency import is_estate_agency
 
 from .activation import automatic_answer, connection_blockers
+from .follow_ups import booking_cases
 from .inbox import AutomatedReplySuppressed, _refund_ai_credit, _reserve_ai_credit, _run_sales_agent, send_business_reply
 from .models import (
     BusinessWhatsAppActivation,
@@ -73,7 +74,32 @@ def _finish(job, status, *, stalled_before=None):
         running = BusinessWhatsAppReplyJob.objects.filter(pk=job.pk, status=Status.PROCESSING)
         if stalled_before is not None:
             running = running.filter(updated_at__lt=stalled_before)
-        changed = running.update(status=status, updated_at=timezone.now())
+        now = timezone.now()
+        fields = {"status": status, "updated_at": now}
+        if not job.activation_code and (job.booking_help or status == Status.REVIEW):
+            from .offer_tracking import recent_offer_click
+
+            source = recent_offer_click(job.connection, job.message)
+            property_id = job.follow_up_property_id or (source.property_listing_id if source else None)
+            if not property_id and not job.booking_help:
+                selected = contact.selected_property
+                if selected and selected.agence_id == contact.business_id:
+                    property_id = selected.pk
+            fields.update(
+                booking_help=job.booking_help,
+                follow_up_property_id=property_id,
+                follow_up_item_id=job.follow_up_item_id or (source.catalog_item_id if source and not property_id else None),
+                follow_up_order_id=job.follow_up_order_id,
+                follow_up_service_id=job.follow_up_service_id,
+                follow_up_appointment_id=job.follow_up_appointment_id,
+            )
+        changed = running.update(**fields)
+        if changed and job.booking_help:
+            booking_cases(contact.business).filter(
+                message__contact=contact, message_id__lt=job.message_id,
+                follow_up_property_id=fields["follow_up_property_id"], follow_up_item_id=fields["follow_up_item_id"],
+                follow_up_service_id=job.follow_up_service_id, follow_up_appointment_id=job.follow_up_appointment_id,
+            ).update(follow_up_closed_at=now)
         if changed and status == Status.REVIEW and not job.activation_code:
             _pause_contact(contact.pk)
         return changed
@@ -97,6 +123,36 @@ def _respond(job):
 
     if job.activation_code:
         return _respond_to_test(job, connection, contact)
+
+    from .workflows import pending_reschedule, respond_to_workflow
+
+    if job.automation_action == "invalid":
+        return Status.SKIPPED
+    scheduled, command = (job.automation_message, None)
+    if not scheduled and message.message_type == "text" and not job.automation_action:
+        scheduled, command = pending_reschedule(connection, contact, message.body)
+    if scheduled:
+        reply, review = respond_to_workflow(job, connection, contact, scheduled, job.automation_action or "move", command)
+        reply = _booking_handoff_reply(job, reply)
+        if reply:
+            send_business_reply(contact, reply, expected_phone_number_id=job.phone_number_id, reply_job_id=job.pk)
+        if review:
+            return Status.REVIEW
+        return Status.SENT if reply else Status.SKIPPED
+    if job.automation_action:
+        return Status.SKIPPED
+
+    if message.message_type == "text" and connection.agent_enabled and getattr(settings, "WHATSAPP_COMMERCE_AI_ENABLED", False):
+        from .order_operations import customer_order_reply
+        from .quote_views import accept_quote
+        from .watches import customer_watch_reply
+
+        outcome = (accept_quote(contact, message.body) or customer_watch_reply(connection, contact, message.body)
+                   or customer_order_reply(contact, message.body, job))
+        if outcome:
+            reply, review = outcome
+            send_business_reply(contact, reply, expected_phone_number_id=job.phone_number_id, reply_job_id=job.pk, require_agent_enabled=True)
+            return Status.REVIEW if review else Status.SENT
 
     if is_estate_agency(contact.business):
         activation = BusinessWhatsAppActivation.objects.filter(connection=connection).first()
@@ -163,10 +219,12 @@ def _respond_to_test(job, connection, contact):
 
 
 def _respond_with_scope(job, activation, connection, contact):
+    from business.models import BusinessCatalogItem
     from .brain import classify_intent
-    from .bookings import booking_reply
+    from .bookings import booking_reply, catalogue_booking_service
     from .entitlements import require_whatsapp_entitlement
-    from .orchestrator import is_explicit_draft_confirmation
+    from .offer_tracking import CATALOGUE_INTRO, catalogue_offer_path, recent_offer_click
+    from .orchestrator import can_offer_order, is_explicit_draft_confirmation
     from .voice import transcribe_voice, voice_available
 
     if (
@@ -178,6 +236,7 @@ def _respond_with_scope(job, activation, connection, contact):
         return Status.SKIPPED
     body = job.message.body
     typed = job.message.message_type in {"text", "interactive", "button"}
+    offer_click = recent_offer_click(connection, job.message)
     if job.message.message_type == "audio":
         if (
             not activation.voice_enabled or not voice_available() or not job.message.media_id
@@ -193,21 +252,47 @@ def _respond_with_scope(job, activation, connection, contact):
             _refund_ai_credit(contact.business)
             return Status.REVIEW
         BusinessWhatsAppMessage.objects.filter(pk=job.message_id).update(body=body)
+        from .order_operations import customer_order_reply
+
+        outcome = customer_order_reply(contact, body, job)
+        if outcome:
+            reply, review = outcome
+            send_business_reply(contact, reply, expected_phone_number_id=job.phone_number_id, reply_job_id=job.pk, require_agent_enabled=True)
+            return Status.REVIEW if review else Status.SENT
     if is_estate_agency(contact.business):
         from .estate import estate_reply
 
-        reply = estate_reply(activation, contact, body, typed=typed)
+        reply = estate_reply(
+            activation, contact, body, typed=typed, offer_click=offer_click, reply_message_id=job.message_id,
+        )
     else:
         intent = classify_intent(body)
-        if typed and activation.assist_sales and (
+        catalogue_enabled = activation.answer_catalog or activation.assist_sales or activation.booking_service_id
+        if (catalogue_enabled and offer_click and offer_click.entry_message_id == job.message_id
+                and offer_click.catalog_item_id and (body.startswith(CATALOGUE_INTRO) or intent == "qualification")):
+            item = offer_click.catalog_item
+            if not item.is_active or item.business_id != contact.business_id or not contact.business.is_published:
+                reply = "Cette offre n’est plus disponible. L’équipe peut te proposer une autre option."
+            else:
+                link = settings.SITE_URL.rstrip("/") + catalogue_offer_path(contact.business, item.pk)
+                reply = f"{item.title} — {item.price_label or 'Prix sur demande'}.\n{item.description[:400]}\n{link}"
+                if item.item_type == BusinessCatalogItem.ItemType.SERVICE and catalogue_booking_service(activation, contact, item):
+                    reply += "\nÉcris RDV pour voir les prochains créneaux."
+                elif activation.assist_sales and can_offer_order(connection, item):
+                    reply += "\nÉcris COMMANDER ou COMMANDER 2 x pour choisir la quantité."
+        elif typed and activation.assist_sales and (
             intent == "commande" or is_explicit_draft_confirmation(contact, body)
         ):
-            return _run_sales_agent(connection, contact, job.message, reply_job_id=job.pk)
-        reply = booking_reply(activation, contact, body, typed=typed)
-        if reply is None and intent in {"paiement", "rdv", "commande"}:
-            return Status.REVIEW
+            return _run_sales_agent(connection, contact, job.message, reply_job_id=job.pk, offer_click=offer_click)
+        else:
+            reply = booking_reply(
+                activation, contact, body, typed=typed, offer_click=offer_click, reply_message_id=job.message_id,
+            )
+            if reply is None and intent in {"paiement", "rdv", "commande"}:
+                return Status.REVIEW
     if reply is None:
         reply = automatic_answer(activation, body)
+    reply = _booking_handoff_reply(job, reply)
     if not reply:
         return Status.REVIEW
     send_business_reply(
@@ -215,6 +300,18 @@ def _respond_with_scope(job, activation, connection, contact):
         require_agent_enabled=True,
     )
     return Status.SENT
+
+
+def _booking_handoff_reply(job, reply):
+    from .bookings import BookingHandoff
+
+    if isinstance(reply, BookingHandoff):
+        job.booking_help = reply.reason
+        job.follow_up_property_id = reply.listing_id
+        job.follow_up_service_id = reply.service_id
+        job.follow_up_appointment_id = reply.appointment_id
+        return reply.reply
+    return reply
 
 
 def process_reply_job(job_id):

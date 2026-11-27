@@ -1,7 +1,6 @@
 # billing/affiliates.py
 from decimal import Decimal
 from django.db import transaction as db_transaction
-from django.utils import timezone
 
 from .models import AffiliateProfile, Referral, Commission, Transaction
 
@@ -35,7 +34,7 @@ def get_affiliate_by_code(code: str):
     if not code:
         return None
     code = code.strip().upper()
-    return AffiliateProfile.objects.filter(ref_code__iexact=code, is_enabled=True).select_related("user").first()
+    return AffiliateProfile.objects.filter(ref_code__iexact=code, is_enabled=True, user__is_active=True).select_related("user").first()
 
 
 def attach_referral_if_needed(referred_user, affiliate_profile, source="link"):
@@ -46,17 +45,14 @@ def attach_referral_if_needed(referred_user, affiliate_profile, source="link"):
     """
     if not referred_user.is_authenticated or not affiliate_profile:
         return None
-    if affiliate_profile.user_id == referred_user.id:
+    if affiliate_profile.user_id == referred_user.id or not affiliate_profile.is_enabled or not affiliate_profile.user.is_active:
         return None
 
-    ref = Referral.objects.filter(referred_user=referred_user).select_related("affiliate").first()
-    if ref:
-        return ref
-
-    return Referral.objects.create(
-        affiliate=affiliate_profile,
+    ref, _ = Referral.objects.get_or_create(
         referred_user=referred_user,
+        defaults={"affiliate": affiliate_profile, "attribution_source": source, "ref_code_at_binding": affiliate_profile.ref_code},
     )
+    return ref
 
 
 def _commission_base_for_transaction(tx: Transaction) -> Decimal:
@@ -131,12 +127,11 @@ def create_commission_for_transaction(tx: Transaction) -> Commission | None:
 
     amount = (base * Decimal(rate)).quantize(Decimal("0.01"))
 
-    return Commission.objects.create(
-        affiliate=affiliate,
-        transaction=tx,
-        amount=amount,
-        currency=tx.currency or "USD",
-        rate=rate,
-        status="PENDING",
-        created_at=timezone.now(),
-    )
+    commission, _ = Commission.objects.get_or_create(transaction=tx, defaults={
+        "affiliate": affiliate, "amount": amount, "currency": tx.currency or "USD", "rate": rate,
+        "status": "PENDING", "attribution": {
+            "referral_id": referral.pk, "source": referral.attribution_source,
+            "code": referral.ref_code_at_binding, "bound_at": referral.created_at.isoformat(),
+        },
+    })
+    return commission

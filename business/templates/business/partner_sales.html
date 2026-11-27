@@ -1,0 +1,29 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Ventes et commissions · Business Key{% endblock %}
+{% block meta_robots %}noindex, nofollow{% endblock %}
+{% block extra_css %}{{ block.super }}<link rel="stylesheet" href="{% static 'css/es-whatsapp-activation.css' %}">{% endblock %}
+{% block content %}
+<main class="container py-4 mt-4">
+  <a href="{% url 'business:partner_dashboard' %}">← Ma Business Key</a>
+  <section class="es-wa-setup">
+    <h1>Ventes et commissions</h1>
+    <form method="get" style="display:flex;gap:.65rem;flex-wrap:wrap;align-items:end">
+      <label>Offre <select name="offre"><option value="">Toutes</option><option value="provider_subscription"{% if product == 'provider_subscription' %} selected{% endif %}>Abonnement prestataire</option><option value="business_key_subscription"{% if product == 'business_key_subscription' %} selected{% endif %}>Business Key</option></select></label>
+      <label>Statut <select name="statut"><option value="">Tous</option><option value="PENDING"{% if status == 'PENDING' %} selected{% endif %}>En attente de versement</option><option value="PAID"{% if status == 'PAID' %} selected{% endif %}>Versée</option><option value="CANCELED"{% if status == 'CANCELED' %} selected{% endif %}>Annulée</option></select></label>
+      <button class="es-wa-setup__button">Filtrer</button>
+    </form>
+    <div class="es-wa-setup__grid">
+      {% for sale in page %}<article class="es-wa-setup__card">
+        <h2 style="font-size:1.2rem">{{ sale.sale_kind }} · ES‑{{ sale.transaction_id }}</h2>
+        <p>{{ sale.transaction.created_at|date:'d/m/Y' }}{% if sale.sale_cycle %} · {{ sale.sale_cycle }}{% endif %}{% if sale.sale_plan %} · {{ sale.sale_plan }}{% endif %}</p>
+        <p>Compte parrainé · {{ sale.transaction.user.get_username }}{% if sale.fiche %} · {{ sale.fiche }}{% endif %}</p>
+        {% if sale.attribution.code %}<p>Code partenaire · {{ sale.attribution.code }}{% if sale.attribution.source == 'signup' %} · Inscription{% elif sale.attribution.source == 'business_onboarding' %} · Création de fiche{% endif %}</p>{% endif %}
+        <p>Montant de l’abonnement · {{ sale.transaction.amount|floatformat:'-2g' }} {{ sale.transaction.currency }}</p>
+        <p><strong>{{ sale.amount|floatformat:'-2g' }} {{ sale.currency }}</strong> · Taux {{ sale.percent|floatformat:'-2' }} % · {% if sale.status == 'PAID' %}Versée{% elif sale.status == 'CANCELED' %}Annulée{% else %}En attente de versement{% endif %}</p>
+      </article>{% empty %}<p>Aucune vente avec commission pour les filtres choisis.</p>{% endfor %}
+    </div>
+    {% if page.has_other_pages %}<nav aria-label="Pages des ventes">{% if page.has_previous %}<a href="{% querystring page=page.previous_page_number %}">Précédente</a>{% endif %} <span>{{ page.number }} / {{ page.paginator.num_pages }}</span> {% if page.has_next %}<a href="{% querystring page=page.next_page_number %}">Suivante</a>{% endif %}</nav>{% endif %}
+  </section>
+</main>
+{% endblock %}

@@ -1,9 +1,8 @@
 # billing/services_affiliate.py
 from __future__ import annotations
 
-from django.db import IntegrityError
-
-from .models import AffiliateProfile, Commission, Referral, Transaction
+from .affiliates import attach_referral_if_needed, get_affiliate_by_code
+from .models import AffiliateProfile, Commission, Transaction
 from .services import has_active_access
 
 
@@ -35,23 +34,7 @@ def attach_referral_from_session(request, user):
     if not ref_code:
         return None
 
-    # empêcher auto-parrainage
-    try:
-        aff = AffiliateProfile.objects.get(ref_code=ref_code, is_enabled=True)
-    except AffiliateProfile.DoesNotExist:
-        request.session.pop("ref_code", None)
-        return None
-
-    if aff.user_id == user.id:
-        request.session.pop("ref_code", None)
-        return None
-
-    # enregistrer referral (1 seule fois)
-    try:
-        referral = Referral.objects.create(affiliate=aff, referred_user=user)
-    except IntegrityError:
-        referral = getattr(user, "referral", None)
-
+    referral = attach_referral_if_needed(user, get_affiliate_by_code(ref_code), source="signup")
     request.session.pop("ref_code", None)
     return referral
 

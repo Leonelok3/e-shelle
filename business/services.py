@@ -419,10 +419,22 @@ def build_tracked_actions(
 
 def collect_business_items(business: BusinessProfile, limit: int = 24) -> list[dict]:
     """Retourne les produits/services/offres affichables sur la vitrine publique."""
-    manual_items = [
-        item.to_public_item()
-        for item in BusinessCatalogItem.objects.filter(business=business, is_active=True).order_by("order", "-created_at")[:limit]
-    ]
+    from .product_seo import catalogue_price, catalogue_price_label, offer_path, offer_type, stock_schema
+
+    manual_items = []
+    queryset = business.catalog_items.filter(is_active=True).order_by("order", "-created_at")
+    for item in queryset[:limit]:
+        entry = item.to_public_item()
+        price = catalogue_price(item.display_price_label)
+        path = offer_path(business.public_slug, item.pk) if business.public_slug else ""
+        entry.update({
+            "detail_url": path, "schema_type": offer_type(item.item_type),
+            "canonical_offer": settings.SITE_URL.rstrip("/") + path if path else "",
+            "price": catalogue_price_label(item.display_price_label, price) or entry["price"],
+            "price_raw": format(price[0], "f") if price else "", "price_currency": price[1] if price else "",
+            "availability": stock_schema(item.stock_quantity) if item.item_type == "product" else "",
+        })
+        manual_items.append(entry)
     if not business.catalog_video_enabled:
         for item in manual_items:
             item["video"] = ""
@@ -784,6 +796,9 @@ def record_provider_plan_payment(
     paid_by,
     amount_xaf: int,
     payment_method: str = "OTHER",
+    *,
+    test_mode: bool = False,
+    manual_payment: dict | None = None,
 ):
     """
     Point d'integration paiement.
@@ -792,6 +807,11 @@ def record_provider_plan_payment(
     """
     from billing.affiliates import create_commission_for_transaction
     from billing.models import Transaction
+
+    locked = BusinessProfile.objects.select_for_update().get(pk=business.pk, owner_id=paid_by.pk)
+    for name in ("plan", "subscription_expires_at", "boost_expires_at"):
+        setattr(business, name, getattr(locked, name))
+    previous_payment = provider_subscription_payments(business).exists()
 
     tx = Transaction.objects.create(
         user=paid_by,
@@ -811,8 +831,11 @@ def record_provider_plan_payment(
             "business_id": business.id,
             "business_name": business.name,
             "provider_plan": plan.code,
+            "provider_plan_name": plan.name,
             "commission_base": str(amount_xaf),
-            "product_type": "provider_subscription",
+            "product_type": "provider_subscription_test" if test_mode else "provider_subscription",
+            "provider_payment_cycle": "renewal" if previous_payment else "activation",
+            **({"provider_manual_payment": manual_payment} if manual_payment else {}),
         },
     )
     business.activate_plan(
@@ -829,8 +852,28 @@ def record_provider_plan_payment(
         business.is_trial = False
         update_fields += ["is_verified", "is_trial"]
     business.save(update_fields=update_fields)
-    create_commission_for_transaction(tx)
+    if amount_xaf > 0 and not test_mode:
+        create_commission_for_transaction(tx)
     return tx
+
+
+def provider_subscription_payments(business):
+    from billing.models import Transaction
+
+    return Transaction.objects.filter(
+        user_id=business.owner_id, status="COMPLETED", amount__gt=0,
+        metadata__business_id=business.pk, metadata__product_type="provider_subscription",
+    )
+
+
+def claim_manual_provider_reference(business, reference):
+    from .models import ManualProviderPaymentReference
+
+    normalized = reference.strip().lower()
+    if normalized:
+        _, created = ManualProviderPaymentReference.objects.get_or_create(business=business, reference=normalized)
+        if not created:
+            raise ValueError("Cette référence d’encaissement a déjà été utilisée pour cette fiche.")
 
 
 def activate_provider_whatsapp_payment(payment):
@@ -873,13 +916,17 @@ def activate_provider_whatsapp_payment(payment):
             expected_amount = Decimal(str(metadata.get("provider_whatsapp_amount_xaf")))
         except (InvalidOperation, TypeError, ValueError):
             return False
+        verification = metadata.get("campay") or {}
         if (
             payment.devise != "XAF"
             or payment.montant != expected_amount
             or payment.montant != plan.monthly_price_xaf
             or payment.statut not in {"pending_awaiting_manual_validation", "succes"}
             or payment.methode != "campay"
-            or (metadata.get("campay") or {}).get("provider_status") != "SUCCESSFUL"
+            or verification.get("provider_status") != "SUCCESSFUL"
+            or not verification.get("verified_at")
+            or verification.get("mode") not in {"production", "sandbox"}
+            or (getattr(settings, "CAMPAY_MODE", "sandbox").lower() == "production" and verification.get("mode") != "production")
         ):
             return False
         if metadata.get("provider_subscription_activated_at"):
@@ -898,6 +945,7 @@ def activate_provider_whatsapp_payment(payment):
             paid_by=payment.utilisateur,
             amount_xaf=int(payment.montant),
             payment_method="MOBILE_MONEY",
+            test_mode=verification.get("mode") == "sandbox",
         )
 
         metadata["provider_subscription_activated_at"] = timezone.now().isoformat()
@@ -912,34 +960,29 @@ def verified_provider_whatsapp_payment(business):
     """Return a successful CamPay payment or an admin-issued manual activation code."""
     from payments.models import Transaction
 
-    return (
-        Transaction.objects.filter(
-            utilisateur_id=business.owner_id,
-            type_tx="abonnement",
-            statut__in=("pending_awaiting_manual_validation", "succes"),
-            metadata__product_type="provider_whatsapp_onboarding",
-            metadata__provider_whatsapp_business_id=business.pk,
-            metadata__provider_whatsapp_activated_at__isnull=False,
-        )
-        .filter(
+    matches = Transaction.objects.filter(
+        utilisateur_id=business.owner_id,
+        type_tx="abonnement",
+        statut__in=("pending_awaiting_manual_validation", "succes"),
+        metadata__product_type="provider_whatsapp_onboarding",
+        metadata__provider_whatsapp_business_id=business.pk,
+        metadata__provider_whatsapp_activated_at__isnull=False,
+    ).filter(
+        Q(methode="campay", metadata__campay__provider_status="SUCCESSFUL")
+        | (
             Q(
-                methode="campay",
-                metadata__campay__provider_status="SUCCESSFUL",
+                methode="manual",
+                metadata__provider_whatsapp_manual_approved_at__isnull=False,
             )
-            | (
-                Q(
-                    methode="manual",
-                    metadata__provider_whatsapp_manual_approved_at__isnull=False,
-                )
-                & (
-                    Q(metadata__provider_whatsapp_activation_code_id__isnull=False)
-                    | Q(metadata__provider_whatsapp_payment_request_id__isnull=False)
-                )
+            & (
+                Q(metadata__provider_whatsapp_activation_code_id__isnull=False)
+                | Q(metadata__provider_whatsapp_payment_request_id__isnull=False)
             )
         )
-        .order_by("-created_at")
-        .first()
     )
+    if settings.CAMPAY_MODE == "production":
+        matches = matches.filter(Q(metadata__campay__mode__isnull=True) | ~Q(methode="campay", metadata__campay__mode="sandbox"))
+    return matches.order_by("-created_at").first()
 
 
 def _read_attr(obj, *names, default=None):

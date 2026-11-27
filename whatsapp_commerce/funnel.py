@@ -46,10 +46,10 @@ def _update_qualification(contact, message, decision):
 	return qualification
 
 
-def build_funnel_reply(connection, contact, inbound_message):
+def build_funnel_reply(connection, contact, inbound_message, *, offer_click=None):
 	"""Create an initial catalog introduction, then qualify before proposing a close."""
-	decision = generate_sales_decision(connection, contact, inbound_message.body)
-	if decision.get("pending_action", {}).get("status") == "awaiting_confirmation":
+	decision = generate_sales_decision(connection, contact, inbound_message.body, offer_click=offer_click)
+	if decision.get("pending_action", {}).get("status") == "awaiting_confirmation" or (offer_click and decision.get("pending_action")):
 		return decision
 	qualification = _update_qualification(contact, inbound_message.body, decision)
 	inbound_count = contact.messages.filter(direction="inbound", is_activation_test=False).count()

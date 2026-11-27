@@ -25,12 +25,11 @@
   "telephone": "{{ business.phone|escapejs }}",
   {% endif %}
   "url": "{{ public_url }}",
-  "priceRange": "$$",
   "address": {
     "@type": "PostalAddress",
     "addressLocality": "{{ business.city|escapejs }}",
     "addressRegion": "{{ business.district|escapejs }}",
-    "addressCountry": "CM"
+    "addressCountry": "{{ business.country|escapejs }}"
   }
   {% if business.reviews_count > 0 %}
   ,"aggregateRating": {
@@ -47,17 +46,17 @@
       {% for item in items %}
       {
         "@type": "Offer",
-        "url": "{{ public_url }}{% if item.id %}?produit={{ item.id }}{% endif %}",
+        "url": "{{ item.canonical_offer|default:public_url|escapejs }}",
         "itemOffered": {
-          "@type": "Product",
+          "@type": "{{ item.schema_type|default:'Thing' }}",
           "name": "{{ item.title|escapejs }}",
           "description": "{{ item.description|default:item.title|escapejs }}"
           {% if item.image %},"image": "{% if 'http' in item.image %}{{ item.image }}{% else %}{{ request.scheme }}://{{ request.get_host }}{{ item.image }}{% endif %}"{% endif %}
         }
-        {% if item.price_raw %},
+        {% if item.price_raw and item.price_currency %},
         "price": "{{ item.price_raw }}",
-        "priceCurrency": "XAF",
-        "availability": "https://schema.org/InStock"
+        "priceCurrency": "{{ item.price_currency }}"{% if item.availability %},
+        "availability": "{{ item.availability }}"{% endif %}
         {% endif %}
       }{% if not forloop.last %},{% endif %}
       {% endfor %}
@@ -221,7 +220,11 @@
                     {% if item.contact_url %}
                       <a href="{{ item.contact_url }}" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;justify-content:center;min-height:38px;padding:.55rem .75rem;border-radius:999px;background:#7dec6c;color:#06120a;font-size:.82rem;font-weight:900">WhatsApp</a>
                     {% endif %}
-                    <button type="button" onclick="openProductModal({{ forloop.counter0 }})" style="display:inline-flex;align-items:center;justify-content:center;min-height:38px;padding:.55rem .75rem;border-radius:999px;border:1px solid #cbd5e1;background:#fff;color:#0f172a;font-size:.82rem;font-weight:850;cursor:pointer">{% if LANGUAGE_CODE == 'en' %}Details{% else %}Détails{% endif %}</button>
+                    {% if item.detail_url %}
+                      <a href="{{ item.detail_url }}" style="display:inline-flex;align-items:center;justify-content:center;min-height:38px;padding:.55rem .75rem;border-radius:999px;border:1px solid #cbd5e1;background:#fff;color:#0f172a;font-size:.82rem;font-weight:850">{% if LANGUAGE_CODE == 'en' %}Details{% else %}Détails{% endif %}</a>
+                    {% else %}
+                      <button type="button" onclick="openProductModal({{ forloop.counter0 }})" style="display:inline-flex;align-items:center;justify-content:center;min-height:38px;padding:.55rem .75rem;border-radius:999px;border:1px solid #cbd5e1;background:#fff;color:#0f172a;font-size:.82rem;font-weight:850;cursor:pointer">{% if LANGUAGE_CODE == 'en' %}Details{% else %}Détails{% endif %}</button>
+                    {% endif %}
                   </div>
                   {% if user.is_authenticated and business.owner == user and item.id %}
                     <div style="display:flex;gap:.45rem;margin-top:.75rem;padding-top:.75rem;border-top:1px solid #e5e7eb">
@@ -529,7 +532,7 @@ function openProductModal(index) {
 
   const shareBtn = document.getElementById('modal-share-btn');
   if (shareBtn && item.id) {
-    var shareUrl = window.location.origin + window.location.pathname + '?produit=' + item.id;
+    const shareUrl = item.detail_url ? new URL(item.detail_url, window.location.origin).href : window.location.origin + window.location.pathname + '?produit=' + item.id;
     shareBtn.textContent = '{% if LANGUAGE_CODE == 'en' %}🔗 Share{% else %}🔗 Partager{% endif %}';
     shareBtn.onclick = function () {
       if (navigator.clipboard) {

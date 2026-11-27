@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Valider une offre WhatsApp | E-Shelle{% endblock %}
+{% block extra_css %}{{ block.super }}<link rel="stylesheet" href="{% static 'css/es-whatsapp-activation.css' %}">{% endblock %}
+{% block content %}
+<main class="container py-4 mt-4">
+  <a href="{% url 'whatsapp_commerce:catalog_forwarding' business.id %}">← Imports WhatsApp</a>
+  <section class="es-wa-setup">
+    <header class="es-wa-setup__header"><h1>Vérifier l’offre reçue</h1></header>
+    <div class="es-wa-setup__grid">
+      <section class="es-wa-setup__card">
+        <h2>Message transféré</h2>
+        <p style="white-space:pre-wrap;overflow-wrap:anywhere">{{ submission.body|default:"Photo sans légende" }}</p>
+        {% if submission.private_image %}
+          <img src="{% url 'whatsapp_commerce:catalog_forward_image' business.id submission.pk %}"
+               alt="Photo jointe à l’offre" style="max-width:100%;max-height:25rem;border-radius:.65rem">
+        {% endif %}
+        {% if submission.can_attach_photo %}
+          <a class="es-wa-setup__button" href="{% url 'whatsapp_commerce:catalog_forward_attach' business.id submission.pk %}">Rattacher à un produit</a>
+        {% endif %}
+      </section>
+      <section class="es-wa-setup__card">
+        <h2>Données du produit</h2>
+        {% if submission.reason %}<p class="es-wa-setup__issues">{{ submission.reason }}</p>{% endif %}
+        <form method="post">
+          {% csrf_token %}
+          {{ form.as_p }}
+          {% if existing %}
+            <input type="hidden" name="item_version" value="{{ item_version }}">
+            <p>Article correspondant <strong>{{ existing.title }}</strong> · {{ existing.price_label }}</p>
+            <button class="es-wa-setup__button" name="action" value="update">Mettre à jour et publier cet article</button>
+          {% else %}
+            <button class="es-wa-setup__button" name="action" value="publish">Publier sur ma fiche</button>
+          {% endif %}
+          <button class="es-wa-setup__button es-wa-setup__button--secondary" name="action" value="reject" formnovalidate>Écarter l’offre</button>
+        </form>
+      </section>
+    </div>
+  </section>
+</main>
+{% endblock %}

@@ -1,8 +1,15 @@
 from django.contrib.admin.views.decorators import staff_member_required
 from django.conf import settings
-from django.http import HttpResponse
+from django.core.paginator import EmptyPage, Paginator
+from django.http import Http404, HttpResponse
 from django.shortcuts import render
+from django.urls import reverse
 from django.utils import timezone
+from django.views.decorators.http import require_safe
+from xml.sax.saxutils import escape
+
+from business.models import BusinessCatalogItem, BusinessProfile
+from business.product_seo import offer_path
 
 from .services import (
     CTAAgent,
@@ -28,6 +35,7 @@ def dashboard(request):
     geo_priorities = local_agent.prioritized_pages(request=request)
     ai_search_status = {
         "canonical_sitemap": f"{settings.SITE_URL.rstrip('/')}/sitemap.xml",
+        "product_sitemap": settings.SITE_URL.rstrip("/") + reverse("product_sitemap_index"),
         "llms_txt": f"{settings.SITE_URL.rstrip('/')}/llms.txt",
         "robots_txt": f"{settings.SITE_URL.rstrip('/')}/robots.txt",
         "ai_crawlers": [
@@ -37,7 +45,7 @@ def dashboard(request):
         ],
         "geo_empty_guard": "noindex, follow (Actif)",
         "geo_alias_redirect": "301 Permanent Redirect (Actif)",
-        "json_ld_schemas": ["Organization", "WebSite", "CollectionPage", "BreadcrumbList", "ItemList", "LocalBusiness", "FAQPage"],
+        "json_ld_schemas": ["Organization", "WebSite", "CollectionPage", "BreadcrumbList", "ItemList", "LocalBusiness", "FAQPage", "Product", "Offer", "Service"],
     }
 
     # Partage Facebook Premium (AEO)
@@ -110,6 +118,7 @@ def robots_txt(request):
         "Disallow: /dashboard/",
         "Disallow: /seo/",
         "Disallow: /whatsapp/",
+        "Disallow: /whatsapp-commerce/business/",
         "Disallow: /commercial-agent/",
         "Disallow: /phone-ocr/",
         "Disallow: /rencontres/profil/",
@@ -145,6 +154,7 @@ def robots_txt(request):
     
     # Reference sitemap dynamically
     lines.append(f"Sitemap: {settings.SITE_URL.rstrip('/')}/sitemap.xml")
+    lines.append(f"Sitemap: {settings.SITE_URL.rstrip('/')}{reverse('product_sitemap_index')}")
     
     return HttpResponse("\n".join(lines), content_type="text/plain; charset=utf-8")
 
@@ -163,3 +173,35 @@ def sitemap_xml(request):
         xml.append("  </url>")
     xml.append("</urlset>")
     return HttpResponse("\n".join(xml), content_type="application/xml; charset=utf-8")
+
+
+def _public_catalogue_pages():
+    businesses = BusinessProfile.publicly_visible().exclude(public_slug="")
+    rows = BusinessCatalogItem.objects.filter(is_active=True, business__in=businesses).order_by("pk")
+    return Paginator(rows.values_list("pk", "business__public_slug", "updated_at"), 1000, allow_empty_first_page=False)
+
+
+@require_safe
+def product_sitemap_index(request):
+    base = settings.SITE_URL.rstrip("/")
+    lines = ['<?xml version="1.0" encoding="UTF-8"?>', '<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">']
+    for page in _public_catalogue_pages().page_range:
+        url = base + reverse("product_sitemap_page", args=[page])
+        lines.append(f"<sitemap><loc>{escape(url)}</loc></sitemap>")
+    lines.append("</sitemapindex>")
+    return HttpResponse("\n".join(lines), content_type="application/xml; charset=utf-8")
+
+
+@require_safe
+def product_sitemap_page(request, page):
+    try:
+        items = _public_catalogue_pages().page(page)
+    except EmptyPage as exc:
+        raise Http404 from exc
+    base = settings.SITE_URL.rstrip("/")
+    lines = ['<?xml version="1.0" encoding="UTF-8"?>', '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">']
+    for item_id, business_slug, updated_at in items:
+        url = base + offer_path(business_slug, item_id)
+        lines.append(f"<url><loc>{escape(url)}</loc><lastmod>{updated_at.date().isoformat()}</lastmod></url>")
+    lines.append("</urlset>")
+    return HttpResponse("\n".join(lines), content_type="application/xml; charset=utf-8")

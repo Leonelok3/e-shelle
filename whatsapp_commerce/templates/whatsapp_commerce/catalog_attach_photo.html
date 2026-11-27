@@ -1,0 +1,81 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Rattacher une photo WhatsApp | E-Shelle{% endblock %}
+{% block extra_css %}{{ block.super }}<link rel="stylesheet" href="{% static 'css/es-whatsapp-activation.css' %}">{% endblock %}
+{% block content %}
+<main class="container py-4 mt-4">
+  <a href="{% url 'whatsapp_commerce:catalog_forward_review' business.id source.pk %}">← Retour à l’offre reçue</a>
+  <section class="es-wa-setup" aria-labelledby="wa-attach-title">
+    <header class="es-wa-setup__header"><h1 id="wa-attach-title">Rattacher à un produit</h1></header>
+    {% for message in messages %}<p role="status">{{ message }}</p>{% endfor %}
+    <div class="es-wa-setup__grid">
+      <section class="es-wa-setup__card">
+        <h2>Photo transférée</h2>
+        <img src="{% url 'whatsapp_commerce:catalog_forward_image' business.id source.pk %}"
+             alt="Photo WhatsApp à rattacher" style="max-width:100%;max-height:22rem;border-radius:.65rem">
+      </section>
+      <section class="es-wa-setup__card">
+        <h2>Choisir la destination</h2>
+        <form method="get" role="search">
+          <label for="wa-product-search">Nom ou référence du produit</label>
+          <input id="wa-product-search" name="q" type="search" value="{{ query }}" maxlength="100">
+          <button class="es-wa-setup__button es-wa-setup__button--secondary">Rechercher</button>
+        </form>
+        {% if drafts or items %}
+          <form method="get">
+            <input type="hidden" name="q" value="{{ query }}">
+            <label for="wa-photo-target">Brouillon ou article publié</label>
+            <select id="wa-photo-target" name="target" required>
+              <option value="">Choisis le produit</option>
+              {% if drafts %}
+                <optgroup label="Brouillons à valider">
+                  {% for candidate in drafts %}
+                    <option value="draft:{{ candidate.pk }}"{% if kind == "draft" and candidate.pk == target.pk %} selected{% endif %}>{{ candidate.title|default:candidate.body|truncatechars:70 }}{% if candidate.sku %} · {{ candidate.sku }}{% endif %}</option>
+                  {% endfor %}
+                </optgroup>
+              {% endif %}
+              {% if items %}
+                <optgroup label="Articles publiés">
+                  {% for candidate in items %}
+                    <option value="item:{{ candidate.pk }}"{% if kind == "item" and candidate.pk == target.pk %} selected{% endif %}>{{ candidate.title }}{% if candidate.sku %} · {{ candidate.sku }}{% endif %}</option>
+                  {% endfor %}
+                </optgroup>
+              {% endif %}
+            </select>
+            <button class="es-wa-setup__button es-wa-setup__button--secondary">Voir l’aperçu</button>
+          </form>
+        {% else %}
+          <p>Aucun brouillon ou article trouvé. Essaie un autre nom ou transfère d’abord le texte de l’offre.</p>
+        {% endif %}
+        {% if target %}
+          <div class="es-wa-setup__result" aria-label="Aperçu du rattachement">
+            <strong>{{ target.title|default:"Brouillon WhatsApp" }}</strong>
+            {% if target.sku %}<p>Référence {{ target.sku }}</p>{% endif %}
+            {% if kind == "draft" %}
+              {% if target.price_amount %}<p>{{ target.price_amount }} {{ target.currency }}</p>{% endif %}
+              {% if not target.title %}<p>{{ target.body|truncatechars:150 }}</p>{% endif %}
+              {% if target.private_image %}
+                <p>La photo actuelle du brouillon sera remplacée.</p>
+                <img src="{% url 'whatsapp_commerce:catalog_forward_image' business.id target.pk %}" alt="Photo actuelle du brouillon" style="max-width:100%;max-height:9rem">
+              {% endif %}
+            {% else %}
+              <p>{{ target.price_label }}</p>
+              {% if target.image_url %}
+                <p>La photo actuelle de l’article sera remplacée.</p>
+                <img src="{{ target.image_url }}" alt="Photo actuelle de l’article" style="max-width:100%;max-height:9rem">
+              {% endif %}
+            {% endif %}
+          </div>
+          <form method="post">
+            {% csrf_token %}
+            <input type="hidden" name="approval" value="{{ approval }}">
+            <button class="es-wa-setup__button">
+              {% if kind == "draft" %}Confirmer le rattachement au brouillon{% else %}Confirmer la photo de l’article{% endif %}
+            </button>
+          </form>
+        {% endif %}
+      </section>
+    </div>
+  </section>
+</main>
+{% endblock %}

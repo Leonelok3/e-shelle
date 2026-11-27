@@ -1,0 +1,46 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Commandes et stock · {{ business.display_name }}{% endblock %}
+{% block meta_robots %}noindex, nofollow{% endblock %}
+{% block extra_css %}{{ block.super }}<link rel="stylesheet" href="{% static 'css/es-whatsapp-activation.css' %}">{% endblock %}
+{% block content %}
+<main class="container py-4 mt-4">
+  <a href="{% url 'whatsapp_commerce:agent_center' business.pk %}">← Mes agents</a>
+  <section class="es-wa-setup" aria-labelledby="orders-title">
+    <header class="es-wa-setup__header"><div><h1 id="orders-title">Commandes et stock</h1><p>{{ business.display_name }}</p></div></header>
+    {% for message in messages %}<p role="status">{{ message }}</p>{% endfor %}
+    {% if stock_items %}<section class="es-wa-setup__card"><h2>Stock bas ou épuisé</h2><ul>{% for item in stock_items %}<li><a href="{% url 'business:catalog_item_edit' business.pk item.pk %}">{{ item.display_title }}</a> · {{ item.stock_quantity }} disponible{{ item.stock_quantity|pluralize }}</li>{% endfor %}</ul></section>{% endif %}
+    <form method="get"><label for="orders-query">Rechercher une commande ou un article</label> <input type="search" id="orders-query" name="q" value="{{ query }}" maxlength="60"> <button class="es-wa-setup__button">Rechercher</button></form>
+    <div class="es-wa-setup__grid">
+      {% for draft in page %}
+        <article class="es-wa-setup__card">
+          <h3>{{ draft.boutique_order.reference }} · {{ draft.catalog_item.display_title }}</h3>
+          <p>{{ draft.quantity }} × {{ draft.unit_price }} F CFA · {{ draft.contact }}</p>
+          <p><strong>{{ draft.payment_display }}</strong> · {% if draft.shipping_open %}{{ draft.get_fulfillment_stage_display|default:'À préparer' }}{% else %}{{ draft.boutique_order.get_statut_display }}{% endif %}</p>
+          {% if draft.delivery_note %}<p>{{ draft.delivery_note }}</p>{% endif %}
+          <p><a href="{% url 'whatsapp_commerce:business_dashboard' business.pk %}?contact={{ draft.contact_id }}#conversation">Conversation</a>{% if draft.receipt_token %} · <a href="{% url 'whatsapp_commerce:order_receipt' draft.receipt_token %}">Reçu de paiement</a>{% endif %}</p>
+          <form method="post" action="{% url 'whatsapp_commerce:order_operations_update' business.pk draft.pk %}">
+            {% csrf_token %}
+            {% if draft.shipping_open %}
+              <label for="delivery-{{ draft.pk }}">Information de livraison visible par le client</label>
+              <input id="delivery-{{ draft.pk }}" name="delivery_note" value="{{ draft.delivery_note }}" maxlength="240">
+              <div style="display:flex;gap:.5rem;flex-wrap:wrap">
+                {% if draft.fulfillment_stage != 'shipped' %}<button class="es-wa-setup__button" name="action" value="preparing">En préparation</button>{% endif %}
+                <button class="es-wa-setup__button" name="action" value="shipped">Expédiée</button>
+                <button class="es-wa-setup__button" name="action" value="delivered">Marquer comme livrée</button>
+              </div>
+            {% endif %}
+            {% if not draft.is_paid and draft.boutique_order.statut == 'en_attente' %}<button class="es-wa-setup__button es-wa-setup__button--secondary" name="action" value="cancel">Annuler la commande</button>{% endif %}
+            <button class="es-wa-setup__button es-wa-setup__button--secondary" name="action" value="notify">Envoyer le suivi sur WhatsApp</button>
+          </form>
+        </article>
+      {% empty %}<p>Aucune commande confirmée à afficher.</p>{% endfor %}
+    </div>
+    {% if page.has_other_pages %}<nav aria-label="Pages de commandes">
+      {% if page.has_previous %}<a href="{% querystring page=page.previous_page_number %}">Précédente</a>{% endif %}
+      <span>Page {{ page.number }} sur {{ page.paginator.num_pages }}</span>
+      {% if page.has_next %}<a href="{% querystring page=page.next_page_number %}">Suivante</a>{% endif %}
+    </nav>{% endif %}
+  </section>
+</main>
+{% endblock %}

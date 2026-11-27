@@ -1,0 +1,41 @@
+<div class="es-wa-setup__grid">
+  {% for offer in page %}
+    <article class="es-wa-setup__card">
+      <h3>{% if estate %}{{ offer.titre }}{% else %}{{ offer.display_title }}{% endif %}</h3>
+      <dl class="es-wa-setup__result" style="grid-template-columns:repeat(auto-fit,minmax(95px,1fr))">
+        <div><dt>Clics WhatsApp</dt><dd><strong>{{ offer.click_count }}</strong></dd></div>
+        <div><dt>Conversations reçues</dt><dd><strong>{{ offer.conversation_count }}</strong></dd></div>
+        {% if estate %}
+          <div><dt>Visites confirmées</dt><dd><strong>{{ offer.booking_count }}</strong></dd></div>
+        {% elif offer.item_type == 'service' %}
+          <div><dt>RDV confirmés</dt><dd><strong>{{ offer.booking_count }}</strong></dd></div>
+          {% if offer.paid_count %}<div><dt>Commandes payées</dt><dd><strong>{{ offer.paid_count }}</strong></dd></div>{% endif %}
+        {% else %}
+          <div><dt>Commandes payées</dt><dd><strong>{{ offer.paid_count }}</strong></dd></div>
+        {% endif %}
+      </dl>
+      {% if offer.share_url %}
+        <div>
+          <label for="offer-link-{% if estate %}bien{% else %}article{% endif %}-{{ offer.pk }}">Lien à partager</label>
+          <input id="offer-link-{% if estate %}bien{% else %}article{% endif %}-{{ offer.pk }}" type="url" readonly value="{{ offer.share_url }}"
+                 onfocus="this.select()" style="display:block;width:100%;min-height:42px;color:inherit;background:#0e1b2e;border:1px solid #58708d;padding:.5rem;border-radius:.5rem">
+          <a href="{{ offer.share_url }}">Ouvrir l’offre</a>
+          <a href="https://wa.me/?text={{ offer.share_url|urlencode }}" target="_blank" rel="noopener noreferrer">Partager sur WhatsApp</a>
+        </div>
+      {% else %}<p class="es-wa-setup__hint">Offre indisponible au partage</p>{% endif %}
+    </article>
+  {% empty %}<p class="es-wa-setup__hint">Aucune offre à afficher.</p>{% endfor %}
+</div>
+{% if page.has_other_pages %}
+  <nav aria-label="Pages des {% if estate %}biens{% else %}articles{% endif %}">
+    {% if page.has_previous %}
+      {% if estate %}<a href="{% querystring biens=page.previous_page_number %}">Précédente</a>
+      {% else %}<a href="{% querystring articles=page.previous_page_number %}">Précédente</a>{% endif %}
+    {% endif %}
+    <span>Page {{ page.number }} sur {{ page.paginator.num_pages }}</span>
+    {% if page.has_next %}
+      {% if estate %}<a href="{% querystring biens=page.next_page_number %}">Suivante</a>
+      {% else %}<a href="{% querystring articles=page.next_page_number %}">Suivante</a>{% endif %}
+    {% endif %}
+  </nav>
+{% endif %}

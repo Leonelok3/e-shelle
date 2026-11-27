@@ -1,7 +1,14 @@
 from django.urls import path
 
 from . import views
+from . import catalog_forwarding_views
 from . import business_campaigns
+from . import offer_views
+from . import follow_up_views
+from . import workflow_views
+from . import agent_center
+from . import order_views
+from . import quote_views
 
 app_name = "whatsapp_commerce"
 
@@ -35,6 +42,25 @@ urlpatterns = [
     path("tech-provider/<int:connection_id>/deregister/", views.tech_provider_deregister, name="tech_provider_deregister"),
     path("inbox/", views.business_whatsapp_inbox, name="inbox"),
     path("business/<int:business_id>/", views.business_whatsapp_dashboard, name="business_dashboard"),
+    path("business/<int:business_id>/agents/", agent_center.agent_center, name="agent_center"),
+    path("business/<int:business_id>/agents/recapitulatif/", agent_center.send_pilot_digest, name="agent_digest"),
+    path("business/<int:business_id>/catalogue/historique/", agent_center.catalog_history, name="catalog_history"),
+    path("business/<int:business_id>/commandes/", order_views.order_operations, name="order_operations"),
+    path("business/<int:business_id>/commandes/<int:draft_id>/", order_views.update_order_operations, name="order_operations_update"),
+    path("recu/<str:token>/", order_views.payment_receipt, name="order_receipt"),
+    path("business/<int:business_id>/devis/", quote_views.quotes, name="quotes"),
+    path("business/<int:business_id>/devis/<int:quote_id>/", quote_views.update_quote, name="quote_update"),
+    path("business/<int:business_id>/offres/", offer_views.offer_report, name="offer_report"),
+    path("business/<int:business_id>/a-reprendre/", follow_up_views.follow_up_list, name="follow_up_list"),
+    path("business/<int:business_id>/a-reprendre/<slug:kind>/<int:case_id>/traiter/", follow_up_views.close_follow_up, name="follow_up_close"),
+    path("business/<int:business_id>/automatisations/", workflow_views.business_workflows, name="business_workflows"),
+    path("business/<int:business_id>/automatisations/<slug:subject>/<int:record_id>/terminer/", workflow_views.record_workflow_completion, name="workflow_complete"),
+    path("offres/<slug:public_slug>/<int:item_id>/", offer_views.catalogue_offer, name="catalogue_offer"),
+    path("offres/<slug:public_slug>/<int:item_id>/whatsapp/", offer_views.catalogue_offer_whatsapp, name="catalogue_offer_whatsapp"),
+    path("business/<int:business_id>/imports/", catalog_forwarding_views.catalogue, name="catalog_forwarding"),
+    path("business/<int:business_id>/imports/<int:submission_id>/", catalog_forwarding_views.review, name="catalog_forward_review"),
+    path("business/<int:business_id>/imports/<int:submission_id>/image/", catalog_forwarding_views.image, name="catalog_forward_image"),
+    path("business/<int:business_id>/imports/<int:submission_id>/rattacher/", catalog_forwarding_views.photo_attachment, name="catalog_forward_attach"),
     path("business/<int:business_id>/connect/", views.start_business_connection, name="business_connect"),
     path(
         "business/<int:business_id>/sync-existing/",

@@ -2,11 +2,14 @@ from decimal import Decimal
 
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
+from django.db.models import F
 from django.shortcuts import redirect
 from django.urls import reverse
 from django.utils import timezone
+from django.utils.http import url_has_allowed_host_and_scheme
 
-from .models import AffiliateProfile, Referral
+from .affiliates import attach_referral_if_needed, get_affiliate_by_code
+from .models import AffiliateProfile
 
 
 def ref_redirect(request, ref_code: str):
@@ -18,21 +21,20 @@ def ref_redirect(request, ref_code: str):
     try:
         affiliate = AffiliateProfile.objects.select_related("user").get(
             ref_code=ref_code,
-            is_enabled=True
+            is_enabled=True, user__is_active=True,
         )
     except AffiliateProfile.DoesNotExist:
         messages.error(request, "Code de parrainage invalide.")
         return redirect("billing:pricing")
 
     # On stocke en session (et timestamp)
-    affiliate.click_count += 1
-    affiliate.save(update_fields=["click_count"])
+    AffiliateProfile.objects.filter(pk=affiliate.pk).update(click_count=F("click_count") + 1)
     request.session["ref_code"] = affiliate.ref_code
     request.session["ref_set_at"] = timezone.now().isoformat()
     request.session.modified = True
 
     nxt = request.GET.get("next")
-    if nxt:
+    if nxt and url_has_allowed_host_and_scheme(nxt, allowed_hosts={request.get_host()}, require_https=request.is_secure()):
         return redirect(nxt)
 
     messages.success(request, "✅ Code parrain enregistré.")
@@ -54,18 +56,7 @@ def bind_referral_if_any(request, user):
     if not ref_code:
         return None
 
-    try:
-        affiliate = AffiliateProfile.objects.select_related("user").get(ref_code=ref_code, is_enabled=True)
-    except AffiliateProfile.DoesNotExist:
-        return None
-
-    if affiliate.user_id == user.id:
-        return None
-
-    if Referral.objects.filter(referred_user=user).exists():
-        return None
-
-    return Referral.objects.create(affiliate=affiliate, referred_user=user)
+    return attach_referral_if_needed(user, get_affiliate_by_code(ref_code), source="signup")
 
 
 def commission_base_from_transaction(tx):

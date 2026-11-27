@@ -145,6 +145,8 @@ class BusinessProfile(models.Model):
     is_verified = models.BooleanField(default=False, help_text="Badge Vérifié — active automatiquement au premier paiement confirme.")
     is_trial = models.BooleanField(default=False, help_text="Essai Business gratuit de 7 jours en cours (pas un vrai paiement).")
     expiry_reminder_sent_at = models.DateTimeField(null=True, blank=True)
+    partner_support_enabled = models.BooleanField(default=False)
+    growth_first_result_notice_at = models.DateTimeField(null=True, blank=True)
     is_active = models.BooleanField(default=True)
 
     views_count = models.PositiveIntegerField(default=0)
@@ -889,6 +891,10 @@ class PaymentRequest(models.Model):
     class Method(models.TextChoices):
         CASH_ON_DELIVERY = "cash_on_delivery", "Paiement a la reception"
         MOMO_MANUAL = "momo_manual", "Mobile Money manuel"
+        CASH = "cash", "Espèces"
+        DEPOSIT = "deposit", "Dépôt"
+        BANK_TRANSFER = "bank_transfer", "Virement bancaire"
+        OTHER = "other", "Autre moyen encaissé"
         ACCESS_CODE = "access_code", "Code d'acces"
         ONLINE = "online", "Paiement en ligne"
 
@@ -905,6 +911,7 @@ class PaymentRequest(models.Model):
     amount_xaf = models.PositiveIntegerField(default=0)
     phone = models.CharField(max_length=40, blank=True)
     note = models.TextField(blank=True)
+    payment_reference = models.CharField(max_length=120, blank=True, verbose_name="Référence d’encaissement", help_text="Facultative. Utilise la même référence si ce paiement est déjà associé à un code.")
     created_at = models.DateTimeField(auto_now_add=True)
     confirmed_at = models.DateTimeField(null=True, blank=True)
 
@@ -918,7 +925,7 @@ class PaymentRequest(models.Model):
 
     @db_transaction.atomic
     def confirm(self):
-        from .services import record_provider_plan_payment
+        from .services import claim_manual_provider_reference, record_provider_plan_payment
 
         payment_request = type(self).objects.select_for_update().select_related(
             "business", "plan", "requested_by"
@@ -931,6 +938,7 @@ class PaymentRequest(models.Model):
             raise ValueError("Le compte client ne possède pas cette fiche business.")
         if payment_request.amount_xaf <= 0:
             raise ValueError("Le montant de la demande doit être supérieur à zéro.")
+        claim_manual_provider_reference(payment_request.business, payment_request.payment_reference)
 
         tx = record_provider_plan_payment(
             business=payment_request.business,
@@ -938,6 +946,7 @@ class PaymentRequest(models.Model):
             paid_by=payment_request.requested_by,
             amount_xaf=payment_request.amount_xaf,
             payment_method=payment_request.method.upper(),
+            manual_payment={"method": payment_request.method, "request_id": payment_request.pk, "reference": payment_request.payment_reference},
         )
         if payment_request.plan.plan_level in {
             BusinessProfile.Plan.BUSINESS,
@@ -963,6 +972,7 @@ class PaymentRequest(models.Model):
                     "provider_whatsapp_ai_credits": payment_request.plan.included_ai_credits,
                     "provider_whatsapp_amount_xaf": payment_request.amount_xaf,
                     "provider_whatsapp_payment_request_id": payment_request.pk,
+                    "provider_manual_method": payment_request.method,
                     "provider_whatsapp_manual_approved_at": approved_at,
                     "provider_whatsapp_activated_at": approved_at,
                 },
@@ -988,6 +998,7 @@ class BusinessActivationCode(models.Model):
         ORANGE_MONEY = "orange_money", "Orange Money"
         MTN_MOMO = "mtn_momo", "MTN Mobile Money"
         CASH = "cash", "Especes"
+        DEPOSIT = "deposit", "Dépôt"
         VIREMENT = "virement", "Virement bancaire"
         AUTRE = "autre", "Autre"
 
@@ -1015,6 +1026,7 @@ class BusinessActivationCode(models.Model):
         help_text="À cocher uniquement après vérification manuelle du paiement de l'offre WhatsApp officiel.",
     )
     notes = models.TextField(blank=True, help_text="Reference de transaction, remarques...")
+    payment_reference = models.CharField(max_length=120, blank=True, verbose_name="Référence d’encaissement", help_text="Facultative. Utilise la même référence si ce paiement a déjà été enregistré comme demande.")
 
     is_used = models.BooleanField(default=False)
     used_at = models.DateTimeField(null=True, blank=True)
@@ -1051,11 +1063,11 @@ class BusinessActivationCode(models.Model):
 
     @staticmethod
     def _generate_unique_code():
-        import random
+        import secrets
         import string
 
         while True:
-            candidate = "ESH-" + "".join(random.choices(string.ascii_uppercase + string.digits, k=8))
+            candidate = "ESH-" + "".join(secrets.choice(string.ascii_uppercase + string.digits) for _ in range(8))
             if not BusinessActivationCode.objects.filter(code=candidate).exists():
                 return candidate
 
@@ -1066,7 +1078,7 @@ class BusinessActivationCode(models.Model):
     @db_transaction.atomic
     def redeem(self, user):
         """Active le plan sur la fiche liee. Leve ValueError si le code est invalide."""
-        from .services import record_provider_plan_payment
+        from .services import claim_manual_provider_reference, record_provider_plan_payment
 
         code = type(self).objects.select_for_update().select_related(
             "business", "plan"
@@ -1079,14 +1091,16 @@ class BusinessActivationCode(models.Model):
             raise ValueError("Ce code est lie a une autre fiche business que la votre.")
 
         amount = code.amount_paid_xaf or code.plan.monthly_price_xaf
+        claim_manual_provider_reference(code.business, code.payment_reference)
         record_provider_plan_payment(
             business=code.business,
             plan=code.plan,
             paid_by=user,
             amount_xaf=amount,
             payment_method="CODE",
+            manual_payment={"method": code.payment_method, "code_id": code.pk, "reference": code.payment_reference},
         )
-        if code.unlocks_whatsapp_onboarding:
+        if code.unlocks_whatsapp_onboarding and amount > 0 and code.plan.plan_level in {BusinessProfile.Plan.BUSINESS, BusinessProfile.Plan.PREMIUM}:
             from payments.models import Transaction
 
             activated_at = timezone.now().isoformat()
@@ -1107,6 +1121,7 @@ class BusinessActivationCode(models.Model):
                     "provider_whatsapp_ai_credits": code.plan.included_ai_credits,
                     "provider_whatsapp_amount_xaf": amount,
                     "provider_whatsapp_activation_code_id": code.pk,
+                    "provider_manual_method": code.payment_method,
                     "provider_whatsapp_manual_approved_at": activated_at,
                     "provider_whatsapp_activated_at": activated_at,
                 },
@@ -1118,6 +1133,14 @@ class BusinessActivationCode(models.Model):
         self.is_used = code.is_used
         self.used_at = code.used_at
         self.used_by = code.used_by
+
+
+class ManualProviderPaymentReference(models.Model):
+    business = models.ForeignKey(BusinessProfile, on_delete=models.CASCADE)
+    reference = models.CharField(max_length=120)
+
+    class Meta:
+        constraints = [models.UniqueConstraint(fields=["business", "reference"], name="business_unique_manual_payment_ref")]
 
 
 class BusinessKeyAccount(models.Model):

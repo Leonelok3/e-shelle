@@ -1,0 +1,57 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Bilan et renouvellement · {{ business.display_name }} | E‑Shelle{% endblock %}
+{% block meta_robots %}noindex, nofollow{% endblock %}
+{% block extra_css %}{{ block.super }}<link rel="stylesheet" href="{% static 'css/es-whatsapp-activation.css' %}">{% endblock %}
+{% block content %}
+<main class="container py-4 mt-4">
+  <a href="{% url 'whatsapp_commerce:agent_center' business.pk %}">← Mes agents</a>
+  <section class="es-wa-setup" aria-labelledby="growth-title">
+    <header class="es-wa-setup__header"><div><h1 id="growth-title">Bilan et renouvellement</h1><p>{{ business.display_name }}</p></div></header>
+    {% for message in messages %}<p role="status">{{ message }}</p>{% endfor %}
+    <div class="es-wa-setup__grid">
+      <article class="es-wa-setup__card">
+        <h2>Les 30 derniers jours</h2>
+        <dl class="es-wa-setup__result" style="grid-template-columns:repeat(auto-fit,minmax(120px,1fr))">
+          <div><dt>Clics WhatsApp sur les offres</dt><dd>{{ clicks }}</dd></div>
+          <div><dt>Contacts issus des offres</dt><dd>{{ conversations }}</dd></div>
+          <div><dt>Commandes confirmées sur la période et payées</dt><dd>{{ paid }}</dd></div>
+          <div><dt>Rendez-vous confirmés issus de la période</dt><dd>{{ bookings }}</dd></div>
+        </dl>
+        {% if turnover %}<p>Encaissements vérifiés sur ces commandes {% for row in turnover %}· <strong>{{ row.total|floatformat:'-2g' }} {{ row.payment_transaction__devise }}</strong> {% endfor %}</p>{% endif %}
+      </article>
+      <article class="es-wa-setup__card">
+        <h2>Prochaine action</h2>
+        <p>{{ next_action.2 }}</p>
+        <a class="es-wa-setup__button" href="{{ next_action.1 }}">{{ next_action.0 }}</a>
+      </article>
+      {% if connection %}<article class="es-wa-setup__card">
+        <h2>État de WhatsApp Business</h2>
+        <p>{{ connection.get_status_display }}{% if connection.last_meta_sync_at %} · Dernière synchronisation le {{ connection.last_meta_sync_at|date:'d/m/Y à H:i' }}{% endif %}</p>
+        {% if connection.meta_quality_rating %}<p>Qualité du numéro remontée par Meta · {{ connection.meta_quality_rating }}</p>{% endif %}
+        {% if connection_blockers %}<ul>{% for blocker in connection_blockers %}<li>{{ blocker }}</li>{% endfor %}</ul>{% endif %}
+      </article>{% endif %}
+      <article class="es-wa-setup__card">
+        <h2>Abonnement</h2>
+        {% if business.subscription_expires_at %}<p>{% if business.subscription_active %}Actif jusqu’au{% else %}Échu le{% endif %} {{ business.subscription_expires_at|date:'d/m/Y' }}.</p>{% else %}<p>Formule {{ business.get_plan_display }}.</p>{% endif %}
+        {% if renewal_plan %}
+          <p>{{ renewal_plan.display_name }} · {{ renewal_plan.monthly_price_xaf }} F CFA pour {{ renewal_plan.duration_days }} jours.</p>
+          <a class="es-wa-setup__button" href="{{ renewal_url }}">{% if business.subscription_active %}Renouveler la formule{% else %}Réactiver la formule{% endif %}</a>
+        {% else %}<a href="{% url 'provider_special_offer' %}?business={{ business.pk }}">Voir les formules disponibles</a>{% endif %}
+      </article>
+      <article class="es-wa-setup__card">
+        <h2>Accompagnement</h2>
+        {% if affiliate or business.partner_support_enabled %}
+          {% if affiliate.ref_code_at_binding %}<p>Code partenaire associé au compte · <strong>{{ affiliate.ref_code_at_binding }}</strong></p>{% endif %}
+          <p>Ton partenaire reçoit une notification dans E‑Shelle et peut voir le nom de cette fiche, l’étape à accompagner et la date d’échéance. Tu peux retirer cet accès à tout moment.</p>
+          <form method="post" action="{% url 'business:business_partner_support' business.pk %}">
+            {% csrf_token %}
+            {% if business.partner_support_enabled %}<button class="es-wa-setup__button es-wa-setup__button--secondary" name="support" value="no">Arrêter le partage du suivi</button>
+            {% else %}<button class="es-wa-setup__button" name="support" value="yes">Partager le suivi avec mon partenaire</button>{% endif %}
+          </form>
+        {% else %}<p>Aucun partenaire actif associé à ce compte.</p>{% endif %}
+      </article>
+    </div>
+  </section>
+</main>
+{% endblock %}

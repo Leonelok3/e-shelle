@@ -1,8 +1,12 @@
 import urllib.parse
 
+from django import forms
 from django.contrib import admin
+from django.urls import reverse
 from django.utils import timezone
 from django.utils.html import format_html
+
+from whatsapp_commerce.services import normalize_phone
 
 from .models import (
     AICreditLedger,
@@ -45,7 +49,7 @@ class BusinessProfileAdmin(admin.ModelAdmin):
         "name", "module", "public_slug", "plan", "subscription_expires_at",
         "subscription_status", "days_left",
         "boost_status", "ai_credits", "views_count", "whatsapp_clicks", "phone_clicks",
-        "leads_count", "is_active", "is_verified", "whatsapp_contact",
+        "leads_count", "is_active", "is_verified", "whatsapp_contact", "paid_activation",
     )
     list_filter = ("module", "plan", "is_active", "is_verified")
     search_fields = ("name", "slug", "public_slug", "city", "district", "phone", "whatsapp", "promo_headline")
@@ -111,17 +115,24 @@ class BusinessProfileAdmin(admin.ModelAdmin):
             number, urllib.parse.quote(text),
         )
 
-    @admin.action(description="Activer Pro 30 jours")
+    @admin.display(description="Abonnement payé")
+    def paid_activation(self, obj):
+        if not obj.owner_id:
+            return "Propriétaire requis"
+        query = urllib.parse.urlencode({"business": obj.pk, "requested_by": obj.owner_id})
+        return format_html('<a href="{}?{}">Enregistrer un paiement</a>', reverse("admin:business_paymentrequest_add"), query)
+
+    @admin.action(description="Accorder Pro 30 jours hors encaissement")
     def activate_pro_30_days(self, request, queryset):
         for profile in queryset:
             profile.activate_plan(BusinessProfile.Plan.PRO, 30)
 
-    @admin.action(description="Activer Business 30 jours")
+    @admin.action(description="Accorder Business 30 jours hors encaissement")
     def activate_business_30_days(self, request, queryset):
         for profile in queryset:
             profile.activate_plan(BusinessProfile.Plan.BUSINESS, 30)
 
-    @admin.action(description="Activer Premium 30 jours")
+    @admin.action(description="Accorder Premium 30 jours hors encaissement")
     def activate_premium_30_days(self, request, queryset):
         for profile in queryset:
             profile.activate_plan(BusinessProfile.Plan.PREMIUM, 30)
@@ -255,27 +266,47 @@ class BusinessLeadEventAdmin(admin.ModelAdmin):
     readonly_fields = ("public_id", "created_at")
 
 
+class PaymentRequestAdminForm(forms.ModelForm):
+    class Meta:
+        model = PaymentRequest
+        fields = "__all__"
+
+    def clean(self):
+        values = super().clean()
+        if self.instance.pk:
+            return values
+        business = values.get("business")
+        owner = values.get("requested_by")
+        if business and owner and business.owner_id != owner.pk:
+            self.add_error("requested_by", "Sélectionne le propriétaire de cette fiche.")
+        if values.get("amount_xaf") == 0:
+            self.add_error("amount_xaf", "Renseigne le montant effectivement encaissé.")
+        return values
+
+
 @admin.register(PaymentRequest)
 class PaymentRequestAdmin(admin.ModelAdmin):
+    form = PaymentRequestAdminForm
     list_display = ("business", "plan", "requested_by", "method", "amount_xaf", "status", "phone", "whatsapp_contact", "created_at", "confirmed_at")
     list_filter = ("status", "method", "plan")
-    search_fields = ("business__name", "requested_by__username", "requested_by__email", "phone", "note")
+    search_fields = ("business__name", "requested_by__username", "requested_by__email", "phone", "note", "payment_reference")
+    autocomplete_fields = ("business", "plan", "requested_by")
     readonly_fields = ("status", "created_at", "confirmed_at")
     actions = ("confirm_requests", "cancel_requests")
 
     def get_readonly_fields(self, request, obj=None):
         fields = list(super().get_readonly_fields(request, obj))
         if obj is not None:
-            fields.extend(("business", "plan", "requested_by", "method", "amount_xaf"))
+            fields.extend(("business", "plan", "requested_by", "amount_xaf"))
+            if obj.status != PaymentRequest.Status.PENDING:
+                fields.extend(("method", "payment_reference"))
         return tuple(fields)
 
     @admin.display(description="WhatsApp")
     def whatsapp_contact(self, obj):
-        number = (obj.phone or obj.business.whatsapp or obj.business.phone or "").replace("+", "").replace(" ", "").replace("-", "")
+        number = normalize_phone(obj.phone or obj.business.whatsapp or obj.business.phone).lstrip("+")
         if not number:
             return "-"
-        if not number.startswith("237"):
-            number = f"237{number}"
         if obj.status == PaymentRequest.Status.CONFIRMED:
             text = (
                 f"Bonjour, votre paiement E-Shelle #{obj.pk} est confirmé. "
@@ -304,8 +335,9 @@ class PaymentRequestAdmin(admin.ModelAdmin):
             try:
                 if payment_request.confirm() is not None:
                     count += 1
-            except ValueError:
+            except ValueError as exc:
                 errors += 1
+                self.message_user(request, f"Demande #{payment_request.pk} · {exc}", level="ERROR")
         if errors:
             self.message_user(request, f"{count} abonnement(s) activé(s) ; {errors} demande(s) invalide(s) ignorée(s).", level="ERROR")
         else:
@@ -337,9 +369,15 @@ class BusinessActivationCodeAdmin(admin.ModelAdmin):
     readonly_fields = ("code", "is_used", "used_at", "used_by", "created_by", "created_at")
     fields = (
         "business", "plan", "amount_paid_xaf", "payment_method",
-        "unlocks_whatsapp_onboarding", "notes",
+        "unlocks_whatsapp_onboarding", "payment_reference", "notes",
         "expires_at", "code", "is_used", "used_at", "used_by", "created_by", "created_at",
     )
+
+    def get_readonly_fields(self, request, obj=None):
+        fields = super().get_readonly_fields(request, obj)
+        if obj and obj.is_used:
+            return (*fields, "business", "plan", "amount_paid_xaf", "payment_method", "unlocks_whatsapp_onboarding", "payment_reference", "expires_at")
+        return fields
 
     def save_model(self, request, obj, form, change):
         if not change:
@@ -348,11 +386,9 @@ class BusinessActivationCodeAdmin(admin.ModelAdmin):
 
     @admin.display(description="Envoyer sur WhatsApp")
     def whatsapp_send(self, obj):
-        number = (obj.business.whatsapp or obj.business.phone or "").replace("+", "").replace(" ", "").replace("-", "")
-        if not number:
+        number = normalize_phone(obj.business.whatsapp or obj.business.phone).lstrip("+")
+        if not number or obj.is_used or obj.is_expired:
             return "-"
-        if not number.startswith("237"):
-            number = f"237{number}"
         text = (
             f"Bonjour {obj.business.name}, votre paiement E-Shelle a bien ete recu. "
             f"Voici votre code d'activation du plan {obj.plan.name} : {obj.code}. "

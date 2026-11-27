@@ -118,17 +118,17 @@ class AffiliateProfileAdmin(admin.ModelAdmin):
 
 @admin.register(Referral)
 class ReferralAdmin(admin.ModelAdmin):
-    list_display = ("affiliate", "referred_user", "created_at")
+    list_display = ("affiliate", "referred_user", "attribution_source", "ref_code_at_binding", "created_at")
     search_fields = ("affiliate__ref_code", "referred_user__username", "referred_user__email")
-    readonly_fields = ("created_at",)
+    readonly_fields = ("created_at", "attribution_source", "ref_code_at_binding")
 
 
 @admin.register(Commission)
 class CommissionAdmin(admin.ModelAdmin):
     list_display = ("transaction", "affiliate", "amount", "currency", "rate", "status", "created_at")
     list_filter = ("status", "currency")
-    search_fields = ("affiliate__ref_code", "transaction__user__username", "transaction__user__email")
-    readonly_fields = ("created_at",)
+    search_fields = ("=transaction__id", "affiliate__ref_code", "transaction__user__username", "transaction__user__email")
+    readonly_fields = ("created_at", "attribution")
 
 
 @admin.register(Receipt)

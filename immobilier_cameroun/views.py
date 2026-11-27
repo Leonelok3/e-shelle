@@ -177,6 +177,8 @@ def detail_bien(request, slug):
 def whatsapp_bien(request, slug):
     from business.models import BusinessLeadEvent
     from business.services import create_tracking_event, record_event_hit
+    from django.utils.cache import add_never_cache_headers
+    from whatsapp_commerce.offer_tracking import offer_connection, offer_whatsapp_url
 
     bien = get_object_or_404(Bien.objects.select_related("agence"), slug=slug, statut=StatutBien.PUBLIE)
     target = agency_whatsapp_url(bien)
@@ -186,7 +188,16 @@ def whatsapp_bien(request, slug):
     event = create_tracking_event(
         bien.agence, BusinessLeadEvent.EventType.WHATSAPP, target, source=source, metadata={"bien_id": bien.pk},
     )
-    return redirect(record_event_hit(event, request=request))
+    record_event_hit(event, request=request)
+    connection = offer_connection(bien.agence)
+    if connection:
+        intent = "visiter" if connection.activation.booking_service_id else "avoir des informations sur"
+        target = offer_whatsapp_url(
+            request, connection, listing=bien, message=f"Bonjour, je souhaite {intent} le BIEN {bien.pk}.",
+        )
+    response = redirect(target)
+    add_never_cache_headers(response)
+    return response
 
 
 # ─────────────────────────────────────────────────────────────────

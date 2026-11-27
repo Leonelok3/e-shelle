@@ -182,7 +182,7 @@ def schedule_sales_follow_ups(contact):
         ):
             return 0
         if ScheduledBusinessWhatsAppMessage.objects.filter(
-            contact=contact,
+            contact=contact, workflow__isnull=True,
             status__in=(
                 ScheduledBusinessWhatsAppMessage.Status.SCHEDULED,
                 ScheduledBusinessWhatsAppMessage.Status.SENDING,
@@ -298,11 +298,14 @@ def schedule_template_follow_up(
     return scheduled
 
 
-def cancel_scheduled_contact_messages(contact, reason="Le consentement de contact est inactif."):
-    return ScheduledBusinessWhatsAppMessage.objects.filter(
+def cancel_scheduled_contact_messages(contact, reason="Le consentement de contact est inactif.", *, include_workflows=True):
+    messages = ScheduledBusinessWhatsAppMessage.objects.filter(
         contact=contact,
         status=ScheduledBusinessWhatsAppMessage.Status.SCHEDULED,
-    ).update(
+    )
+    if not include_workflows:
+        messages = messages.filter(workflow__isnull=True)
+    return messages.update(
         status=ScheduledBusinessWhatsAppMessage.Status.CANCELLED,
         last_error=reason[:500],
         updated_at=timezone.now(),
@@ -331,6 +334,8 @@ def cancel_disabled_connection_follow_ups():
 
 
 def send_scheduled_template_message(message_id):
+    from .workflows import ObsoleteWorkflow, validate_workflow_template, workflow_buttons, workflow_parameters
+
     if not getattr(settings, "WHATSAPP_BUSINESS_AUTOMATIONS_ENABLED", False):
         ScheduledBusinessWhatsAppMessage.objects.filter(
             pk=message_id,
@@ -383,9 +388,9 @@ def send_scheduled_template_message(message_id):
             and item.get("language", "fr") == scheduled.template_language
             for item in _sales_follow_up_template_config().values()
         )
-        if configured_follow_up and not _has_stop_quick_reply(template):
+        if not scheduled.workflow_id and configured_follow_up and not _has_stop_quick_reply(template):
             raise MetaOnboardingError("Le modèle de relance doit inclure un bouton de réponse rapide STOP.")
-        if _body_variable_count(template) != len(scheduled.body_parameters):
+        if not scheduled.workflow_id and _body_variable_count(template) != len(scheduled.body_parameters):
             raise MetaOnboardingError("Les variables du modèle approuvé ont changé depuis la planification.")
         business.refresh_from_db()
         contact = BusinessWhatsAppContact.objects.get(pk=scheduled.contact_id)
@@ -402,7 +407,7 @@ def send_scheduled_template_message(message_id):
             direction=BusinessWhatsAppMessage.Direction.INBOUND,
             created_at__gt=scheduled.created_at,
         ).exists()
-        if replied_after_schedule:
+        if replied_after_schedule and not scheduled.workflow_id:
             scheduled.status = ScheduledBusinessWhatsAppMessage.Status.CANCELLED
             scheduled.last_error = "Le contact a répondu après la planification de cette relance."
             scheduled.save(update_fields=["status", "last_error", "updated_at"])
@@ -415,6 +420,15 @@ def send_scheduled_template_message(message_id):
             )
             return False
 
+        buttons = []
+        if scheduled.workflow_id:
+            validate_workflow_template(scheduled.workflow.kind, template)
+            connection.refresh_from_db()
+            scheduled.body_parameters = workflow_parameters(scheduled, contact, connection)
+            contact.refresh_from_db()
+            if not _has_marketing_consent(contact) or not contact.consent_service or contact.agent_paused:
+                raise ObsoleteWorkflow("Le consentement ou la disponibilité du contact a changé avant l’envoi.")
+            buttons = workflow_buttons(scheduled)
         template_payload = {
             "name": scheduled.template_name,
             "language": {"code": scheduled.template_language},
@@ -427,6 +441,8 @@ def send_scheduled_template_message(message_id):
                     for value in scheduled.body_parameters
                 ],
             }]
+        if buttons:
+            template_payload.setdefault("components", []).extend(buttons)
         response = _request_meta(
             "POST",
             f"{connection.phone_number_id}/messages",
@@ -459,6 +475,13 @@ def send_scheduled_template_message(message_id):
         scheduled.save(update_fields=[
             "status", "wa_message_id", "sent_at", "last_error", "updated_at",
         ])
+        if scheduled.workflow_watch_id:
+            from .models import WhatsAppWatch
+            from .watches import watch_key
+
+            watch = scheduled.workflow_watch
+            if watch and watch_key(watch) == scheduled.workflow_key:
+                WhatsAppWatch.objects.filter(pk=watch.pk, requested_at=watch.requested_at).update(active=False)
         BusinessWhatsAppAudit.objects.create(
             connection=connection,
             contact=contact,
@@ -471,6 +494,9 @@ def send_scheduled_template_message(message_id):
             },
         )
         return True
+    except ObsoleteWorkflow as exc:
+        scheduled.status = ScheduledBusinessWhatsAppMessage.Status.CANCELLED
+        scheduled.last_error = str(exc)[:500]
     except MetaOnboardingError as exc:
         scheduled.status = ScheduledBusinessWhatsAppMessage.Status.FAILED
         scheduled.last_error = str(exc)[:500]

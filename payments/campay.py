@@ -186,7 +186,7 @@ def reconcile_transaction(transaction_obj, client=None):
         elif current.statut not in {"succes", "rembourse", "pending_awaiting_manual_validation", "echec"}:
             current.statut = "en_attente"
         current.save(update_fields=["metadata", "statut", "erreur", "updated_at"])
-        if status == "SUCCESSFUL" and metadata.get("product_type") == "provider_whatsapp_onboarding":
+        if status == "SUCCESSFUL" and metadata.get("product_type") in {"provider_whatsapp_onboarding", "provider_subscription"}:
             from business.services import activate_provider_whatsapp_payment
 
             if not activate_provider_whatsapp_payment(current):

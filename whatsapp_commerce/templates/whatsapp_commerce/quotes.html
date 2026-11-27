@@ -1,0 +1,38 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Devis et relances · {{ business.display_name }}{% endblock %}
+{% block meta_robots %}noindex, nofollow{% endblock %}
+{% block extra_css %}{{ block.super }}<link rel="stylesheet" href="{% static 'css/es-whatsapp-activation.css' %}">{% endblock %}
+{% block content %}
+<main class="container py-4 mt-4">
+  <a href="{% url 'whatsapp_commerce:agent_center' business.pk %}">← Mes agents</a>
+  <section class="es-wa-setup">
+    <h1>Devis et relances</h1>
+    {% for message in messages %}<p role="status">{{ message }}</p>{% endfor %}
+    <div class="es-wa-setup__grid">
+      <article class="es-wa-setup__card"><h2>Préparer un devis</h2><form method="post">{% csrf_token %}{{ form.as_div }}<button class="es-wa-setup__button">Enregistrer le brouillon</button></form></article>
+      <article class="es-wa-setup__card"><h2>Contacts à rappeler</h2><ul>{% for contact in due %}<li>{{ contact.next_follow_up_at|date:'d/m/Y' }} · <a href="{% url 'whatsapp_commerce:business_dashboard' business.pk %}?contact={{ contact.pk }}#conversation">{{ contact }}</a></li>{% empty %}<li>Aucun rappel CRM arrivé à échéance.</li>{% endfor %}</ul></article>
+    </div>
+    <h2>Devis</h2>
+    <div class="es-wa-setup__grid">
+      {% for quote in page %}
+      <article class="es-wa-setup__card">
+        <h3>{{ quote.subject }}</h3>
+        <p>{{ quote.contact }} · {{ quote.amount }} {{ quote.currency }} · {{ quote.get_status_display }}{% if quote.valid_until < today %} · Échu{% endif %}</p>
+        <p>Valable jusqu’au {{ quote.valid_until|date:'d/m/Y' }}{% if quote.description %} · {{ quote.description }}{% endif %}</p>
+        {% if quote.status == 'sent' %}<p class="es-wa-setup__hint">En attente de réponse depuis le {{ quote.updated_at|date:'d/m/Y' }}.</p>{% endif %}
+        <a href="{% url 'whatsapp_commerce:business_dashboard' business.pk %}?contact={{ quote.contact_id }}#conversation">Conversation</a>
+        {% if quote.status != 'closed' and quote.status != 'sending' %}
+        <form method="post" action="{% url 'whatsapp_commerce:quote_update' business.pk quote.pk %}">{% csrf_token %}
+          {% if quote.status == 'draft' and quote.valid_until >= today %}<button class="es-wa-setup__button" name="action" value="send">Valider et envoyer sur WhatsApp</button>{% endif %}
+          <button class="es-wa-setup__button es-wa-setup__button--secondary" name="action" value="close">Clôturer</button>
+        </form>{% endif %}
+      </article>
+      {% empty %}<p>Aucun devis enregistré.</p>{% endfor %}
+    </div>
+    {% if page.has_other_pages %}<nav aria-label="Pages des devis">
+      {% if page.has_previous %}<a href="?page={{ page.previous_page_number }}">Précédente</a>{% endif %} <span>Page {{ page.number }} sur {{ page.paginator.num_pages }}</span> {% if page.has_next %}<a href="?page={{ page.next_page_number }}">Suivante</a>{% endif %}
+    </nav>{% endif %}
+  </section>
+</main>
+{% endblock %}

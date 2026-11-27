@@ -52,6 +52,7 @@ class TchokosCatalogImportTests(TestCase):
         self.assertEqual(BusinessCatalogItem.objects.filter(business=self.business).count(), 3)
 
     def test_tchokos_ten_product_sample_import(self):
+        self.business.activate_plan(BusinessProfile.Plan.PRO)
         csv_file = self.upload(
             "sku,nom,prix_detail,prix_gros,stock,categorie\n"
             "TC-01,Ciment 50 kg,4850,4500,120,Ciment\n"

@@ -94,6 +94,59 @@ class BusinessWhatsAppActivation(models.Model):
 	)
 
 
+class WhatsAppCatalogSender(models.Model):
+	business = models.OneToOneField(
+		"business.BusinessProfile", on_delete=models.CASCADE, related_name="whatsapp_catalog_sender",
+	)
+	owner = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+	phone = models.CharField(max_length=20, unique=True, null=True, blank=True)
+	requested_phone = models.CharField(max_length=20, blank=True)
+	pairing_digest = models.CharField(max_length=64, blank=True, db_index=True)
+	pairing_expires_at = models.DateTimeField(null=True, blank=True)
+	auto_publish = models.BooleanField(default=False)
+
+
+class WhatsAppCatalogSubmission(models.Model):
+	class Status(models.TextChoices):
+		PENDING = "pending", "En attente de traitement"
+		PROCESSING = "processing", "Analyse en cours"
+		REVIEW = "review", "À valider"
+		PUBLISHED = "published", "Publié"
+		REJECTED = "rejected", "Écarté"
+		ATTACHED = "attached", "Photo rattachée"
+
+	sender = models.ForeignKey(WhatsAppCatalogSender, on_delete=models.CASCADE, related_name="submissions")
+	owner = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+	sender_phone = models.CharField(max_length=20)
+	wa_message_id = models.CharField(max_length=200, unique=True)
+	body = models.TextField(blank=True)
+	media_id = models.CharField(max_length=80, blank=True)
+	private_image = models.CharField(max_length=255, blank=True)
+	title = models.CharField(max_length=140, blank=True)
+	price_amount = models.DecimalField(max_digits=12, decimal_places=2, null=True, blank=True)
+	currency = models.CharField(max_length=3, blank=True)
+	sku = models.CharField(max_length=80, blank=True)
+	stock = models.PositiveIntegerField(null=True, blank=True)
+	reason = models.CharField(max_length=245, blank=True)
+	item = models.ForeignKey("business.BusinessCatalogItem", null=True, blank=True, on_delete=models.SET_NULL)
+	attached_to = models.ForeignKey("self", null=True, blank=True, on_delete=models.SET_NULL, related_name="attached_photos")
+	status = models.CharField(max_length=12, choices=Status.choices, default=Status.PENDING)
+	dispatch_after = models.DateTimeField(default=timezone.now)
+	created_at = models.DateTimeField(auto_now_add=True)
+	updated_at = models.DateTimeField(auto_now=True)
+
+	class Meta:
+		ordering = ["-created_at", "-pk"]
+		indexes = [
+			models.Index(fields=["status", "dispatch_after"], name="wa_cat_due_idx"),
+			models.Index(fields=["status", "updated_at"], name="wa_cat_state_idx"),
+		]
+
+	@property
+	def can_attach_photo(self):
+		return self.status == self.Status.REVIEW and bool(self.private_image) and not self.body.strip()
+
+
 class WhatsAppProviderReferral(models.Model):
 	class Status(models.TextChoices):
 		CLICKED = "clicked", "Lien ouvert"
@@ -239,6 +292,12 @@ class BusinessWhatsAppReplyJob(models.Model):
 		SKIPPED = "skipped", "Réponse automatique ignorée"
 		REVIEW = "review", "Intervention de l’équipe"
 
+	class BookingHelp(models.TextChoices):
+		NO_SLOTS = "no_slots", "Aucun créneau disponible"
+		UNSUITABLE = "unsuitable", "Le client demande un autre créneau"
+		SLOT_TAKEN = "slot_taken", "Le créneau demandé est indisponible"
+		NO_AGENDA = "no_agenda", "L’équipe doit proposer un créneau"
+
 	message = models.OneToOneField(
 		BusinessWhatsAppMessage, on_delete=models.CASCADE, related_name="reply_job",
 	)
@@ -246,6 +305,15 @@ class BusinessWhatsAppReplyJob(models.Model):
 	phone_number_id = models.CharField(max_length=64)
 	activation_code = models.CharField(max_length=16, blank=True)
 	status = models.CharField(max_length=12, choices=Status.choices, default=Status.PENDING)
+	booking_help = models.CharField(max_length=16, choices=BookingHelp.choices, blank=True, default="")
+	follow_up_item = models.ForeignKey("business.BusinessCatalogItem", null=True, blank=True, on_delete=models.SET_NULL)
+	follow_up_order = models.ForeignKey("WhatsAppDraftOrder", null=True, blank=True, on_delete=models.SET_NULL)
+	follow_up_property = models.ForeignKey("immobilier_cameroun.Bien", null=True, blank=True, on_delete=models.SET_NULL)
+	follow_up_service = models.ForeignKey("salonhub_salons.Service", null=True, blank=True, on_delete=models.SET_NULL)
+	follow_up_appointment = models.ForeignKey("salonhub_bookings.Appointment", null=True, blank=True, on_delete=models.SET_NULL)
+	follow_up_closed_at = models.DateTimeField(null=True, blank=True)
+	automation_message = models.ForeignKey("ScheduledBusinessWhatsAppMessage", null=True, blank=True, on_delete=models.SET_NULL)
+	automation_action = models.CharField(max_length=16, blank=True)
 	dispatch_after = models.DateTimeField(default=timezone.now)
 	updated_at = models.DateTimeField(auto_now=True)
 
@@ -282,12 +350,34 @@ class BusinessWhatsAppAudit(models.Model):
 		indexes = [models.Index(fields=["connection", "event_type", "created_at"])]
 
 
+class WhatsAppOfferClick(models.Model):
+	reference = models.UUIDField(default=uuid.uuid4, unique=True, editable=False)
+	connection = models.ForeignKey(BusinessWhatsAppConnection, on_delete=models.CASCADE)
+	phone_number_id = models.CharField(max_length=64)
+	catalog_item = models.ForeignKey("business.BusinessCatalogItem", null=True, blank=True, on_delete=models.CASCADE)
+	property_listing = models.ForeignKey("immobilier_cameroun.Bien", null=True, blank=True, on_delete=models.CASCADE)
+	entry_message = models.OneToOneField(BusinessWhatsAppMessage, null=True, blank=True, on_delete=models.SET_NULL)
+	campaign = models.ForeignKey("whatsapp_agent.Campagne", null=True, blank=True, on_delete=models.SET_NULL)
+	created_at = models.DateTimeField(auto_now_add=True)
+
+	class Meta:
+		constraints = [models.CheckConstraint(
+			condition=(models.Q(catalog_item__isnull=False, property_listing__isnull=True)
+			           | models.Q(catalog_item__isnull=True, property_listing__isnull=False)),
+			name="wa_offer_click_exactly_one_offer",
+		)]
+
+
 class BusinessWhatsAppBooking(models.Model):
 	appointment = models.OneToOneField("salonhub_bookings.Appointment", on_delete=models.CASCADE)
 	contact = models.ForeignKey(BusinessWhatsAppContact, on_delete=models.CASCADE)
 	property_visit = models.OneToOneField(
 		"immobilier_cameroun.DemandeVisite", null=True, blank=True, on_delete=models.SET_NULL,
 	)
+	source_click = models.ForeignKey(WhatsAppOfferClick, null=True, blank=True, on_delete=models.SET_NULL)
+	presence_confirmed_at = models.DateTimeField(null=True, blank=True)
+	schedule_revision = models.PositiveIntegerField(default=0)
+	completed_at = models.DateTimeField(null=True, blank=True)
 
 
 class WhatsAppDraftOrder(models.Model):
@@ -317,6 +407,7 @@ class WhatsAppDraftOrder(models.Model):
 		on_delete=models.PROTECT,
 		related_name="whatsapp_draft_orders",
 	)
+	source_click = models.ForeignKey(WhatsAppOfferClick, null=True, blank=True, on_delete=models.SET_NULL)
 	quantity = models.PositiveIntegerField(default=1)
 	unit_price = models.DecimalField(max_digits=12, decimal_places=2)
 	total_price = models.DecimalField(max_digits=12, decimal_places=2)
@@ -330,6 +421,9 @@ class WhatsAppDraftOrder(models.Model):
 	audit = models.JSONField(default=dict, blank=True)
 	created_at = models.DateTimeField(auto_now_add=True)
 	confirmed_at = models.DateTimeField(null=True, blank=True)
+	follow_up_closed_at = models.DateTimeField(null=True, blank=True)
+	fulfillment_stage = models.CharField(max_length=16, blank=True, choices=[("preparing", "En préparation"), ("shipped", "Expédiée")])
+	delivery_note = models.CharField(max_length=240, blank=True)
 
 	class Meta:
 		ordering = ["-created_at", "-pk"]
@@ -340,6 +434,90 @@ class WhatsAppDraftOrder(models.Model):
 				name="wa_draft_one_pending_per_contact",
 			),
 		]
+
+
+class WhatsAppCatalogChange(models.Model):
+	business = models.ForeignKey("business.BusinessProfile", on_delete=models.CASCADE)
+	item = models.ForeignKey("business.BusinessCatalogItem", null=True, blank=True, on_delete=models.SET_NULL)
+	title = models.CharField(max_length=140)
+	changes = models.JSONField(default=dict)
+	created_at = models.DateTimeField(auto_now_add=True, db_index=True)
+
+
+class WhatsAppQuote(models.Model):
+	class Status(models.TextChoices):
+		DRAFT = "draft", "Brouillon"
+		SENDING = "sending", "Envoi en cours"
+		SENT = "sent", "Envoyé"
+		ACCEPTED = "accepted", "Accepté"
+		REVIEW = "review", "Envoi à vérifier"
+		CLOSED = "closed", "Clôturé"
+
+	contact = models.ForeignKey(BusinessWhatsAppContact, on_delete=models.CASCADE)
+	reference = models.UUIDField(default=uuid.uuid4, unique=True, editable=False)
+	subject = models.CharField(max_length=160)
+	description = models.CharField(max_length=500, blank=True)
+	amount = models.DecimalField(max_digits=12, decimal_places=2)
+	currency = models.CharField(max_length=3, default="XAF")
+	valid_until = models.DateField()
+	status = models.CharField(max_length=10, default=Status.DRAFT, choices=Status.choices)
+	created_at = models.DateTimeField(auto_now_add=True)
+	updated_at = models.DateTimeField(auto_now=True)
+
+	@property
+	def code(self):
+		return self.reference.hex
+
+
+class WhatsAppStockHold(models.Model):
+	class Status(models.TextChoices):
+		HELD = "held", "Réservé"
+		CONSUMED = "consumed", "Sorti du stock"
+		RELEASED = "released", "Restitué"
+
+	draft = models.OneToOneField(WhatsAppDraftOrder, on_delete=models.CASCADE)
+	quantity = models.PositiveIntegerField()
+	status = models.CharField(max_length=10, default=Status.HELD, choices=Status.choices)
+	updated_at = models.DateTimeField(auto_now=True)
+
+
+class WhatsAppWatch(models.Model):
+	class Kind(models.TextChoices):
+		WAITLIST = "waitlist", "Liste d’attente"
+		PROPERTY = "property_alert", "Alerte nouveau bien"
+
+	contact = models.ForeignKey(BusinessWhatsAppContact, on_delete=models.CASCADE)
+	kind = models.CharField(max_length=16, choices=Kind.choices)
+	service = models.ForeignKey("salonhub_salons.Service", null=True, blank=True, on_delete=models.CASCADE)
+	listing = models.ForeignKey("immobilier_cameroun.Bien", null=True, blank=True, on_delete=models.CASCADE)
+	criteria = models.JSONField(default=dict, blank=True)
+	active = models.BooleanField(default=True)
+	requested_at = models.DateTimeField(default=timezone.now)
+
+	class Meta:
+		constraints = [models.UniqueConstraint(fields=["contact", "kind"], name="wa_watch_contact_kind")]
+
+
+class BusinessWhatsAppWorkflow(models.Model):
+	class Kind(models.TextChoices):
+		BOOKING = "booking", "Rappel de rendez-vous"
+		PAYMENT = "payment", "Relance de paiement"
+		AFTER_BOOKING = "after_booking", "Suivi après un rendez-vous"
+		AFTER_ORDER = "after_order", "Suivi après une livraison"
+		WAITLIST = "waitlist", "Place disponible sur liste d’attente"
+		PROPERTY = "property_alert", "Nouveau bien compatible"
+		SHIPPING = "shipping", "Notification d’expédition"
+
+	business = models.ForeignKey("business.BusinessProfile", on_delete=models.CASCADE)
+	kind = models.CharField(max_length=16, choices=Kind.choices)
+	enabled = models.BooleanField(default=False)
+	delay_hours = models.PositiveSmallIntegerField(default=24)
+	template_name = models.CharField(max_length=128, blank=True)
+	template_language = models.CharField(max_length=32, default="fr")
+	updated_at = models.DateTimeField(auto_now=True)
+
+	class Meta:
+		constraints = [models.UniqueConstraint(fields=["business", "kind"], name="wa_workflow_business_kind")]
 
 
 class ScheduledBusinessWhatsAppMessage(models.Model):
@@ -367,6 +545,17 @@ class ScheduledBusinessWhatsAppMessage(models.Model):
 	status = models.CharField(max_length=16, choices=Status.choices, default=Status.SCHEDULED, db_index=True)
 	wa_message_id = models.CharField(max_length=200, blank=True, null=True, unique=True)
 	delivery_status = models.CharField(max_length=24, blank=True)
+	workflow = models.ForeignKey(BusinessWhatsAppWorkflow, null=True, blank=True, on_delete=models.CASCADE)
+	workflow_booking = models.ForeignKey(BusinessWhatsAppBooking, null=True, blank=True, on_delete=models.SET_NULL)
+	workflow_order = models.ForeignKey(WhatsAppDraftOrder, null=True, blank=True, on_delete=models.SET_NULL)
+	workflow_watch = models.ForeignKey(WhatsAppWatch, null=True, blank=True, on_delete=models.SET_NULL)
+	workflow_match = models.CharField(max_length=100, blank=True)
+	workflow_key = models.CharField(max_length=160, unique=True, null=True, blank=True)
+	workflow_revision = models.DateTimeField(null=True, blank=True)
+	workflow_phone = models.CharField(max_length=64, blank=True)
+	workflow_token = models.UUIDField(default=uuid.uuid4, editable=False)
+	workflow_action = models.CharField(max_length=16, blank=True)
+	workflow_responded_at = models.DateTimeField(null=True, blank=True)
 	last_error = models.CharField(max_length=500, blank=True)
 	created_by = models.ForeignKey(
 		settings.AUTH_USER_MODEL,

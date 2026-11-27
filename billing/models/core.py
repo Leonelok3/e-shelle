@@ -287,6 +287,8 @@ class Referral(models.Model):
     """
     affiliate = models.ForeignKey(AffiliateProfile, on_delete=models.CASCADE, related_name="referrals")
     referred_user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="referral")
+    attribution_source = models.CharField(max_length=24, blank=True, default="")
+    ref_code_at_binding = models.CharField(max_length=64, blank=True, default="")
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
@@ -317,6 +319,7 @@ class Commission(models.Model):
     rate = models.DecimalField(max_digits=5, decimal_places=2, default=Decimal("0.50"))  # 50%
 
     status = models.CharField(max_length=16, choices=STATUS_CHOICES, default="PENDING")
+    attribution = models.JSONField(default=dict, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:

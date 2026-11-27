@@ -1,0 +1,80 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Importer des produits depuis WhatsApp | E-Shelle{% endblock %}
+{% block extra_css %}{{ block.super }}<link rel="stylesheet" href="{% static 'css/es-whatsapp-activation.css' %}">{% endblock %}
+{% block content %}
+<main class="container py-4 mt-4">
+  <a href="{% url 'business:catalog_manage' business.id %}">← Catalogue de {{ business.display_name }}</a>
+  <section class="es-wa-setup" aria-labelledby="wa-import-title">
+    <header class="es-wa-setup__header">
+      <div>
+        <h1 id="wa-import-title">Du groupe WhatsApp à ta fiche</h1>
+        <p>Transfère le produit au numéro d’import E-Shelle. Retrouve ici les articles publiés et les offres à vérifier.</p>
+      </div>
+      <a href="{% url 'whatsapp_commerce:offer_report' business.id %}">Partager et suivre les offres</a>
+    </header>
+    {% for message in messages %}<p role="status">{{ message }}</p>{% endfor %}
+    {% if destination %}
+      <div class="es-wa-setup__card">
+        <h2>Ton numéro expéditeur</h2>
+        {% if sender.phone %}<p>Numéro associé <strong>{{ sender.phone }}</strong></p>{% endif %}
+        {% if pairing_code %}
+          <p>Depuis <strong>{{ sender.requested_phone }}</strong>, envoie <strong>LIER {{ pairing_code }}</strong> au {{ destination }} dans les 15 minutes.</p>
+          <a class="es-wa-setup__button" href="{{ pairing_link }}" target="_blank" rel="noopener noreferrer">Ouvrir WhatsApp pour associer le numéro</a>
+          <a href="{% url 'whatsapp_commerce:catalog_forwarding' business.id %}">Actualiser l’état</a>
+        {% endif %}
+        <form method="post">
+          {% csrf_token %}
+          <label for="wa-import-sender">Numéro depuis lequel tu transféreras les offres</label>
+          <input id="wa-import-sender" name="sender_phone" type="tel" autocomplete="tel" maxlength="32"
+                 placeholder="+237 …" value="{% if sender %}{{ sender.requested_phone|default:sender.phone|default_if_none:'' }}{% endif %}" required>
+          <button class="es-wa-setup__button es-wa-setup__button--secondary" name="action" value="pair">Générer un code d’association</button>
+        </form>
+        {% if sender.phone %}
+          <form method="post">
+            {% csrf_token %}
+            <label><input type="checkbox" name="auto_publish" {% if sender.auto_publish %}checked{% endif %}> Publier directement les offres complètes</label>
+            <button class="es-wa-setup__button" name="action" value="settings">Enregistrer mon choix</button>
+          </form>
+          <form method="post">{% csrf_token %}<button class="es-wa-setup__button es-wa-setup__button--secondary" name="action" value="disconnect">Dissocier le numéro</button></form>
+        {% endif %}
+      </div>
+      <div class="es-wa-setup__card mt-3">
+        <h2>Envoyer une offre</h2>
+        <p>Transfère un message contenant le nom, le prix et la devise au <strong>{{ destination }}</strong>. Pour joindre une photo, mets les informations dans sa légende.</p>
+        <div class="es-wa-setup__result">Ventilateur rechargeable, 18 000 F CFA, réf. VENT-01</div>
+        <p>Tu peux ajouter le stock. Une offre incomplète, un prix incertain ou un article déjà présent passe en validation.</p>
+      </div>
+    {% else %}
+      <p class="es-wa-setup__issues">Le numéro d’import E-Shelle n’est pas encore configuré sur ce serveur.</p>
+      {% if sender.phone %}
+        <form method="post" class="mt-3">{% csrf_token %}<button class="es-wa-setup__button es-wa-setup__button--secondary" name="action" value="disconnect">Dissocier le numéro</button></form>
+      {% endif %}
+    {% endif %}
+  </section>
+  <section class="es-wa-setup" aria-labelledby="wa-imports-recent">
+    <header class="es-wa-setup__header">
+      <h2 id="wa-imports-recent">Imports récents</h2>
+      <a href="{% url 'whatsapp_commerce:catalog_forwarding' business.id %}">Actualiser</a>
+    </header>
+    {% for submission in submissions %}
+      <article class="es-wa-setup__card mb-2">
+        <h3>{{ submission.title|default:"Offre WhatsApp" }}</h3>
+        <p>{{ submission.get_status_display }} · {{ submission.created_at|date:"d/m/Y H:i" }}</p>
+        {% if submission.reason %}<p>{{ submission.reason }}</p>{% endif %}
+        {% if submission.status == "review" %}
+          <a class="es-wa-setup__button" href="{% url 'whatsapp_commerce:catalog_forward_review' business.id submission.pk %}">Vérifier l’offre</a>
+        {% elif submission.status == "attached" and submission.attached_to.status == "review" %}
+          <a href="{% url 'whatsapp_commerce:catalog_forward_review' business.id submission.attached_to_id %}">Voir le brouillon avec sa photo</a>
+        {% elif submission.status == "attached" and submission.attached_to.status == "published" and submission.attached_to.item_id %}
+          <a href="{% url 'business_public_short' business.public_slug %}?produit={{ submission.attached_to.item_id }}">Voir le produit sur ma fiche</a>
+        {% elif submission.status == "attached" and submission.item_id %}
+          <a href="{% url 'business_public_short' business.public_slug %}?produit={{ submission.item_id }}">Voir le produit sur ma fiche</a>
+        {% elif submission.status == "published" and submission.item_id %}
+          <a href="{% url 'whatsapp_commerce:catalogue_offer' business.public_slug submission.item_id %}">Ouvrir la page à partager</a>
+        {% endif %}
+      </article>
+    {% empty %}<p>Les messages transférés depuis ton numéro associé apparaîtront ici.</p>{% endfor %}
+  </section>
+</main>
+{% endblock %}

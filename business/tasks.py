@@ -2,6 +2,8 @@ import logging
 from datetime import timedelta
 
 from celery import shared_task
+from django.db import transaction
+from django.urls import reverse
 from django.utils import timezone
 
 log = logging.getLogger(__name__)
@@ -28,34 +30,52 @@ def remind_expiring_businesses():
     )
 
     count = 0
-    for business in businesses:
-        if business.is_trial:
-            titre = "Votre essai gratuit se termine bientot"
-            message = (
-                f"L'essai Business gratuit de \"{business.name}\" se termine le "
-                f"{business.subscription_expires_at.strftime('%d/%m/%Y')}. "
-                "Passez Premium des maintenant pour garder votre visibilite renforcee !"
+    for business_id in businesses.values_list("pk", flat=True).iterator():
+        with transaction.atomic():
+            business = businesses.select_for_update().filter(pk=business_id).first()
+            if business is None:
+                continue
+            date = timezone.localtime(business.subscription_expires_at).strftime("%d/%m/%Y")
+            title = "Ton essai se termine bientôt" if business.is_trial else "Ton abonnement arrive à échéance"
+            Notification.objects.create(
+                destinataire_id=business.owner_id, type_notif="systeme", titre=title,
+                message=f"Échéance de {business.name} le {date}. Retrouve ton bilan et la formule de cette fiche.",
+                url_action=reverse("business:business_progress", args=[business.pk]),
             )
-        else:
-            titre = "Votre abonnement expire bientot"
-            message = (
-                f"L'abonnement {business.get_plan_display()} de \"{business.name}\" expire le "
-                f"{business.subscription_expires_at.strftime('%d/%m/%Y')}. "
-                "Renouvelez pour ne pas perdre vos avantages Premium."
-            )
-
-        Notification.objects.create(
-            destinataire=business.owner,
-            type_notif="systeme",
-            titre=titre,
-            message=message,
-            url_action="/business/plans/",
-        )
-        business.expiry_reminder_sent_at = now
-        business.save(update_fields=["expiry_reminder_sent_at"])
-        count += 1
+            business.expiry_reminder_sent_at = now
+            business.save(update_fields=["expiry_reminder_sent_at"])
+            count += 1
 
     log.info(f"remind_expiring_businesses: {count} notification(s) envoyee(s).")
+    return count
+
+
+@shared_task
+def notify_first_business_results():
+    from django.db.models import Exists, OuterRef, Q
+    from dashboard.models import Notification
+
+    from .growth import _appointments, _paid
+    from .models import BusinessProfile
+
+    now = timezone.now()
+    candidates = BusinessProfile.objects.filter(
+        owner__isnull=False, is_active=True, growth_first_result_notice_at__isnull=True,
+    ).annotate(
+        first_sale=Exists(_paid(OuterRef("pk")).filter(confirmed_at__gte=now - timedelta(days=30))),
+        first_booking=Exists(_appointments(OuterRef("pk")).filter(appointment__created_at__gte=now - timedelta(days=30))),
+    ).filter(Q(first_sale=True) | Q(first_booking=True))
+    count = 0
+    for business in candidates.iterator():
+        with transaction.atomic():
+            if not BusinessProfile.objects.filter(pk=business.pk, growth_first_result_notice_at__isnull=True).update(growth_first_result_notice_at=now):
+                continue
+            Notification.objects.create(
+                destinataire_id=business.owner_id, type_notif="systeme", titre="Ton premier résultat WhatsApp",
+                message=f"{business.name} a enregistré une commande payée ou un rendez-vous confirmé. Retrouve les détails dans ton bilan.",
+                url_action=reverse("business:business_progress", args=[business.pk]),
+            )
+            count += 1
     return count
 
 
@@ -83,8 +103,11 @@ def downgrade_expired_businesses():
     )
 
     count = 0
-    for business in businesses:
-        count += int(business.check_expiry())
+    for business_id in businesses.values_list("pk", flat=True).iterator():
+        with transaction.atomic():
+            business = businesses.select_for_update().filter(pk=business_id).first()
+            if business:
+                count += int(business.check_expiry())
 
     log.info(f"downgrade_expired_businesses: {count} fiche(s) retrogradee(s) en Gratuit.")
     return count

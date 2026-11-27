@@ -4,6 +4,7 @@ from urllib.parse import urlsplit
 
 from django.conf import settings
 from django.core import signing
+from django.db.models import Q
 from django.urls import reverse
 
 CHECKOUT_SALT = "whatsapp-commerce.campay-checkout"
@@ -36,3 +37,16 @@ def payment_status(payment):
     if payment.statut in {"echec", "expire"}:
         return "Paiement à reprendre avec l’équipe"
     return "Paiement en attente"
+
+
+def verified_order_payment():
+    """Filter draft orders by confirmed, non-test payments for their linked order."""
+    manual = Q(payment_transaction__statut="succes") & ~Q(payment_transaction__methode="campay")
+    campay = Q(
+        payment_transaction__methode="campay",
+        payment_transaction__statut__in=["succes", "pending_awaiting_manual_validation"],
+        payment_transaction__metadata__campay__mode="production",
+        payment_transaction__metadata__campay__provider_status="SUCCESSFUL",
+        payment_transaction__metadata__campay__verified_at__isnull=False,
+    ) & ~Q(payment_transaction__metadata__campay__verified_at__in=[None, ""])
+    return manual | campay

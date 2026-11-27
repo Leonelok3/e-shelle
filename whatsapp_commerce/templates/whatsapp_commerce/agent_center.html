@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Mes agents · {{ business.display_name }} | E-Shelle{% endblock %}
+{% block meta_robots %}noindex, nofollow{% endblock %}
+{% block extra_css %}{{ block.super }}<link rel="stylesheet" href="{% static 'css/es-whatsapp-activation.css' %}">{% endblock %}
+{% block content %}
+<main class="container py-4 mt-4">
+  <a href="{% url 'business:dashboard' %}?business={{ business.pk }}">← Tableau de bord Business</a>
+  <section class="es-wa-setup" aria-labelledby="agents-title">
+    <header class="es-wa-setup__header"><div><h1 id="agents-title">Mes agents</h1><p>{{ business.display_name }}</p></div><a class="es-wa-setup__button" href="{% url 'business:business_progress' business.pk %}">Bilan et renouvellement</a></header>
+    {% for message in messages %}<p role="status">{{ message }}</p>{% endfor %}
+    <div class="es-wa-setup__grid">
+      <article class="es-wa-setup__card">
+        <h2>Mise en route</h2>
+        <p>{{ done }} sur {{ steps|length }} étapes terminées</p>
+        <ol>
+          {% for title, complete, url, detail in steps %}
+            <li style="margin:.6rem 0"><a href="{{ url }}">{{ title }}</a> · {% if complete %}Terminé{% else %}À faire{% if detail %}<br><small>{{ detail }}</small>{% endif %}{% endif %}</li>
+          {% endfor %}
+        </ol>
+        {% if next_step %}<a class="es-wa-setup__button" href="{{ next_step.2 }}">Continuer la mise en route</a>{% endif %}
+      </article>
+      <article class="es-wa-setup__card">
+        <h2>Activité des 7 derniers jours</h2>
+        <dl class="es-wa-setup__result" style="grid-template-columns:repeat(auto-fit,minmax(112px,1fr))">
+          <div><dt>Clics sur les offres</dt><dd>{{ results.clicks }}</dd></div>
+          <div><dt>Contacts issus des offres</dt><dd>{{ results.conversations }}</dd></div>
+          <div><dt>Commandes confirmées sur la période et payées</dt><dd>{{ results.paid }}</dd></div>
+          <div><dt>Rendez-vous pris et confirmés</dt><dd>{{ results.bookings }}</dd></div>
+          <div><dt>Messages transmis à l’équipe</dt><dd>{{ results.handoffs }}</dd></div>
+          <div><dt>Automatisations en échec</dt><dd>{{ results.failed }}</dd></div>
+        </dl>
+        <a href="{% url 'whatsapp_commerce:offer_report' business.pk %}">Voir les résultats par offre</a>
+        {% if results.conversations %}<p>{{ results.converted }} contact{{ results.converted|pluralize }} sur {{ results.conversations }} arrivé{{ results.conversations|pluralize }} depuis une offre ont une commande payée ou un rendez-vous confirmé.</p>{% endif %}
+        <form method="post" action="{% url 'whatsapp_commerce:agent_digest' business.pk %}">{% csrf_token %}<button class="es-wa-setup__button es-wa-setup__button--secondary">M’envoyer le récapitulatif</button></form>
+      </article>
+    </div>
+  </section>
+  <section class="es-wa-setup" aria-labelledby="available-agents">
+    <h2 id="available-agents">Outils de l’équipe</h2>
+    <div class="es-wa-setup__grid">
+      <article class="es-wa-setup__card"><h3>{% if estate %}Conseiller immobilier{% else %}Catalogue{% endif %}</h3><p>{{ offers }} offre{{ offers|pluralize }} disponible{{ offers|pluralize }}.</p><a href="{{ inventory }}">Gérer les offres</a>{% if can_import and not estate %}<a href="{% url 'whatsapp_commerce:catalog_forwarding' business.pk %}">Importer depuis WhatsApp</a>{% endif %}</article>
+      <article class="es-wa-setup__card"><h3>Vendeur WhatsApp et vocal</h3><p>Réponses, conversations, test et réglage des notes vocales.</p><p>Notes vocales {% if voice_ready %}activées{% else %}à configurer{% endif %}.</p><a href="{{ dashboard }}#activation-agent">Ouvrir les réglages WhatsApp</a></article>
+      <article class="es-wa-setup__card"><h3>Rendez-vous</h3><p>{% if agenda %}Agenda relié{% else %}Agenda à relier{% endif %}.</p><a href="{{ dashboard }}#agent-booking-service">Choisir l’agenda</a>{% if eligible %}<a href="{% url 'whatsapp_commerce:business_workflows' business.pk %}">Rappels et suivis</a>{% endif %}</article>
+      {% if eligible %}
+        <article class="es-wa-setup__card"><h3>Commandes, stock et paiements</h3><p>{% if payment %}Checkout CamPay disponible.{% else %}Suivi des paiements par l’équipe.{% endif %}</p><a href="{% url 'whatsapp_commerce:order_operations' business.pk %}">Suivre les commandes</a></article>
+        <article class="es-wa-setup__card"><h3>SAV et suivi client</h3><p>{{ open_cases }} dossier{{ open_cases|pluralize }} à reprendre.</p><a href="{% url 'whatsapp_commerce:follow_up_list' business.pk %}">Ouvrir les dossiers</a><a href="{{ dashboard }}#conversation">Ouvrir les conversations</a></article>
+        <article class="es-wa-setup__card"><h3>CRM commercial</h3><p>Devis à valider, accords clients et prospects à rappeler.</p><a href="{% url 'whatsapp_commerce:quotes' business.pk %}">Gérer les devis</a></article>
+        <article class="es-wa-setup__card"><h3>Marketing</h3><p>Contacts, campagnes WhatsApp et résultats.</p><a href="{% url 'whatsapp_commerce:business_campaigns' business.pk %}">Gérer les campagnes</a></article>
+      {% endif %}
+      <article class="es-wa-setup__card"><h3>Visibilité locale</h3><p>Diagnostic de la fiche, améliorations à valider et activité de la vitrine.</p><a href="{% url 'business:dashboard' %}?business={{ business.pk }}#visibilite-locale">Ouvrir le diagnostic</a></article>
+    </div>
+  </section>
+</main>
+{% endblock %}

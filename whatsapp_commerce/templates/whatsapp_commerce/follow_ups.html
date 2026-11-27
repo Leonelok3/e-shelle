@@ -1,0 +1,56 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}À reprendre · {{ business.display_name }} | E-Shelle{% endblock %}
+{% block meta_robots %}noindex, nofollow{% endblock %}
+{% block extra_css %}{{ block.super }}<link rel="stylesheet" href="{% static 'css/es-whatsapp-activation.css' %}">{% endblock %}
+{% block content %}
+<main class="container py-4 mt-4">
+  <a href="{% url 'whatsapp_commerce:business_dashboard' business.pk %}">← WhatsApp Business</a>
+  <section class="es-wa-setup" aria-labelledby="follow-up-title">
+    <header class="es-wa-setup__header">
+      <div>
+        <h1 id="follow-up-title">À reprendre</h1>
+        <p>{{ business.display_name }}</p>
+      </div>
+    </header>
+    <nav aria-label="Dossiers à reprendre" style="display:flex;gap:.6rem;flex-wrap:wrap">
+      {% for kind, label, total in tabs %}
+        <a class="es-wa-setup__button{% if selected != kind %} es-wa-setup__button--secondary{% endif %}"
+           href="?type={{ kind }}"{% if selected == kind %} aria-current="page"{% endif %}>{{ label }} ({{ total }})</a>
+      {% endfor %}
+    </nav>
+    <div class="es-wa-setup__grid">
+      {% for case in page %}
+        <article class="es-wa-setup__card">
+          {% if selected == 'paiements' %}
+            <h2 style="font-size:1.15rem">{{ case.catalog_item.display_title }}</h2>
+            <p>{{ case.contact.display_name|default:case.contact.phone }} · Commande {{ case.boutique_order.reference }}</p>
+            <p><strong>{{ case.total_price|floatformat:'-2' }} F CFA</strong> · {{ case.payment_display }}</p>
+            <p class="es-wa-setup__hint">Vérifie l’encaissement et reprends la conversation si le client a besoin d’aide.</p>
+            {% include 'whatsapp_commerce/follow_up_actions.html' with contact=case.contact %}
+          {% else %}
+            <h2 style="font-size:1.15rem">{% if case.follow_up_property.agence_id == business.pk %}{{ case.follow_up_property.titre }}{% elif case.follow_up_item.business_id == business.pk %}{{ case.follow_up_item.display_title }}{% elif case.follow_up_service %}{{ case.follow_up_service.name }}{% else %}{{ case.message.contact.display_name|default:case.message.contact.phone }}{% endif %}</h2>
+            <p>{{ case.message.contact.display_name|default:case.message.contact.phone }} · {{ case.message.created_at|date:'d/m/Y à H:i' }}</p>
+            {% if case.follow_up_order.business_id == business.pk %}<a href="{% url 'whatsapp_commerce:order_operations' business.pk %}?q={{ case.follow_up_order.boutique_order.reference|urlencode }}">Commande {{ case.follow_up_order.boutique_order.reference }}</a>{% endif %}
+            {% if case.booking_help %}
+              <p><strong>{{ case.get_booking_help_display }}</strong>{% if case.follow_up_appointment_id %} · RDV {{ case.follow_up_appointment_id }}{% endif %}</p>
+            {% endif %}
+            {% if case.message.body %}<blockquote class="es-wa-setup__result" style="overflow-wrap:anywhere">{{ case.message.body|truncatechars:320 }}</blockquote>{% endif %}
+            <p class="es-wa-setup__hint">{% if case.booking_help %}Propose un créneau au client dans sa conversation.{% else %}Vérifie la demande du client et réponds depuis la conversation.{% endif %}</p>
+            {% include 'whatsapp_commerce/follow_up_actions.html' with contact=case.message.contact %}
+          {% endif %}
+        </article>
+      {% empty %}
+        <p>Aucun dossier à reprendre dans cette rubrique.</p>
+      {% endfor %}
+    </div>
+    {% if page.has_other_pages %}
+      <nav aria-label="Pages des dossiers">
+        {% if page.has_previous %}<a href="?type={{ selected }}&amp;page={{ page.previous_page_number }}">Précédente</a>{% endif %}
+        <span>Page {{ page.number }} sur {{ page.paginator.num_pages }}</span>
+        {% if page.has_next %}<a href="?type={{ selected }}&amp;page={{ page.next_page_number }}">Suivante</a>{% endif %}
+      </nav>
+    {% endif %}
+  </section>
+</main>
+{% endblock %}

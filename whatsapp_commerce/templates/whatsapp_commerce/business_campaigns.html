@@ -115,6 +115,18 @@
         <h2>{{ campaign_detail.nom }}</h2>
         <p>Modèle : <strong>{{ campaign_detail.template_meta_name }}</strong> ({{ campaign_detail.template_meta_language }})</p>
         <p>Statut : <strong>{{ campaign_detail.get_statut_display }}</strong> — {{ campaign_detail.total_envoyes }} envoyé(s), {{ campaign_detail.total_livres }} livré(s), {{ campaign_detail.total_lus }} lu(s), {{ campaign_detail.total_echecs }} échec(s), sur {{ campaign_detail.total_destinataires }} destinataire(s).</p>
+        <h3>Résultats des liens de cette campagne</h3>
+        <p>{{ attributed.clicks }} clics WhatsApp · {{ attributed.conversations }} contacts · {{ attributed.paid }} commandes payées · {{ attributed.bookings }} rendez-vous confirmés</p>
+        {% if tracked_offers %}
+          <form method="get">
+            <label for="campaign-offer">Offre à partager dans la campagne</label>
+            <select name="offre" id="campaign-offer" required><option value="">Choisir une offre</option>{% for key, title in tracked_offers %}<option value="{{ key }}"{% if request.GET.offre == key %} selected{% endif %}>{{ title }}</option>{% endfor %}</select>
+            <button type="submit">Générer le lien</button>
+          </form>
+          {% if campaign_offer_link %}<p><a href="{{ campaign_offer_link }}">Ouvrir l’offre</a></p><input aria-label="Lien de campagne à copier" type="url" readonly value="{{ campaign_offer_link }}" onfocus="this.select()" style="width:100%">{% endif %}
+          {% if campaign_copy %}<label for="campaign-copy">Texte proposé à valider</label><textarea id="campaign-copy" readonly rows="4" style="display:block;width:100%">{{ campaign_copy }}</textarea>{% endif %}
+          {% if campaign_image %}<p><a href="{{ campaign_image }}" target="_blank" rel="noopener noreferrer">Ouvrir le visuel de l’offre</a></p>{% endif %}
+        {% endif %}
         {% if campaign_detail.statut == "validee" and campaign_detail.total_destinataires %}
           <form method="post" action="{% url 'whatsapp_commerce:business_campaign_launch' business.pk campaign_detail.pk %}" style="border:1px solid #f0c36d;background:#fff8e6;padding:1rem;border-radius:8px;">
             {% csrf_token %}

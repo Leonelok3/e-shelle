@@ -7,7 +7,7 @@ from immobilier_cameroun.agency import property_url, public_agency_properties
 from immobilier_cameroun.models import Bien, Devise, PeriodePrix, TypeBien, TypeTransaction
 from immobilier_cameroun.services.whatsapp_parser import QUARTIERS_DOUALA, QUARTIERS_YAOUNDE
 
-from .bookings import BOOKING_WORDS, booking_reply
+from .bookings import BOOKING_WORDS, SLOT_HELP, booking_reply
 from .models import BusinessWhatsAppContact
 
 REFERENCE = re.compile(r"\bbien\s*#?\s*(\d{1,12})\b", re.I)
@@ -125,7 +125,7 @@ def estate_preview(business):
     return _results(public_agency_properties(business))
 
 
-def estate_reply(activation, contact, body, *, typed):
+def estate_reply(activation, contact, body, *, typed, offer_click=None, reply_message_id=None):
     """Return None to allow the shared FAQ, or an empty string for the agency's team."""
     inventory = public_agency_properties(contact.business)
     text = normalise(body[:2000]).strip()
@@ -136,18 +136,21 @@ def estate_reply(activation, contact, body, *, typed):
     if text in {"nouvelle recherche", "recommencer", "biens"}:
         _remember(contact, filters={})
         return _results(inventory)
+    wants_booking = BOOKING_WORDS.search(text) or SLOT_HELP.search(body)
     reference = REFERENCE.search(text)
     if reference:
         selected = inventory.filter(pk=reference[1]).first()
         _remember(contact, filters=filters, selected=selected)
         if selected is None:
             return "Ce bien n’est plus proposé par cette agence. Écris BIENS pour voir ses offres disponibles."
-        if not BOOKING_WORDS.search(text):
+        if not wants_booking:
             return _details(selected)
-    if BOOKING_WORDS.search(text) and (selected or text.startswith(("rdv ", "reporter "))):
-        if not activation.booking_service_id:
-            return ""
-        return booking_reply(activation, contact, body, typed=typed, listing=selected, estate=True)
+    if wants_booking and (selected or text.startswith(("rdv ", "reporter "))):
+        reply = booking_reply(
+            activation, contact, body, typed=typed, listing=selected, estate=True,
+            offer_click=offer_click, reply_message_id=reply_message_id,
+        )
+        return reply if reply is not None else ""
     if selected and DETAIL.search(text):
         return _details(selected)
     updates = _search_updates(text, inventory)

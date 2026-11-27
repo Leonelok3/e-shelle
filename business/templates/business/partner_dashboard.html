@@ -21,6 +21,8 @@
         <a href="{% url 'business:catalogue_commissions' %}" class="kd-btn kd-btn-gold">Catalogue commissions</a>
         <a href="{% url 'business:business_key_academy' %}" class="kd-btn kd-btn-blue">Academy</a>
         <a href="{% url 'business:business_key_crm' %}" class="kd-btn kd-btn-gold">CRM prospects</a>
+        <a href="{% url 'business:partner_portfolio' %}" class="kd-btn kd-btn-green">Portefeuille prestataires</a>
+        <a href="{% url 'business:partner_sales' %}" class="kd-btn kd-btn-gold">Ventes et commissions</a>
         <a href="/business/onboarding/?plan=free" class="kd-btn kd-btn-green">Creer une fiche</a>
       </div>
     </div>
@@ -52,10 +54,12 @@
     <div class="kd-stats">
       <article><span>Clics</span><strong>{{ profile.click_count }}</strong></article>
       <article><span>Inscrits</span><strong>{{ referrals_count }}</strong></article>
-      <article><span>Conversions</span><strong>{{ converted_businesses }}</strong></article>
-      <article><span>Taux conversion</span><strong>{{ conversion_rate }}%</strong></article>
-      <article><span>En attente</span><strong>{{ pending_amount|floatformat:"0" }}</strong></article>
-      <article><span>Total commissions</span><strong>{{ total_commissions|floatformat:"0" }}</strong></article>
+      <article><span>Inscrits avec une fiche</span><strong>{{ registered_merchants }}</strong></article>
+      <article><span>Prestataires ayant payé</span><strong>{{ paid_merchants }}</strong></article>
+      <article><span>Part des inscrits ayant payé un abonnement prestataire</span><strong>{{ conversion_rate }} %</strong></article>
+    </div>
+    <div class="kd-stats">
+      {% for row in commission_sums %}<article><span>{% if row.status == 'PAID' %}Versé{% else %}En attente de versement{% endif %}</span><strong>{{ row.total|floatformat:'-2g' }} {{ row.currency }}</strong></article>{% endfor %}
     </div>
 
     <div class="kd-grid">
@@ -142,24 +146,25 @@
 
     <section class="kd-card">
       <div class="kd-card-head">
-        <h2>Dernieres commissions</h2>
-        <span>{{ partner_recruit_rate }}% partenaire / {{ provider_rate }}% prestataire</span>
+        <h2>Dernières commissions</h2>
+        <a href="{% url 'business:partner_sales' %}">Voir l’origine des ventes</a>
       </div>
       <div class="kd-table-wrap">
         <table class="kd-table">
           <thead>
-            <tr><th>Date</th><th>Montant</th><th>Devise</th><th>Statut</th></tr>
+            <tr><th>Date</th><th>Vente</th><th>Montant</th><th>Devise</th><th>Statut</th></tr>
           </thead>
           <tbody>
             {% for commission in commissions %}
             <tr>
               <td>{{ commission.created_at|date:"d/m/Y H:i" }}</td>
+              <td>ES‑{{ commission.transaction_id }}</td>
               <td>{{ commission.amount }}</td>
               <td>{{ commission.currency }}</td>
-              <td><span class="kd-status">{{ commission.status }}</span></td>
+              <td><span class="kd-status">{% if commission.status == 'PAID' %}Versée{% elif commission.status == 'CANCELED' %}Annulée{% else %}En attente de versement{% endif %}</span></td>
             </tr>
             {% empty %}
-            <tr><td colspan="4">Aucune commission pour le moment.</td></tr>
+            <tr><td colspan="5">Aucune commission pour le moment.</td></tr>
             {% endfor %}
           </tbody>
         </table>

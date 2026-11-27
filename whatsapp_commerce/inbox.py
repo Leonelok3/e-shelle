@@ -19,6 +19,7 @@ from .models import (
 	ScheduledBusinessWhatsAppMessage,
 )
 from .onboarding import MetaOnboardingError, _request_meta
+from .offer_tracking import OFFER_SUFFIX, claim_offer_click
 from .services import normalize_phone
 from .entitlements import require_whatsapp_entitlement
 from whatsapp_agent.models import MessageEnvoi
@@ -77,6 +78,9 @@ def _save_inbound(connection, message, display_name, received_at):
 		if activation is None:
 			return None, None, False
 		body = body[:test_marker.start()].strip()
+	offer_marker = OFFER_SUFFIX.search(body) if not activation and message.get("type", "text") == "text" else None
+	if offer_marker:
+		body = body[:offer_marker.start()].strip()
 
 	contact, _ = BusinessWhatsAppContact.objects.get_or_create(
 		business=connection.business,
@@ -158,14 +162,20 @@ def _save_inbound(connection, message, display_name, received_at):
 		)
 	if not did_opt_out:
 		from .automations import cancel_scheduled_contact_messages
+		from .workflows import extract_workflow_action
 
 		cancel_scheduled_contact_messages(
 			contact,
 			"Le contact a répondu; les relances précédentes sont annulées.",
+			include_workflows=False,
 		)
+		if offer_marker and body:
+			claim_offer_click(connection, offer_marker[1], saved_message)
 		if not contact.opted_out_at and not contact.agent_paused:
+			workflow_message, workflow_action = extract_workflow_action(connection, contact, message)
 			BusinessWhatsAppReplyJob.objects.create(
 				message=saved_message, connection=connection, phone_number_id=connection.phone_number_id,
+				automation_message=workflow_message, automation_action=workflow_action,
 			)
 	return contact, saved_message, created
 
@@ -194,7 +204,7 @@ def _reserve_ai_credit(business):
 	).update(ai_credits=F("ai_credits") - 1, updated_at=timezone.now())
 
 
-def _run_sales_agent(connection, contact, inbound_message, *, reply_job_id=None):
+def _run_sales_agent(connection, contact, inbound_message, *, reply_job_id=None, offer_click=None):
 	from django.conf import settings
 
 	if (
@@ -227,7 +237,15 @@ def _run_sales_agent(connection, contact, inbound_message, *, reply_job_id=None)
 		from .orchestrator import confirm_draft_order, is_explicit_draft_confirmation
 
 		if is_explicit_draft_confirmation(contact, inbound_message.body):
-			confirmation = confirm_draft_order(contact.phone, inbound_message.body, business=contact.business)
+			confirmation = confirm_draft_order(contact.phone, inbound_message.body, business=contact.business, offer_click=offer_click)
+			if confirmation.get("status") in {"different_offer", "catalog_offer_changed"}:
+				send_attempted = True
+				send_business_reply(
+					contact, "L’offre ou ses conditions ont changé. Écris COMMANDER pour obtenir un nouveau récapitulatif.",
+					expected_phone_number_id=connection.phone_number_id, reply_job_id=reply_job_id,
+					require_agent_enabled=True,
+				)
+				return BusinessWhatsAppReplyJob.Status.SENT
 			if confirmation.get("status") == "already_confirmed":
 				_refund_ai_credit(business)
 				return BusinessWhatsAppReplyJob.Status.SKIPPED
@@ -263,7 +281,10 @@ def _run_sales_agent(connection, contact, inbound_message, *, reply_job_id=None)
 					},
 				)
 				return BusinessWhatsAppReplyJob.Status.SENT
-		decision = build_funnel_reply(connection, contact, inbound_message)
+		if offer_click:
+			decision = build_funnel_reply(connection, contact, inbound_message, offer_click=offer_click)
+		else:
+			decision = build_funnel_reply(connection, contact, inbound_message)
 		action = resolve_action(connection, contact, decision)
 		decision["action_next"] = action
 		audit = record_sales_decision(connection, contact, decision)
@@ -278,6 +299,8 @@ def _run_sales_agent(connection, contact, inbound_message, *, reply_job_id=None)
 			"wa_message_id": message_id,
 		}
 		audit.save(update_fields=["details"])
+		if decision.get("pending_action", {}).get("reason") == "catalog_price_requires_business_confirmation":
+			return BusinessWhatsAppReplyJob.Status.REVIEW
 		from .automations import schedule_sales_follow_ups
 
 		try:

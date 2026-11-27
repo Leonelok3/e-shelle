@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load l10n %}
 
 {% block title %}{% if LANGUAGE_CODE == 'en' %}Edit product - {{ item.display_title }}{% else %}Modifier le produit - {{ item.title }}{% endif %}{% endblock %}
 
@@ -17,7 +18,12 @@
         </div>
       </div>
 
-      <form method="post" action="{% url 'business:catalog_item_generate_description' business.id item.id %}" style="background:rgba(125,236,108,.08);border:1px solid rgba(125,236,108,.3);border-radius:14px;padding:1rem 1.25rem;margin-bottom:1.25rem;display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap">
+      <section style="background:#15263b;border:1px solid #39516a;border-radius:14px;padding:1rem 1.25rem;margin-bottom:1.25rem" aria-labelledby="catalogue-seo">
+        <h2 id="catalogue-seo" style="font-size:1.2rem">Visibilité de l’offre</h2>
+        {% if seo_issues %}<ul>{% for issue in seo_issues %}<li>{{ issue }}</li>{% endfor %}</ul>{% else %}<p>Les informations essentielles sont renseignées.</p>{% endif %}
+        {% if seo_public_url %}<a href="{{ seo_public_url }}">Consulter la fiche publique</a>{% endif %}
+      </section>
+      <form method="post" action="{% url 'business:catalog_item_generate_description' business.id item.id %}" style="background:rgba(125,236,108,.08);border:1px solid rgba(125,236,108,.3);border-radius:14px;padding:1rem 1.25rem;margin-bottom:1.25rem;display:grid;gap:.8rem">
         {% csrf_token %}
         <div>
           <strong style="color:#fff;">{% if LANGUAGE_CODE == 'en' %}✨ AI-generated description{% else %}✨ Description générée par l'IA{% endif %}</strong>
@@ -29,10 +35,20 @@
             {% endif %}
           </p>
         </div>
+        <label class="item-field">Caractéristiques confirmées à intégrer, si disponibles
+          <textarea name="product_facts" rows="3" maxlength="1200" placeholder="Matière, dimensions, contenu ou usage"></textarea>
+        </label>
         <button type="submit" {% if business.ai_credits <= 0 %}disabled{% endif %} style="min-height:42px;padding:.6rem 1.1rem;border-radius:9px;border:0;background:linear-gradient(135deg,#7dec6c,#f59e0b);color:#06120a;font-weight:900;cursor:pointer;white-space:nowrap;{% if business.ai_credits <= 0 %}opacity:.5;cursor:not-allowed;{% endif %}">
-          Générer la description (1 crédit)
+          Préparer un brouillon (1 crédit)
         </button>
       </form>
+      {% if seo_draft %}<form method="post" action="{% url 'business:catalogue_seo_publish' business.id item.id %}" style="background:#15263b;border:1px solid #39516a;border-radius:14px;padding:1rem 1.25rem;margin-bottom:1.25rem">
+        {% csrf_token %}<input type="hidden" name="key" value="{{ seo_draft.key }}">
+        <label class="item-field">Brouillon {% if seo_draft.field == 'description_en' %}anglais{% else %}français{% endif %} à vérifier et à corriger
+          <textarea name="reviewed_description" rows="6" required maxlength="1200">{{ seo_draft.text }}</textarea>
+        </label>
+        <button class="btn btn-primary" type="submit">Valider et enregistrer la description</button>
+      </form>{% endif %}
 
       <form method="post" enctype="multipart/form-data" style="background:rgba(255,255,255,.045);border:1px solid rgba(255,255,255,.1);border-radius:18px;padding:1.25rem">
         {% csrf_token %}
@@ -78,6 +94,11 @@
           </label>
           <label class="item-field">{% if LANGUAGE_CODE == 'en' %}Display order{% else %}Ordre d'affichage{% endif %}
             <input name="order" type="number" min="0" value="{{ item.order }}">
+          </label>
+          <label class="item-field">{% if LANGUAGE_CODE == 'en' %}Available stock{% else %}Stock disponible{% endif %}
+            <input name="stock_quantity" type="number" min="0" max="999999999" value="{{ item.stock_quantity|default_if_none:''|unlocalize }}">
+            <input name="stock_version" type="hidden" value="{{ item.stock_quantity|default_if_none:''|unlocalize }}">
+            <small>{% if LANGUAGE_CODE == 'en' %}Leave blank if stock is not tracked.{% else %}Laisse vide si le stock n’est pas suivi.{% endif %}</small>
           </label>
         </div>
 

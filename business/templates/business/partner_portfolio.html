@@ -1,0 +1,27 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Portefeuille prestataires · Business Key{% endblock %}
+{% block meta_robots %}noindex, nofollow{% endblock %}
+{% block extra_css %}{{ block.super }}<link rel="stylesheet" href="{% static 'css/es-whatsapp-activation.css' %}">{% endblock %}
+{% block content %}
+<main class="container py-4 mt-4">
+  <a href="{% url 'business:partner_dashboard' %}">← Ma Business Key</a>
+  <section class="es-wa-setup">
+    <h1>Portefeuille prestataires</h1>
+    {% if invite %}<p>Invite un prestataire à créer sa fiche E‑Shelle avec ton lien.</p><label for="provider-invite">Lien d’invitation prestataire</label><input type="url" id="provider-invite" readonly value="{{ invite }}" onfocus="this.select()" style="width:100%"><a class="es-wa-setup__button" href="https://wa.me/?text={{ invite|urlencode }}" target="_blank" rel="noopener noreferrer">Partager sur WhatsApp</a>{% endif %}
+    <div class="es-wa-setup__grid">
+      <article class="es-wa-setup__card">
+        <h2>Entreprises à accompagner</h2>
+        <ul>{% for business in page %}<li><strong>{{ business.display_name }}</strong> · {{ business.support_status }}{% if business.subscription_expires_at %} · {{ business.subscription_expires_at|date:'d/m/Y' }}{% endif %}</li>{% empty %}<li>Les entreprises qui partagent leur suivi apparaissent ici.</li>{% endfor %}</ul>
+        {% if page.has_other_pages %}<nav aria-label="Pages du portefeuille">{% if page.has_previous %}<a href="?page={{ page.previous_page_number }}">Précédente</a>{% endif %} <span>{{ page.number }} / {{ page.paginator.num_pages }}</span> {% if page.has_next %}<a href="?page={{ page.next_page_number }}">Suivante</a>{% endif %}</nav>{% endif %}
+      </article>
+      <article class="es-wa-setup__card">
+        <h2>Commissions prestataires enregistrées sur 30 jours</h2>
+        <p>{{ renewals }} renouvellement{{ renewals|pluralize }} avec commission enregistrée.</p>
+        <ul>{% for row in sums %}<li>{% if row.status == 'PAID' %}Versées{% else %}En attente de versement{% endif %} · <strong>{{ row.total|floatformat:'-2g' }} {{ row.currency }}</strong></li>{% empty %}<li>Aucune commission prestataire enregistrée sur cette période.</li>{% endfor %}</ul>
+        <a href="{% url 'business:partner_sales' %}?offre=provider_subscription">Voir les ventes et leur origine</a>
+      </article>
+    </div>
+  </section>
+</main>
+{% endblock %}

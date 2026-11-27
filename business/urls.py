@@ -1,6 +1,7 @@
 from django.urls import path
 
 from . import views
+from . import growth
 from . import seo_geo
 
 app_name = "business"
@@ -41,18 +42,23 @@ urlpatterns = [
     path("partner/admin/<int:pk>/<str:action>/", views.business_key_admin_action, name="business_key_admin_action"),
     path("command-center/", views.eshelle_command_center, name="eshelle_command_center"),
     path("partner/dashboard/", views.partner_dashboard, name="partner_dashboard"),
+    path("partner/portefeuille/", growth.partner_portfolio, name="partner_portfolio"),
+    path("partner/ventes/", growth.partner_sales, name="partner_sales"),
     path("commercial/", views.commercial, name="commercial"),
     path("commercial/admin-dashboard/", views.commercial_admin_dashboard, name="commercial_admin_dashboard"),
     path("onboarding/", views.onboarding, name="onboarding"),
     path("dashboard/", views.dashboard, name="dashboard"),
     path("fiche/<int:business_id>/modifier/", views.business_edit, name="business_edit"),
     path("fiche/<int:business_id>/visibilite/", views.apply_visibility_description, name="business_visibility_apply"),
+    path("fiche/<int:business_id>/bilan/", growth.business_progress, name="business_progress"),
+    path("fiche/<int:business_id>/bilan/partenaire/", growth.update_partner_support, name="business_partner_support"),
     path("catalogue/<int:business_id>/", views.catalog_manage, name="catalog_manage"),
     path("catalogue/<int:business_id>/importer-csv/", views.catalog_import_csv, name="catalog_import_csv"),
     path("catalog/photo-upload/", views.catalog_photo_upload, name="catalog_photo_upload"),
     path("catalogue/<int:business_id>/item/<int:item_id>/", views.catalog_item_action, name="catalog_item_action"),
     path("catalogue/<int:business_id>/item/<int:item_id>/modifier/", views.catalog_item_edit, name="catalog_item_edit"),
     path("catalogue/<int:business_id>/item/<int:item_id>/generer-description/", views.catalog_item_generate_description, name="catalog_item_generate_description"),
+    path("catalogue/<int:business_id>/item/<int:item_id>/valider-description/", views.publish_catalogue_seo_draft, name="catalogue_seo_publish"),
     path("catalogue/item/<int:item_id>/vue/", views.track_item_view, name="track_item_view"),
     path("activer-code/", views.redeem_activation_code, name="redeem_activation_code"),
     path("avis/<int:business_id>/nouveau/", views.submit_review, name="submit_review"),

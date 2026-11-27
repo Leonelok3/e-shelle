@@ -948,6 +948,8 @@ urlpatterns = [
     path("seo/", include("seo_agent.urls", namespace="seo_agent")),
     path("robots.txt", seo_views.robots_txt, name="robots_txt"),
     path("sitemap.xml", seo_views.sitemap_xml, name="sitemap_xml"),
+    path("sitemap-produits.xml", seo_views.product_sitemap_index, name="product_sitemap_index"),
+    path("sitemap-produits-<int:page>.xml", seo_views.product_sitemap_page, name="product_sitemap_page"),
 
     # ── Audio Studio IA — voix-off et musiques pour video ───────────
     path("audio-studio/", include("audio_studio.urls", namespace="audio_studio")),

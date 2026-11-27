@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Automatisations WhatsApp · {{ business.display_name }}{% endblock %}
+{% block meta_robots %}noindex, nofollow{% endblock %}
+{% block extra_css %}{{ block.super }}<link rel="stylesheet" href="{% static 'css/es-whatsapp-activation.css' %}">{% endblock %}
+{% block content %}
+<main class="container py-4 mt-4">
+  <a href="{% url 'whatsapp_commerce:business_dashboard' business.pk %}">← WhatsApp Business</a>
+  <section class="es-wa-setup" aria-labelledby="workflow-title">
+    <header class="es-wa-setup__header"><div><h1 id="workflow-title">Automatisations WhatsApp</h1><p>{{ business.display_name }}</p></div></header>
+    {% for message in messages %}<p role="status">{{ message }}</p>{% endfor %}
+    {% if not ready %}<p class="es-wa-setup__issues">Les envois exigent un compte connecté et les relances activées dans WhatsApp Business et sur le serveur.</p>{% endif %}
+    <p>Utilise des modèles utilitaires approuvés pour ce numéro. Pour les nouveaux biens, un modèle marketing approuvé est aussi accepté. Les envois utilisent le consentement déjà enregistré pour le contact.</p>
+    <div class="es-wa-setup__grid">
+      {% for kind, label, rule, parameters, buttons in rules %}
+        <article class="es-wa-setup__card">
+          <h2 style="font-size:1.2rem">{{ label }}</h2>
+          <p><strong>{% if rule.enabled %}Activé{% else %}En pause{% endif %}</strong></p>
+          <p class="es-wa-setup__hint">Variables dans cet ordre · {{ parameters }}.</p>
+          <p class="es-wa-setup__hint">{% if buttons %}Boutons dans cet ordre · {{ buttons|join:", " }}.{% elif kind == 'payment' or kind == 'property_alert' %}Ajoute le lien dans le texte du modèle.{% else %}Modèle texte.{% endif %}</p>
+          <form method="post">
+            {% csrf_token %}<input type="hidden" name="kind" value="{{ kind }}">
+            <label for="delay-{{ kind }}">Heures {% if kind == 'booking' %}avant le rendez-vous{% elif kind == 'payment' %}après la confirmation de commande{% elif kind == 'waitlist' or kind == 'property_alert' %}au minimum après l’inscription{% elif kind == 'shipping' %}après le passage à « Expédiée »{% else %}après la fin de la prestation{% endif %}</label>
+            <input id="delay-{{ kind }}" name="delay" type="number" min="{% if kind == 'shipping' %}0{% else %}1{% endif %}" max="168" value="{% if rule %}{{ rule.delay_hours }}{% else %}24{% endif %}" required>
+            <label for="template-{{ kind }}">Nom du modèle Meta</label>
+            <input id="template-{{ kind }}" name="template" maxlength="128" value="{{ rule.template_name }}" required>
+            <label for="language-{{ kind }}">Code de langue</label>
+            <input id="language-{{ kind }}" name="language" maxlength="32" value="{{ rule.template_language|default:'fr' }}" required>
+            <div style="display:flex;gap:.6rem;flex-wrap:wrap">
+              <button class="es-wa-setup__button" name="action" value="save">{% if rule.enabled %}Enregistrer{% else %}Activer{% endif %}</button>
+              {% if rule.enabled %}<button class="es-wa-setup__button es-wa-setup__button--secondary" name="action" value="pause" formnovalidate>Mettre en pause</button>{% endif %}
+            </div>
+          </form>
+        </article>
+      {% endfor %}
+    </div>
+  </section>
+  {% if completed_candidates or delivery_candidates %}
+    <section class="es-wa-setup" aria-labelledby="workflow-end">
+      <h2 id="workflow-end">Prestations à clôturer</h2>
+      {% for booking in completed_candidates %}
+        <form method="post" action="{% url 'whatsapp_commerce:workflow_complete' business.pk 'booking' booking.pk %}">
+          {% csrf_token %}<p>{{ booking.subject }} · {{ booking.contact }} · {{ booking.appointment.date|date:"d/m/Y" }}</p>
+          <button class="es-wa-setup__button es-wa-setup__button--secondary">Marquer comme réalisé</button>
+        </form>
+      {% endfor %}
+      {% for order in delivery_candidates %}
+        <form method="post" action="{% url 'whatsapp_commerce:workflow_complete' business.pk 'order' order.pk %}">
+          {% csrf_token %}<p>{{ order.boutique_order.reference }} · {{ order.catalog_item.display_title }} · {{ order.contact }}</p>
+          <button class="es-wa-setup__button es-wa-setup__button--secondary">Marquer comme livrée</button>
+        </form>
+      {% endfor %}
+    </section>
+  {% endif %}
+  <section class="es-wa-setup" aria-labelledby="workflow-history">
+    <h2 id="workflow-history">Historique des automatisations</h2>
+    {% for entry in history %}
+      <article class="es-wa-setup__card">
+        <h3>{{ entry.workflow.get_kind_display }} · {{ entry.get_status_display }}</h3>
+        <p>{{ entry.contact }} · {{ entry.scheduled_for|date:"d/m/Y à H:i" }}{% if entry.delivery_status %} · {{ entry.delivery_status }}{% endif %}</p>
+        {% if entry.workflow_booking %}<p>Rendez-vous {{ entry.workflow_booking.appointment_id }}</p>{% elif entry.workflow_order %}<p>Commande {{ entry.workflow_order.boutique_order.reference }}</p>{% endif %}
+        {% if entry.workflow_responded_at %}<p>{% if entry.workflow_action == 'confirmed' %}Présence confirmée{% elif entry.workflow_action == 'reschedule' %}Report demandé{% elif entry.workflow_action == 'rescheduled' %}Rendez-vous reporté{% elif entry.workflow_action == 'feedback' %}Réponse transmise à l’équipe{% else %}Demande devenue obsolète{% endif %} · {{ entry.workflow_responded_at|date:"d/m/Y à H:i" }}</p>{% endif %}
+        {% if entry.last_error %}<p class="es-wa-setup__hint">{{ entry.last_error }}</p>{% endif %}
+        <a href="{% url 'whatsapp_commerce:business_dashboard' business.pk %}?contact={{ entry.contact_id }}#conversation">Ouvrir la conversation</a>
+      </article>
+    {% empty %}<p>Aucun message planifié pour le moment.</p>{% endfor %}
+  </section>
+</main>
+{% endblock %}
