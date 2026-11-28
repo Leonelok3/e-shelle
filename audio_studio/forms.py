@@ -56,6 +56,7 @@ class VoiceOverForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
         self.user = user
         self.fields["script"].max_length = 4000
+        self.fields["script"].help_text = "Écris le texte comme il doit être prononcé. Tu peux épeler une marque ou écrire les nombres en toutes lettres. Les sous-titres peuvent être corrigés ensuite dans AdGen."
         self.fields["script"].widget.attrs["maxlength"] = 4000
         self.fields["campaign"].queryset = AdCampaign.objects.filter(user=user) if user else AdCampaign.objects.none()
         qs = VoiceProfile.objects.none()

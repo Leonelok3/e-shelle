@@ -7,6 +7,9 @@ import logging
 
 logger = logging.getLogger(__name__)
 
+# Margins expressed as fractions of the exported frame (left, top, right, bottom).
+SAFE_ZONES = {"reels": (.08, .13, .14, .25), "tiktok": (.08, .12, .18, .25), "whatsapp": (.07, .08, .07, .14)}
+
 def escape_ffmpeg_path(path: str) -> str:
     """Échappe le chemin de fichier pour FFmpeg sur Windows."""
     return path.replace('\\', '/').replace(':', '\\:')
@@ -36,6 +39,7 @@ class FFmpegFilterGenerator:
     def __init__(self, temp_dir: str, campaign_id: int, font_path: str = ""):
         self.temp_dir = temp_dir
         self.campaign_id = campaign_id
+        self.font_path = font_path
         
         if font_path and os.path.exists(font_path):
             if os.path.isabs(font_path):
@@ -62,8 +66,41 @@ class FFmpegFilterGenerator:
         """Options communes pour des incrustations plus cinématiques."""
         return (
             f"{self.font_opt}:shadowcolor=0x000000@0.45:shadowx=0:shadowy=5:"
-            "borderw=1:bordercolor=0x000000@0.20:line_spacing=12"
+            "borderw=1:bordercolor=0x000000@0.20:line_spacing=8:expansion=none"
         )
+
+    def fitted_text(self, text, size, max_width):
+        from PIL import ImageFont
+
+        for candidate in range(size, max(9, size // 2) - 1, -1):
+            try:
+                font = ImageFont.truetype(self.font_path or "DejaVuSans.ttf", candidate)
+            except OSError:
+                font = ImageFont.load_default(size=candidate)
+            lines = [""]
+            for word in text.split():
+                line = f"{lines[-1]} {word}".strip()
+                if font.getlength(line) <= max_width:
+                    lines[-1] = line
+                else:
+                    lines.append(word)
+            if len(lines) <= 2 and max(map(font.getlength, lines)) <= max_width:
+                return "\n".join(lines), candidate
+        remaining = text
+        fitted = []
+        for _ in range(2):
+            length = len(remaining)
+            while length and font.getlength(remaining[:length]) > max_width:
+                length -= 1
+            fitted.append(remaining[:length].strip())
+            remaining = remaining[length:].strip()
+            if not remaining:
+                break
+        if remaining:
+            while font.getlength(fitted[-1] + "…") > max_width and fitted[-1]:
+                fitted[-1] = fitted[-1][:-1]
+            fitted[-1] += "…"
+        return "\n".join(fitted), candidate
 
     def add_typewriter_text(
         self,
@@ -345,26 +382,7 @@ class FFmpegFilterGenerator:
         return ";".join(base_filters) + ";" + ",".join(text_filters) + ",format=yuv420p[outv]"
 
     def get_photo_windows(self, timeline: dict, duration: float, count: int) -> list[tuple[float, float]]:
-        """Répartit les plans photo aux moments les plus vendeurs de la vidéo."""
-        if count <= 0:
-            return []
-
-        candidates = []
-        if "price" in timeline:
-            start, end = timeline["price"]
-            candidates.append((start + 0.45, max(start + 1.6, end - 0.35)))
-        if "avantage" in timeline:
-            start, end = timeline["avantage"]
-            candidates.append((start + 0.35, max(start + 1.6, end - 0.35)))
-        if "hook" in timeline:
-            start, end = timeline["hook"]
-            candidates.append((start + 1.2, max(start + 2.2, min(end - 0.4, start + 4.2))))
-
-        if not candidates:
-            segment = max(duration / max(count, 1), 2.0)
-            candidates = [(i * segment, min(duration, (i + 1) * segment)) for i in range(count)]
-
-        return candidates[:count]
+        return [(i * duration / count, (i + 1) * duration / count) for i in range(count)]
 
     def build_fast_photo_chain(
         self,
@@ -375,6 +393,7 @@ class FFmpegFilterGenerator:
         product_scene_count: int,
         width: int = 720,
         height: int = 1280,
+        cinema_index=None,
     ) -> str:
         """Chaîne FFmpeg allégée pour sortir une vidéo pub 15s très rapidement."""
         from adgen.views import is_bg_light
@@ -384,88 +403,61 @@ class FFmpegFilterGenerator:
         accent_color = "0xb45309" if is_light else "0xffd91f"
         box_color = "white@0.92" if is_light else "0x060914@0.86"
         contact_box = "0x047857@0.95"
-        contact_text = "0x14532d" if is_light else "white"
         style = self.motion_text_style()
 
-        top_safe_h = int(height * 0.17)
-        scene_h = int(height * 0.60)
-        scene_y = int(height * 0.20)
-        cta_y = int(height * 0.82)
-        contact_y = int(height * 0.885)
-        scaled_w = int(width * 1.05)
-        scaled_h = int(scene_h * 1.05)
+        left, top, right, bottom = SAFE_ZONES[content_data.get("channel", "reels")]
+        safe_width = int(width * (1 - left - right))
+        center = f"{int(width * left)}+({safe_width}-text_w)/2"
+        scene_y = int(height * (top + .14))
+        cta_y = int(height * (1 - bottom - .075))
+        scene_h = cta_y - scene_y - int(height * .015)
         base_filters = [f"[1:v]scale={width}:{height},format=rgba[base0]"]
         text_filters = []
 
         previous = "base0"
         windows = self.get_photo_windows(timeline, duration, product_scene_count)
-        if not windows and product_scene_count:
-            segment = duration / product_scene_count
-            windows = [(i * segment, min(duration, (i + 1) * segment)) for i in range(product_scene_count)]
 
-        for i, (start, end) in enumerate(windows[:product_scene_count]):
+        for i, (start, end) in enumerate(windows):
             input_idx = 2 + i
             scene = f"fastscene{i}"
             mixed = f"fastmix{i}"
-            pan = 10 if i % 2 == 0 else -10
+            zoom = 1.06 if i != 1 else 1.20
+            scaled_w = int(width * zoom)
+            scaled_h = int(scene_h * zoom)
+            pan = max(1, round(width * .012)) * (1 if i % 2 == 0 else -1)
+            offset = f"setpts=PTS-STARTPTS+{start}/TB," if i == cinema_index else ""
             base_filters.append(
-                f"[{input_idx}:v]scale=w={scaled_w}:h={scaled_h}:force_original_aspect_ratio=increase,"
+                f"[{input_idx}:v]{offset}scale=w={scaled_w}:h={scaled_h}:force_original_aspect_ratio=increase,"
                 f"crop={width}:{scene_h}:x='(in_w-{width})/2+{pan}*sin(2*PI*t/{max(duration, 1)})':y=(in_h-{scene_h})/2,"
                 f"format=rgba[{scene}];"
-                f"[{previous}][{scene}]overlay=0:{scene_y}:enable='between(t,{start},{end})'[{mixed}]"
+                f"[{previous}][{scene}]overlay=0:{scene_y}:enable='gte(t,{start})*lt(t,{end})'[{mixed}]"
             )
             previous = mixed
 
         text_filters.append(
-            f"[{previous}]drawbox=x=0:y=0:w=iw:h={top_safe_h}:color=0x000000@0.28:t=fill,"
-            f"drawbox=x=0:y={height - 250}:w=iw:h=250:color=0x000000@0.34:t=fill,"
-            f"drawtext=text='E-SHELLE.COM':x=w-tw-30:y=24{style}:"
-            "fontsize=30:fontcolor=white@0.55"
+            f"[{previous}]drawbox=x=0:y=0:w=iw:h={scene_y}:color=0x000000@0.22:t=fill"
         )
 
-        if "hook" in timeline:
-            start, end = timeline["hook"]
-            hook = content_data["hook"].upper()[:62]
-            hook_file = self.write_temp_text("hook", wrap_text(hook, 19))
-            y = f"54-20*pow(1-clip((t-{start})/0.40,0,1),2)"
+        def overlay(name, text, y, start, end, size, color, background):
+            if not text:
+                return
+            lines, font_size = self.fitted_text(text, max(12, round(width * size)), safe_width - 24)
+            path = self.write_temp_text(name, lines)
             text_filters.append(
-                f"drawtext=textfile='{hook_file}':x=(w-text_w)/2:y='{y}':enable='between(t,{start},{end})'{style}:"
-                f"fontsize=51:fontcolor={text_color}:box=1:boxcolor={box_color}:boxborderw=12"
+                f"drawtext=textfile='{path}':x='{center}':y={y}:enable='gte(t,{start})*lt(t,{end})'{style}:"
+                f"fontsize={font_size}:fontcolor={color}:box=1:boxcolor={background}:boxborderw=8"
             )
 
-        if "price" in timeline:
-            start, end = timeline["price"]
-            price_file = self.write_temp_text("price", f"PRIX: {content_data['prix']}")
-            y = f"70-20*pow(1-clip((t-{start})/0.35,0,1),2)"
-            text_filters.append(
-                f"drawtext=textfile='{price_file}':x=(w-text_w)/2:y='{y}':enable='between(t,{start},{end})'{style}:"
-                f"fontsize=63:fontcolor={accent_color}:box=1:boxcolor={box_color}:boxborderw=12"
-            )
+        title_y = int(height * (top + (.038 if content_data.get("has_logo") else 0))) + 8
+        overlay("hook", content_data["hook"], title_y, 0, duration / 3, .061, text_color, box_color)
+        overlay("price", content_data["prix"], title_y, duration / 3, duration, .068, accent_color, box_color)
+        overlay("detail", content_data.get("detail"), title_y + int(height * .067), 2 * duration / 3, duration, .034, text_color, box_color)
+        cta = content_data.get("cta") or "Écrire sur WhatsApp"
+        contact = content_data.get("whatsapp") or ""
+        if not any(char.isdigit() for char in contact):
+            contact = ""
+        overlay("cta", f"{cta} {contact}".strip(), cta_y, 0, duration, .044, "white", contact_box)
+        for index, (start, end, caption) in enumerate(content_data.get("captions", [])):
+            overlay(f"caption{index}", caption, int(height * (1 - bottom - .16)), start, end, .047, "white", "0x101827@0.92")
 
-        if "avantage" in timeline and content_data.get("avantage"):
-            start, end = timeline["avantage"]
-            avantage = content_data["avantage"].upper()[:58]
-            av_file = self.write_temp_text("avantage_text", wrap_text(avantage, 20))
-            y = f"64-18*pow(1-clip((t-{start})/0.35,0,1),2)"
-            text_filters.append(
-                f"drawtext=textfile='{av_file}':x=(w-text_w)/2:y='{y}':enable='between(t,{start},{end})'{style}:"
-                f"fontsize=51:fontcolor={accent_color}:box=1:boxcolor={box_color}:boxborderw=12"
-            )
-
-        if "cta" in timeline:
-            start, end = timeline["cta"]
-            cta_file = self.write_temp_text("cta_title", "COMMANDER MAINTENANT")
-            contact = f"WhatsApp: {content_data['whatsapp']}"
-            if content_data.get("ville"):
-                contact += f"\n({content_data['ville']})"
-            contact_file = self.write_temp_text("cta_contact", contact)
-            text_filters.append(
-                f"drawtext=textfile='{cta_file}':x=(w-text_w)/2:y={cta_y}:enable='between(t,{start},{end})'{style}:"
-                f"fontsize=51:fontcolor=white:box=1:boxcolor={contact_box}:boxborderw=14"
-            )
-            text_filters.append(
-                f"drawtext=textfile='{contact_file}':x=(w-text_w)/2:y={contact_y}:enable='between(t,{start},{end})'{style}:"
-                f"fontsize=38:fontcolor={contact_text}:box=1:boxcolor=0x000000@0.42:boxborderw=10"
-            )
-
-        return ";".join(base_filters) + ";" + ",".join(text_filters) + f",fps=24,scale={width}:{height},format=yuv420p[outv]"
+        return ";".join(base_filters) + ";" + ",".join(text_filters) + f",fps=30,scale={width}:{height},format=yuv420p[outv]"

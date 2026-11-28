@@ -357,48 +357,24 @@
       <div class="flex items-center gap-2">
         <span class="text-xl">🎥</span>
         <div>
-          <h3 class="font-extrabold text-sm sm:text-base tracking-tight text-white">Vidéo Publicitaire Générée par IA</h3>
-          <p class="text-xs text-purple-200 font-medium">AdGen Fast Studio & IA publicitaire</p>
+          <h3 class="font-extrabold text-sm sm:text-base tracking-tight text-white">Montage vidéo</h3>
         </div>
       </div>
-      <span class="text-xs px-2.5 py-1 rounded-full font-bold bg-purple-800 text-purple-200 border border-purple-700">Fast Studio</span>
     </div>
     
     <div class="p-6">
-      <p class="text-xs text-gray-400 mb-6">Personnalisez et générez une vidéo commerciale verticale (9:16) ultra-professionnelle pour TikTok, Instagram, Facebook Reels, Shorts et WhatsApp Status.</p>
+      <p class="text-sm text-gray-600 mb-6">Vidéo verticale de 15 secondes pour Reels, TikTok ou WhatsApp.</p>
       
       {% if campaign.photo_url %}
-        <!-- Zone de saisie du scénario visuel pour l'IA en anglais -->
-        <div class="mb-5">
-          <label for="custom-ad-video-prompt" class="block text-xs font-extrabold text-gray-700 uppercase tracking-wider mb-2">🎬 Note de scénario (repère pour votre projet, non utilisée par le montage photo) :</label>
-          <textarea id="custom-ad-video-prompt" rows="2" class="w-full text-sm rounded-xl border border-gray-200 p-3 bg-gray-50 focus:bg-white focus:ring-2 focus:ring-purple-200 focus:border-purple-600 transition" placeholder="Instructions visuelles pour l'animation (ex: Cinematic slow zoom on the product...)">{% if content.raw_json.video_prompt %}{{ content.raw_json.video_prompt }}{% else %}A professional product commercial video showcasing '{{ campaign.nom_produit }}'. Animate the product from the image with realistic motion, smooth camera pan, cinematic lighting, and studio background. High-end advertising aesthetic, 4k, no text, no logo, no watermark.{% endif %}</textarea>
-          <p class="text-xxs text-gray-400 mt-1">Le montage utilise vos photos, les textes affichés et les médias audio associés ci-dessous.</p>
-        </div>
+        <input id="custom-ad-video-prompt" type="hidden" value="{{ content.raw_json.video_prompt|default:'' }}">
+        <input id="ad-video-duration" type="hidden" value="15">
+        <input id="ad-video-style-preset" type="hidden" value="modern">
 
         <!-- Paramètres Avancés de Personnalisation -->
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
           
           <!-- Durée & Preset & Musique -->
           <div class="space-y-4">
-            <div>
-              <label class="block text-xs font-extrabold text-gray-700 uppercase tracking-wider mb-2">⏱ Durée de la publicité :</label>
-              <div class="flex gap-2" id="duration-selector-container">
-                <button type="button" data-val="15" onclick="selectDuration(15, this)" class="duration-btn flex-1 py-2.5 px-3 rounded-xl text-xs font-bold border-2 border-purple-600 text-white bg-purple-600 shadow-md transition-all">15 s optimisé</button>
-              </div>
-              <input type="hidden" id="ad-video-duration" value="15">
-              <p class="text-xs text-gray-400 mt-1.5">Durée verrouillée pour accélérer la génération et réduire le coût.</p>
-            </div>
-
-            <div>
-              <label for="ad-video-style-preset" class="block text-xs font-extrabold text-gray-700 uppercase tracking-wider mb-2">✨ Preset de Style Visuel :</label>
-              <select id="ad-video-style-preset" class="w-full text-sm rounded-xl border border-gray-200 p-3 bg-gray-50 focus:bg-white focus:ring-2 focus:ring-purple-200 focus:border-purple-600 transition">
-                <option value="modern" selected>🎨 Moderne (Vibrant et dynamique)</option>
-                <option value="clean">⚪ Épuré (Minimaliste et élégant)</option>
-                <option value="premium">👑 Premium (Luxe, noir & accents dorés)</option>
-                <option value="bold">💥 Impact (Fort contraste & gros titres)</option>
-                <option value="social">📱 Social Media (Optimisé engagement)</option>
-              </select>
-            </div>
             
             <div>
               <label for="ad-video-music-style" class="block text-xs font-extrabold text-gray-700 uppercase tracking-wider mb-2">🎵 Musique de fond (Synthétisée) :</label>
@@ -511,13 +487,83 @@
           </div>
         </div>
 
+        <section class="rounded-2xl border border-purple-100 bg-white p-5 mb-6" aria-labelledby="studio-storyboard">
+          <h3 id="studio-storyboard" class="font-bold text-lg mb-2">Storyboard et aperçu</h3>
+          <p class="text-sm mb-4">Tes photos et ton prix restent au centre du montage. Vérifie les textes avant d’exporter.</p>
+          <div class="grid grid-cols-1 lg:grid-cols-[1fr_220px] gap-5">
+            <div class="grid gap-3">
+              <label>Destination
+                <select id="studio-channel" class="form-select">
+                  <option value="reels" {% if storyboard.channel == 'reels' %}selected{% endif %}>Instagram / Facebook Reels</option>
+                  <option value="tiktok" {% if storyboard.channel == 'tiktok' %}selected{% endif %}>TikTok</option>
+                  <option value="whatsapp" {% if storyboard.channel == 'whatsapp' %}selected{% endif %}>WhatsApp</option>
+                </select>
+              </label>
+              <label>Accroche <input id="studio-hook" class="form-control" maxlength="85" value="{{ storyboard.hook|default:campaign.nom_produit|truncatechars:85 }}"></label>
+              {% if source_offer %}
+                <div class="flex gap-3" aria-label="Exemples d’accroches">
+                  <button type="button" class="underline text-purple-700" data-studio-hook="{{ campaign.nom_produit|truncatechars:85 }}">Angle produit</button>
+                  <button type="button" class="underline text-purple-700" data-studio-hook="{{ campaign.prix }} · {{ campaign.nom_produit|truncatechars:30 }}">Angle prix</button>
+                </div>
+              {% endif %}
+              <label>Détail vérifié <input id="studio-detail" class="form-control" maxlength="95" value="{{ storyboard.detail|default:'' }}"></label>
+              <label>Action <input id="studio-cta" class="form-control" maxlength="45" value="{{ storyboard.cta|default:'' }}" placeholder="{% if campaign.offer_kind == 'bien' %}Demander une visite{% else %}Écrire sur WhatsApp{% endif %}"></label>
+              <label>Sous-titres <textarea id="studio-captions" class="form-control" rows="3" maxlength="1500" placeholder="0.5 - 3.2 | Une ligne par phrase">{{ editable_captions }}</textarea></label>
+              {% if can_transcribe and content.studio_voice_id %}
+                <label><input id="studio-auto-captions" type="checkbox"> Synchroniser les sous-titres avec la voix-off lors du rendu</label>
+              {% endif %}
+              {% if studio_render.payload.caption_warning %}<p role="status">{{ studio_render.payload.caption_warning }}</p>{% endif %}
+            </div>
+            <div class="mx-auto w-full" style="max-width:220px">
+              <div id="studio-phone-preview" class="relative rounded-xl overflow-hidden bg-gray-900 text-white" style="aspect-ratio:9/16">
+                <img src="{{ campaign.photo_url }}" alt="" class="absolute w-full h-full" style="object-fit:contain;inset:0">
+                <div id="studio-safe-preview" class="absolute border border-dashed border-white rounded-lg flex flex-col justify-between text-center text-xs p-2" style="background:rgba(15,23,42,.3);inset:13% 14% 25% 8%">
+                  <strong id="studio-preview-hook">{{ campaign.nom_produit }}</strong>
+                  <span><strong>{{ campaign.prix }}</strong><br><span id="studio-preview-detail"></span><br><span id="studio-preview-cta">Écrire sur WhatsApp</span></span>
+                </div>
+              </div>
+              <p class="text-xs mt-2">Cadre pointillé : zone réservée aux informations importantes.</p>
+            </div>
+          </div>
+        </section>
+        {% if cinema_enabled %}
+          <section class="rounded-2xl border border-purple-100 bg-white p-5 mb-6">
+            <h3 class="font-bold text-lg">Plan cinéma · pilote équipe</h3>
+            {% if cinema_clip.video %}
+              <video controls preload="metadata" class="mt-3 max-w-full rounded-xl" width="210" src="{% url 'adgen:studio_cinema_preview' campaign.pk %}"></video>
+            {% endif %}
+            {% if cinema_clip.state == 'approved' %}
+              <label class="block mt-3"><input id="studio-cinema-option" type="checkbox"> Insérer le plan approuvé au milieu du montage</label>
+            {% elif cinema_clip.state == 'review' %}
+              <p class="mt-2">Vérifie la forme, les couleurs et les détails de l’offre dans ce plan.</p>
+              <form method="post" action="{% url 'adgen:studio_cinema' campaign.pk %}" class="mt-2 flex gap-3">
+                {% csrf_token %}
+                <button class="underline" name="action" value="approve">Valider le plan</button>
+                <button class="underline" name="action" value="reject">Écarter le plan</button>
+              </form>
+            {% elif cinema_clip.state == 'pending' %}
+              <form method="post" action="{% url 'adgen:studio_cinema' campaign.pk %}" class="mt-2">
+                {% csrf_token %}<button class="underline" name="action" value="refresh">Actualiser l’état du plan</button>
+              </form>
+            {% elif cinema_clip %}
+              <p class="mt-2">{% if cinema_clip.state == 'submitted' %}Soumission à vérifier dans Runway.{% else %}Plan indisponible ou écarté.{% endif %} Le montage photo reste disponible.</p>
+            {% else %}
+              <form method="post" action="{% url 'adgen:studio_cinema' campaign.pk %}" class="mt-2 space-y-2">
+                {% csrf_token %}
+                <p>Runway utilise la photo principale pour créer un plan de 5 secondes.</p>
+                <label class="block"><input type="checkbox" name="accept_cost" value="yes" required> J’autorise l’envoi de la photo et le coût de {{ cinema_credits }} crédits Runway.</label>
+                <button class="underline" name="action" value="create">Générer le plan cinéma</button>
+              </form>
+            {% endif %}
+          </section>
+        {% endif %}
         <div class="mb-6 grid grid-cols-1 lg:grid-cols-[1fr_auto] gap-4 items-start">
           <div class="flex flex-col sm:flex-row gap-3">
             <button id="btn-generate-ad-video" onclick="startAdVideoGen()" class="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-8 py-3.5 rounded-xl text-sm font-bold text-white shadow-lg hover:opacity-95 transition bg-gradient-to-r from-purple-600 to-indigo-600">
-              🎥 Vidéo rapide incluse
+              Exporter cette version
             </button>
           </div>
-          <p class="text-sm text-gray-600">Un montage de 15 secondes sera consommé. Les fichiers audio déjà créés sont réutilisés.</p>
+          <p class="text-sm text-gray-600" aria-live="polite">{% if studio_render.status == 'reserved' or studio_render.status == 'running' %}En rendu{% elif content.ad_video_url %}Prêt à partager{% else %}Brouillon{% endif %} · 1 montage de 15 secondes par export</p>
         </div>
         <section class="rounded-2xl border border-purple-200 bg-purple-50 p-5 mb-6">
           <h3 class="font-bold text-lg mb-2">Voix et musique de cette publicité</h3>
@@ -531,6 +577,20 @@
           <p class="mt-4 text-sm">Anciens crédits Sora conservés : 4 s : {{ sora_wallet.credits_4s }} · 8 s : {{ sora_wallet.credits_8s }} · 12 s : {{ sora_wallet.credits_12s }}. Contactez le support pour leur traitement.</p>
           {% endif %}
         </section>
+        {% if variants %}
+          <section class="rounded-2xl border border-purple-100 bg-white p-5 mb-6">
+            <h3 class="font-bold text-lg">Comparer les versions</h3>
+            <p class="text-sm mb-3">Partage chaque vidéo avec son lien. Les résultats remontent quand le Vendeur WhatsApp de la fiche est actif.</p>
+            {% for variant in variants %}
+              <article class="border-t py-3">
+                <p class="font-semibold">{{ variant.hook }}</p>
+                <a class="underline mr-3" href="{{ variant.video }}" target="_blank" rel="noopener">Voir la vidéo</a>
+                {% if variant.link %}<a class="underline" href="{{ variant.link }}" target="_blank" rel="noopener">Lien de cette version</a>{% else %}<span>Le tarif de l’offre a changé.</span>{% endif %}
+                <p class="text-sm">{{ variant.conversations }} conversation(s) · {{ variant.paid }} commande(s) payée(s) · {{ variant.bookings }} rendez-vous confirmé(s)</p>
+              </article>
+            {% endfor %}
+          </section>
+        {% endif %}
         <div id="ad-video-wrapper">
           {% if content.ad_video_url %}
             <div class="message-video-container">
@@ -604,16 +664,6 @@
         setTimeout(() => { toast.classList.add('opacity-0'); toast.classList.remove('opacity-100'); }, 2000);
       }
     });
-  }
-
-  function selectDuration(seconds, btn) {
-    document.querySelectorAll('.duration-btn').forEach(b => {
-      b.classList.remove('border-purple-600', 'text-white', 'bg-purple-600', 'shadow-md');
-      b.classList.add('border-gray-200', 'text-gray-600', 'bg-white');
-    });
-    btn.classList.remove('border-gray-200', 'text-gray-600', 'bg-white');
-    btn.classList.add('border-purple-600', 'text-white', 'bg-purple-600', 'shadow-md');
-    document.getElementById('ad-video-duration').value = seconds;
   }
 
   function selectBgMode(mode) {
@@ -759,6 +809,24 @@
     {% endif %}
   });
 
+  const studioChannel = document.getElementById("studio-channel");
+  if (studioChannel) {
+    const studioInsets = {reels: "13% 14% 25% 8%", tiktok: "12% 18% 25% 8%", whatsapp: "8% 7% 14% 7%"};
+    const updateStudioPreview = () => {
+      document.getElementById("studio-safe-preview").style.inset = studioInsets[studioChannel.value];
+      for (const key of ["hook", "detail", "cta"]) {
+        const input = document.getElementById("studio-" + key);
+        document.getElementById("studio-preview-" + key).textContent = input.value.trim() || input.placeholder;
+      }
+    };
+    document.getElementById("studio-storyboard").closest("section").addEventListener("input", updateStudioPreview);
+    document.querySelectorAll("[data-studio-hook]").forEach(button => button.addEventListener("click", () => {
+      document.getElementById("studio-hook").value = button.dataset.studioHook.slice(0, 85);
+      updateStudioPreview();
+    }));
+    updateStudioPreview();
+  }
+
   async function startAdVideoGen(mode = "fast", soraSeconds = 4, triggerBtn = null) {
     const isSora = mode === "sora";
     const btn = triggerBtn || document.getElementById(isSora ? "btn-generate-sora-video" : "btn-generate-ad-video");
@@ -767,6 +835,7 @@
     const durationInput = document.getElementById("ad-video-duration");
     
     if (!btn || !wrapper || !promptInput || !durationInput) return;
+    const studioValue = id => document.getElementById(id)?.value || "";
  
     btn.disabled = true;
     promptInput.disabled = true;
@@ -792,6 +861,13 @@
           "X-CSRFToken": "{{ csrf_token }}",
         },
         body: JSON.stringify({
+          hook: studioValue("studio-hook"),
+          detail: studioValue("studio-detail"),
+          cta: studioValue("studio-cta"),
+          channel: studioValue("studio-channel"),
+          captions: studioValue("studio-captions"),
+          auto_captions: document.getElementById("studio-auto-captions")?.checked || false,
+          cinema: document.getElementById("studio-cinema-option")?.checked || false,
           prompt: promptInput.value,
           duration: duration,
           sora_seconds: soraSeconds,
@@ -918,6 +994,10 @@
  
         if (data.done) {
           clearInterval(interval);
+          if (operationName.startsWith("studio:")) {
+            window.location.reload();
+            return;
+          }
           const stepTitle = document.getElementById("polling-step-title");
           const stepDesc = document.getElementById("polling-step-desc");
           if (stepTitle) stepTitle.innerText = "Composition finale terminée";

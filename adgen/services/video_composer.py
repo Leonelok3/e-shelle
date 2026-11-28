@@ -7,6 +7,7 @@ import logging
 import requests
 import subprocess
 import glob
+import json
 import uuid
 import shutil
 from django.conf import settings
@@ -19,12 +20,17 @@ logger = logging.getLogger(__name__)
 class VideoComposer:
     """Orchestrateur de composition vidéo publicitaire."""
 
-    def __init__(self, campaign, duration: float = 30.0, music_style: str = "piano", bg_config: dict = None, studio_media=None):
+    def __init__(self, campaign, duration: float = 30.0, music_style: str = "piano", bg_config: dict = None, studio_media=None, storyboard=None, cinema=None, brand_logo=None):
         self.campaign = campaign
         self.duration = duration
         self.music_style = music_style
         self.bg_config = bg_config or {}
         self.studio_media = studio_media
+        self.storyboard = storyboard or {}
+        self.cinema = cinema
+        self.brand_logo = brand_logo
+        self.rendered_captions = []
+        self.caption_warning = ""
         self.render_id = uuid.uuid4().hex
         
         # Dossier de stockage temporaire
@@ -57,12 +63,16 @@ class VideoComposer:
             raise ValueError("La voix-off dépasse la durée du montage. Raccourcissez le script.")
         mixed = os.path.join(self.temp_dir, "mixed.wav")
         cmd = ["ffmpeg", "-y", "-stream_loop", "-1", "-i", audio_path, "-i", voice.audio_file.path,
-               "-filter_complex", "[0:a]volume=0.12[bed];[1:a]apad[voice];[bed][voice]amix=inputs=2:duration=longest:normalize=0,alimiter=limit=0.95[out]",
+               "-filter_complex", "[0:a]aresample=48000,volume=0.24[bed];"
+               "[1:a]aresample=48000,apad,asplit=2[key][voice];"
+               "[bed][key]sidechaincompress=threshold=0.025:ratio=8:attack=25:release=250[duck];"
+               "[duck][voice]amix=inputs=2:duration=first:normalize=0,alimiter=limit=0.95[out]",
                "-map", "[out]", "-t", str(self.duration), mixed]
         result = subprocess.run(cmd, capture_output=True, text=True, timeout=60)
         if result.returncode:
             raise RuntimeError("Le mixage de la voix-off a échoué.")
         os.replace(mixed, audio_path)
+        return voice
 
     def compose(self, silent_video_url: str) -> str:
         """
@@ -252,6 +262,7 @@ class VideoComposer:
         audio_path = ""
         bg_image_path = ""
         product_scene_paths = []
+        output_filepath = ""
 
         try:
             logger.info(f"[VideoComposer] Début composition photo rapide pour la campagne #{self.campaign.pk} ({self.duration}s)")
@@ -261,14 +272,26 @@ class VideoComposer:
 
             audio_path = os.path.join(self.temp_dir, f"audio_{self.campaign.pk}.wav")
             generate_ad_music(audio_path, duration=self.duration, style=self.music_style)
-            self.prepare_studio_audio(audio_path)
+            voice = self.prepare_studio_audio(audio_path)
 
             planner = TimelinePlanner(self.campaign, duration=int(self.duration))
             timeline = planner.get_timeline()
             content_data = planner.get_content_data()
+            content_data.update({key: self.storyboard[key] for key in ("hook", "cta", "detail", "channel", "captions") if key in self.storyboard})
+            if voice and self.storyboard.get("auto_captions") and not content_data.get("captions"):
+                from .studio_storyboard import transcribe_captions
+                try:
+                    content_data["captions"] = transcribe_captions(voice, self.duration)
+                except Exception:
+                    logger.warning("Échec des sous-titres AdGen pour la campagne %s", self.campaign.pk)
+                if not content_data.get("captions"):
+                    self.caption_warning = "Sous-titres automatiques indisponibles. Tu peux ajouter les timecodes manuellement."
+            self.rendered_captions = content_data.get("captions", [])
 
             bg_image_path = os.path.join(self.temp_dir, f"bg_{fast_width}_{fast_height}_{self.campaign.pk}.jpg")
             self.generate_background_image(bg_image_path, width=fast_width, height=fast_height)
+            if self.brand_logo:
+                content_data["has_logo"] = self.stamp_logo(bg_image_path, content_data.get("channel", "reels"))
             bg_image_rel = self._ffmpeg_relative_path(bg_image_path)
 
             product_scene_paths = self.generate_product_scene_images(width=fast_width, height=scene_height)
@@ -276,6 +299,15 @@ class VideoComposer:
                 raise RuntimeError("Ajoutez au moins une photo du produit pour générer une vidéo rapide.")
 
             product_scene_rels = [self._ffmpeg_relative_path(scene_path) for scene_path in product_scene_paths]
+            if len(product_scene_rels) == 1:
+                product_scene_rels *= 3
+            cinema_index = None
+            if self.cinema:
+                clip_path = os.path.join(self.temp_dir, "cinema.mp4")
+                with self.cinema.open("rb") as source, open(clip_path, "wb") as target:
+                    shutil.copyfileobj(source, target)
+                product_scene_rels = [product_scene_rels[0], self._ffmpeg_relative_path(clip_path), product_scene_rels[-1]]
+                cinema_index = 1
 
             font_path = get_premium_font()
             filter_gen = FFmpegFilterGenerator(self.temp_dir, self.campaign.pk, font_path)
@@ -287,6 +319,7 @@ class VideoComposer:
                 product_scene_count=len(product_scene_rels),
                 width=fast_width,
                 height=fast_height,
+                cinema_index=cinema_index,
             )
 
             output_filename = f"ad_video_{self.campaign.pk}_{self.render_id}.mp4"
@@ -295,16 +328,17 @@ class VideoComposer:
             cmd = [
                 "ffmpeg",
                 "-y",
+                "-stream_loop", "-1",
                 "-i", audio_path,
                 "-loop", "1",
                 "-i", bg_image_rel,
             ]
-            for scene_rel in product_scene_rels:
-                cmd.extend(["-loop", "1", "-i", scene_rel])
+            for index, scene_rel in enumerate(product_scene_rels):
+                cmd.extend(["-stream_loop", "-1", "-i", scene_rel] if index == cinema_index else ["-loop", "1", "-i", scene_rel])
 
             cmd.extend([
                 "-filter_complex", vf_chain,
-                "-filter:a", f"afade=t=out:st={self.duration - 1.5}:d=1.5",
+                "-filter:a", f"loudnorm=I=-16:TP=-1.5:LRA=11,afade=t=out:st={max(0, self.duration - .25)}:d=0.25",
                 "-map", "[outv]",
                 "-map", "0:a",
                 "-c:v", "libx264",
@@ -314,6 +348,7 @@ class VideoComposer:
                 "-crf", "21",
                 "-c:a", "aac",
                 "-b:a", "128k",
+                "-ar", "48000",
                 "-t", str(self.duration),
                 "-shortest",
                 "-movflags", "+faststart",
@@ -325,6 +360,16 @@ class VideoComposer:
             if res.returncode != 0:
                 logger.error(f"[VideoComposer] Échec FFmpeg rapide: {res.stderr}")
                 raise RuntimeError("FFmpeg n'a pas pu finaliser la vidéo. Veuillez réessayer avec une autre photo produit.")
+            probe = subprocess.run(
+                ["ffprobe", "-v", "error", "-show_entries", "stream=codec_type,width,height:format=duration", "-of", "json", output_filepath],
+                check=True, capture_output=True, text=True, timeout=15,
+            )
+            result = json.loads(probe.stdout)
+            video = next((stream for stream in result["streams"] if stream["codec_type"] == "video"), {})
+            if ((video.get("width"), video.get("height")) != (fast_width, fast_height)
+                    or not any(stream["codec_type"] == "audio" for stream in result["streams"])
+                    or abs(float(result["format"]["duration"]) - self.duration) > .25):
+                raise RuntimeError("Le fichier exporté ne correspond pas au format du montage.")
 
             try:
                 os.chmod(output_filepath, 0o644)
@@ -340,6 +385,8 @@ class VideoComposer:
             return final_url
         except Exception as e:
             logger.error(f"[VideoComposer] Erreur de composition photo rapide : {e}")
+            if output_filepath and os.path.isfile(output_filepath):
+                os.remove(output_filepath)
             raise
         finally:
             for file_path in [audio_path, bg_image_path, *product_scene_paths]:
@@ -348,10 +395,28 @@ class VideoComposer:
                         os.remove(file_path)
                 except Exception:
                     pass
+            shutil.rmtree(self.temp_dir, ignore_errors=True)
             try:
                 self.cleanup_temp_files({})
             except Exception:
                 pass
+
+    def stamp_logo(self, path, channel):
+        from PIL import Image
+        from .ffmpeg_filters import SAFE_ZONES
+
+        try:
+            with self.brand_logo.open("rb") as stream, Image.open(stream) as logo_image, Image.open(path) as background:
+                canvas = background.convert("RGBA")
+                logo = logo_image.convert("RGBA")
+                logo.thumbnail((int(canvas.width * .13), int(canvas.height * .032)))
+                left, top, _, _ = SAFE_ZONES[channel]
+                canvas.alpha_composite(logo, (int(canvas.width * left), int(canvas.height * top)))
+            canvas.convert("RGB").save(path, format="JPEG", quality=93)
+            return True
+        except OSError:
+            logger.warning("Logo indisponible pour le montage %s", self.campaign.pk)
+            return False
 
     def cleanup_temp_files(self, content_data: dict):
         """Supprime tous les fichiers texte temporaires écrits pour FFmpeg."""

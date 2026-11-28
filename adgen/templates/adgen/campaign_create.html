@@ -136,8 +136,23 @@
     <p class="text-gray-400 mt-1.5">Renseignez votre produit, choisissez les modules, et l'IA génère votre contenu.</p>
   </div>
 
+  {% if offers %}
+  <form method="get" class="bg-white rounded-2xl border border-gray-100 p-5 mb-5 flex flex-wrap items-end gap-3">
+    <label for="adgen-offer" class="grid gap-1 font-semibold">Partir d’une offre E-Shelle
+      <select name="offer" id="adgen-offer" class="form-select">
+        <option value="">Choisir une offre publiée</option>
+        {% for offer in offers %}<option value="{{ offer.key }}"{% if offer.key == selected_offer.key %} selected{% endif %}>{{ offer.title }} · {{ offer.business.display_name }}</option>{% endfor %}
+      </select>
+    </label>
+    <button class="bg-purple-700 text-white rounded-xl px-4 py-2">Reprendre l’offre</button>
+  </form>
+  {% endif %}
   <form method="post" id="campaignForm" enctype="multipart/form-data" novalidate>
     {% csrf_token %}
+    {% if selected_offer %}
+      <input type="hidden" name="offer" value="{{ selected_offer.key }}">
+      <p class="text-sm text-purple-800 mb-4">Les photos de l’offre sont reprises automatiquement si tu ne les remplaces pas.</p>
+    {% endif %}
 
     <!-- Étape 1 -->
     <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 sm:p-8 mb-5">
@@ -288,7 +303,7 @@
     <!-- Submit -->
     <div class="flex flex-col sm:flex-row items-center justify-between gap-4 bg-gray-50 rounded-2xl p-5 border border-gray-100">
       <div class="text-sm text-gray-400 text-center sm:text-left">
-        <span class="font-semibold text-gray-600">15 secondes</span> de vidéo finale · Propulsé par Gemini & OpenAI Sora
+        <span class="font-semibold text-gray-600">15 secondes</span> · Montage vertical à partir de vos médias
       </div>
       <button type="submit" id="submitBtn"
               class="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-8 py-3.5 rounded-xl font-bold text-base text-white shadow-lg hover:opacity-90 hover:scale-[1.02] active:scale-100 transition-all"

@@ -10,6 +10,7 @@ import struct
 from unittest import skipUnless
 from datetime import timedelta
 from pathlib import Path
+from types import SimpleNamespace
 from unittest.mock import patch
 
 from django.contrib.auth import get_user_model
@@ -22,7 +23,7 @@ from PIL import Image
 from accounts.models import AppPlan, AppSubscription
 from audio_studio.forms import VoiceOverForm
 from audio_studio.models import VoiceOverJob, MusicTrackJob
-from adgen.models import AdCampaign, AdContent, StudioUsage
+from adgen.models import AdCampaign, AdCinemaClip, AdContent, StudioUsage
 from adgen.services.studio_usage import reserve, finish, limits_for, usage_for, StudioLimitError
 
 
@@ -160,6 +161,54 @@ class StudioTests(TestCase):
         second = self.client.post(reverse("adgen:api_generate_video_start", args=[self.campaign.pk]), "{}", content_type="application/json")
         self.assertEqual(second.status_code, 429)
 
+    def test_storyboard_is_validated_before_spending_an_export(self):
+        url = reverse("adgen:api_generate_video_start", args=[self.campaign.pk])
+        bad = {"channel": "tiktok", "captions": "1 - 2 | Angle A\n1.5 - 3 | Chevauchement"}
+        self.assertEqual(self.client.post(url, bad, content_type="application/json").status_code, 400)
+        self.assertFalse(StudioUsage.objects.exists())
+        with patch("adgen.studio_views.start_render"):
+            response = self.client.post(url, {"channel": "tiktok", "hook": "Angle A", "captions": "0 - 3 | 100 % coton"},
+                                        content_type="application/json")
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(StudioUsage.objects.get().payload["storyboard"]["captions"], [[0.0, 3.0, "100 % coton"]])
+
+    @override_settings(OPENAI_API_KEY="test-key")
+    def test_transcript_turns_word_times_into_editable_caption_cues(self):
+        from adgen.services.studio_storyboard import transcribe_captions
+
+        audio = SimpleNamespace(name="narration.wav", open=lambda mode: io.BytesIO(b"test"))
+        with patch("openai.OpenAI") as provider:
+            transcribe = provider.return_value.audio.transcriptions.create
+            transcribe.return_value = SimpleNamespace(words=[
+                SimpleNamespace(start=.1, end=.4, word="Bonjour"),
+                SimpleNamespace(start=.42, end=.8, word="Douala"),
+                SimpleNamespace(start=1.5, end=1.7, word="Découvrez"),
+            ])
+            self.assertEqual(transcribe_captions(SimpleNamespace(audio_file=audio), 15),
+                             [[.1, .8, "Bonjour Douala"], [1.5, 1.7, "Découvrez"]])
+            self.assertEqual(transcribe.call_args.kwargs["file"], ("narration.wav", b"test"))
+
+    @override_settings(ADGEN_RUNWAY_API_KEY="test-key")
+    def test_cinema_requires_staff_cost_consent_and_review(self):
+        url = reverse("adgen:studio_cinema", args=[self.campaign.pk])
+        with patch("adgen.studio_views.studio_cinema._photo_payload", return_value="test"), patch("adgen.studio_views.studio_cinema.start_clip") as start:
+            self.assertEqual(self.client.post(url, {"action": "create", "accept_cost": "yes"}).status_code, 404)
+            self.user.is_staff = True
+            self.user.save(update_fields=["is_staff"])
+            self.client.post(url, {"action": "create"})
+            start.assert_not_called()
+            self.client.post(url, {"action": "create", "accept_cost": "yes"})
+            self.client.post(url, {"action": "create", "accept_cost": "yes"})
+            start.assert_called_once()
+        clip = AdCinemaClip.objects.get()
+        render = reverse("adgen:api_generate_video_start", args=[self.campaign.pk])
+        self.assertEqual(self.client.post(render, {"cinema": True}, content_type="application/json").status_code, 400)
+        clip.state, clip.video = "review", "adgen/cinema/test.mp4"
+        clip.save(update_fields=["state", "video"])
+        self.client.post(url, {"action": "approve"})
+        self.assertEqual(self.client.post(render, {"cinema": True}, content_type="application/json").status_code, 200)
+        self.assertEqual(StudioUsage.objects.get().payload["cinema_id"], clip.pk)
+
     def test_poll_cannot_use_unrelated_operation(self):
         job = StudioUsage.objects.create(user=self.other, campaign=self.campaign, resource="video", request_key="other")
         response = self.client.get(reverse("adgen:api_generate_video_poll", args=[self.campaign.pk]), {"operation_name": f"studio:{job.pk}"})
@@ -211,11 +260,17 @@ class StudioTests(TestCase):
             self.content.studio_voice = voice
             self.content.save()
             self.campaign.refresh_from_db()
-            composer = VideoComposer(self.campaign, duration=3)
+            composer = VideoComposer(self.campaign, duration=15, storyboard={"captions": [[0, 1.5, "100 % coton"]]})
             url = composer.compose_from_photos()
             target = Path(directory) / url.removeprefix("/media/")
             self.assertTrue(target.is_file())
-            self.assertAlmostEqual(audio_duration(target), 3, delta=.3)
+            self.assertAlmostEqual(audio_duration(target), 15, delta=.3)
+            for moment in (1, 7, 13):
+                pixel = subprocess.check_output([
+                    "ffmpeg", "-v", "error", "-ss", str(moment), "-i", str(target), "-vf",
+                    "crop=2:2:180:320,format=rgb24", "-frames:v", "1", "-f", "rawvideo", "-",
+                ], timeout=20)
+                self.assertGreater(pixel[2], 110, f"La photo disparaît à {moment} s.")
             decoded = subprocess.run(["ffmpeg", "-v", "error", "-i", str(target), "-ss", "0.2", "-t", "0.5", "-f", "s16le", "-ac", "1", "-ar", str(rate), "-"], capture_output=True, check=True, timeout=30).stdout
             values = struct.unpack("<" + "h" * (len(decoded) // 2), decoded)
             def energy(freq):

@@ -3,12 +3,6 @@
 {% block title %}AdGen — Tableau de bord{% endblock %}
 
 {% block adgen_content %}
-{% include "adgen/studio_usage.html" %}
-<div class="max-w-7xl mx-auto px-4 pb-5 flex flex-wrap gap-3">
-  <a class="rounded-xl bg-purple-700 text-white px-5 py-3 font-bold" href="{% url 'adgen:studio_audio' %}">Créer une voix-off ou une ambiance</a>
-  <p class="self-center text-gray-600">Vos textes, vos voix et vos vidéos réunis dans AdGen Studio.</p>
-</div>
-
 <!-- Hero header -->
 <div class="adgen-hero-bg text-white px-4 py-10 sm:py-14">
   <div class="max-w-7xl mx-auto">
@@ -20,7 +14,7 @@
       <a href="{% url 'adgen:create' %}"
          class="inline-flex items-center gap-2 px-6 py-3 rounded-2xl font-bold text-base shadow-xl hover:scale-105 transition-transform flex-shrink-0"
          style="background:var(--adgen-accent);color:#111">
-        ✨ Nouvelle campagne
+        Créer une vidéo
       </a>
     </div>
 
@@ -32,15 +26,15 @@
       </div>
       <div class="glass-card px-5 py-4">
         <div class="text-3xl font-black text-green-300">{{ done }}</div>
-        <div class="text-white/70 text-sm mt-0.5">Générées</div>
+        <div class="text-white/70 text-sm mt-0.5">Campagnes avec contenu</div>
       </div>
       <div class="glass-card px-5 py-4">
         <div class="text-3xl font-black" style="color:var(--adgen-accent)">{{ studio_voice_count|default:0 }}</div>
         <div class="text-white/70 text-sm mt-0.5">Voix-off prêtes</div>
       </div>
       <div class="glass-card px-5 py-4">
-        <div class="text-lg font-black text-blue-300">{{ studio_subscription.plan.name|default:"Équipe E-Shelle" }}</div>
-        <div class="text-white/70 text-sm mt-0.5">Accès payant actif</div>
+        <div class="text-lg font-black text-white">{% if user.is_staff or user.is_superuser %}Accès équipe{% else %}{{ studio_subscription.plan.name|default:"Essai Studio" }}{% endif %}</div>
+        <a class="text-white/80 text-sm underline" href="{% url 'adgen:studio_pricing' %}">Abonnement et utilisation</a>
       </div>
     </div>
   </div>

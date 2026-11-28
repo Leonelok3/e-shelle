@@ -97,6 +97,8 @@ class AdCampaign(models.Model):
     ville            = models.CharField(max_length=80, blank=True, verbose_name="Ville cible")
     modules_selected = models.JSONField(default=list, verbose_name="Modules sélectionnés")
     status           = models.CharField(max_length=15, choices=STATUS_CHOICES, default="pending")
+    offer_kind       = models.CharField(max_length=10, blank=True)
+    offer_id         = models.PositiveBigIntegerField(null=True, blank=True)
     created_at       = models.DateTimeField(auto_now_add=True)
     updated_at       = models.DateTimeField(auto_now=True)
 
@@ -138,6 +140,14 @@ class AdCampaign(models.Model):
             if image:
                 photos.append(image)
         return photos
+
+
+class AdCinemaClip(models.Model):
+    campaign = models.OneToOneField(AdCampaign, on_delete=models.CASCADE, related_name="cinema_clip")
+    task_id = models.UUIDField(null=True, blank=True)
+    state = models.CharField(max_length=16, default="submitted")
+    video = models.FileField(upload_to="adgen/cinema/", blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
 
 
 class AdContent(models.Model):

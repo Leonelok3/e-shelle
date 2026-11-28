@@ -101,6 +101,11 @@ class CampaignCreateView(PaidAdGenRequiredMixin, UsageLimitMixin, CreateView):
     form_class    = CampaignForm
     template_name = "adgen/campaign_create.html"
 
+    def get_offer(self):
+        from .services.studio_offers import owned_offers
+        key = self.request.POST.get("offer") if self.request.method == "POST" else self.request.GET.get("offer")
+        return next(iter(owned_offers(self.request.user, key)), None) if key else None
+
     def get_initial(self):
         initial = super().get_initial()
         allowed = {"nom_produit", "description", "prix", "cible", "ville"}
@@ -111,11 +116,29 @@ class CampaignCreateView(PaidAdGenRequiredMixin, UsageLimitMixin, CreateView):
         if self.request.GET.get("source") == "arsenal_ia":
             initial.setdefault("prix", "A confirmer")
             initial.setdefault("cible", "Clients locaux")
+        offer = self.get_offer()
+        if offer:
+            description = offer.description.strip()
+            if len(description) < 20:
+                description = f"{offer.title}. Offre proposée par {offer.business.display_name}."
+            initial.update(nom_produit=offer.title, description=description[:2000], prix=offer.price[:50],
+                           cible=offer.business.clean_whatsapp_number or "Voir la fiche E-Shelle")
+            if offer.city.lower() in dict(self.form_class.base_fields["ville"].choices):
+                initial["ville"] = offer.city.lower()
         return initial
+
+    def get_form(self, form_class=None):
+        form = super().get_form(form_class)
+        if self.get_offer():
+            form.fields["prix"].widget.attrs["readonly"] = True
+        return form
 
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
         ctx["modules"] = AdModule.get_active_modules()
+        from .services.studio_offers import owned_offers
+        ctx["offers"] = owned_offers(self.request.user)
+        ctx["selected_offer"] = self.get_offer()
         return ctx
 
     def form_valid(self, form):
@@ -134,6 +157,22 @@ class CampaignCreateView(PaidAdGenRequiredMixin, UsageLimitMixin, CreateView):
         campaign = form.save(commit=False)
         campaign.user = self.request.user
         campaign.modules_selected = modules_selected
+        if self.request.POST.get("offer"):
+            from .services.studio_offers import copy_offer_photos
+            offer = self.get_offer()
+            if not offer:
+                form.add_error(None, "Cette offre n’est plus disponible sur une de tes fiches publiques.")
+                return self.form_invalid(form)
+            if len(offer.price) > 50:
+                form.add_error("prix", "Le tarif de cette offre est trop long. Raccourcis-le dans le catalogue.")
+                return self.form_invalid(form)
+            campaign.offer_kind, campaign.offer_id = offer.kind, offer.pk
+            campaign.prix = offer.price
+            try:
+                copy_offer_photos(offer, campaign)
+            except (OSError, ValueError) as exc:
+                form.add_error(None, str(exc) if isinstance(exc, ValueError) else "Une photo de l’offre est indisponible.")
+                return self.form_invalid(form)
         campaign.save()
 
         messages.success(self.request, "Campagne créée. Génération en cours...")
@@ -178,7 +217,20 @@ class CampaignDetailView(PaidAdGenRequiredMixin, DetailView):
             "music": content.studio_music_id if content else None,
         })
         from .models import StudioUsage
-        ctx["studio_render"] = StudioUsage.objects.filter(campaign=self.object, resource="video").order_by("-pk").first()
+        from .services.studio_storyboard import transcription_available
+        from .services.studio_offers import source_for, variant_summary
+        jobs = StudioUsage.objects.filter(campaign=self.object, resource="video").order_by("-pk")
+        ctx["studio_render"] = job = jobs.first()
+        ctx["storyboard"] = storyboard = job.payload.get("storyboard", {}) if job else {}
+        ctx["editable_captions"] = "\n".join(f"{start} - {end} | {line}" for start, end, line in storyboard.get("captions", []))
+        ctx["can_transcribe"] = transcription_available()
+        ctx["source_offer"] = offer = source_for(self.object)
+        ctx["variants"] = variant_summary(offer, jobs) if offer else []
+        from .services import studio_cinema
+        if self.request.user.is_staff and studio_cinema.enabled():
+            ctx["cinema_enabled"] = True
+            ctx["cinema_credits"] = studio_cinema.PROVIDER_COST_CREDITS
+            ctx["cinema_clip"] = getattr(self.object, "cinema_clip", None)
         return ctx
 
 
@@ -493,6 +545,7 @@ def get_premium_font() -> str:
     from django.conf import settings
 
     system_fonts = [
+        os.path.join(os.environ.get("WINDIR", r"C:\Windows"), "Fonts", "arialbd.ttf"),
         "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf",
         "/usr/share/fonts/truetype/liberation2/LiberationSans-Bold.ttf",
         "/usr/share/fonts/truetype/ubuntu/Ubuntu-B.ttf",

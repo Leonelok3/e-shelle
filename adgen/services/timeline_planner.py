@@ -81,15 +81,6 @@ class TimelinePlanner:
                 if len(p) > 10:
                     clean_benefits.append(p[:40])
         
-        # S'assurer d'avoir au moins 3 éléments
-        while len(clean_benefits) < 3:
-            if len(clean_benefits) == 0:
-                clean_benefits.append("Qualité supérieure garantie")
-            elif len(clean_benefits) == 1:
-                clean_benefits.append("Satisfaction client garantie")
-            else:
-                clean_benefits.append("Prise de contact rapide")
-
         # Garder uniquement les 3 premiers
         clean_benefits = clean_benefits[:3]
 

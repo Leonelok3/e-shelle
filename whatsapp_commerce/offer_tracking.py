@@ -58,10 +58,17 @@ def _source_campaign(request, business_id, kind, offer_id):
 def offer_whatsapp_url(request, connection, *, message, item=None, listing=None):
     purposes = (request.headers.get("Sec-Purpose", "") + " " + request.headers.get("Purpose", "")).lower()
     if "prefetch" not in purposes and "prerender" not in purposes:
+        kind, offer_id = ("bien" if listing else "article"), (listing or item).pk
+        campaign = _source_campaign(request, connection.business_id, kind, offer_id)
+        adgen_render = None
+        token = request.GET.get("campagne", "")[:512]
+        if token and not campaign:
+            from adgen.services.studio_offers import resolve_variant
+            adgen_render = resolve_variant(token, connection.business_id, kind, offer_id)
         click = WhatsAppOfferClick.objects.create(
             connection=connection, phone_number_id=connection.phone_number_id,
             catalog_item=item, property_listing=listing,
-            campaign=_source_campaign(request, connection.business_id, "bien" if listing else "article", (listing or item).pk),
+            campaign=campaign, adgen_render=adgen_render,
         )
         message = f"{message} [ES-{click.reference.hex}]"
     phone = normalize_phone(connection.display_phone_number).lstrip("+")

@@ -358,6 +358,7 @@ class WhatsAppOfferClick(models.Model):
 	property_listing = models.ForeignKey("immobilier_cameroun.Bien", null=True, blank=True, on_delete=models.CASCADE)
 	entry_message = models.OneToOneField(BusinessWhatsAppMessage, null=True, blank=True, on_delete=models.SET_NULL)
 	campaign = models.ForeignKey("whatsapp_agent.Campagne", null=True, blank=True, on_delete=models.SET_NULL)
+	adgen_render = models.ForeignKey("adgen.StudioUsage", null=True, blank=True, on_delete=models.SET_NULL)
 	created_at = models.DateTimeField(auto_now_add=True)
 
 	class Meta:

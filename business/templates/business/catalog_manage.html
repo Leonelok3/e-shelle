@@ -201,6 +201,7 @@
           <div class="catalog-item-actions">
             {% if item.stock_quantity > 50 %}<span class="njangi-badge">{% if LANGUAGE_CODE == 'en' %}Lancer en Njangi{% else %}Lancer en Njangi{% endif %}</span>{% endif %}
             <a href="{% url 'business:catalog_item_edit' business.id item.id %}" style="display:inline-flex;align-items:center;justify-content:center;min-height:38px;padding:.55rem .75rem;border-radius:9px;border:1px solid rgba(124,246,108,.25);background:#101c33;color:#fff;font-weight:900;text-decoration:none;cursor:pointer">{% if LANGUAGE_CODE == 'en' %}Edit{% else %}Modifier{% endif %}</a>
+            {% if business.is_published and item.is_active %}<a href="{% url 'adgen:create' %}?offer=article-{{ item.pk }}" class="btn btn-sm btn-outline-secondary">{% if LANGUAGE_CODE == 'en' %}Create a video{% else %}Créer une vidéo{% endif %}</a>{% endif %}
             <form method="post" action="{% url 'business:catalog_item_action' business.id item.id %}">
               {% csrf_token %}
               <input type="hidden" name="action" value="toggle">
